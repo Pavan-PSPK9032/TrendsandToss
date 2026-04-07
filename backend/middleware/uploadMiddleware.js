@@ -31,7 +31,7 @@ if (process.env.NODE_ENV === 'production') {
 
 export const upload = multer({ 
   storage, 
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpg|jpeg|png|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
