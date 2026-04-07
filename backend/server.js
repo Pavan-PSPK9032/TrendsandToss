@@ -9,7 +9,7 @@ import productRoutes from './routes/productRoutes.js';
 import cartRoutes from './routes/cartRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-import { upload } from './middleware/uploadMiddleware.js';
+import shippingRoutes from './routes/shippingRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,33 +18,42 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+// CORS Configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || true, // Allow all origins for development
-  credentials: true
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Handle Cloudinary uploads if needed
-app.post('/upload', upload.single('image'), (req, res) => {
-  // Cloudinary upload logic
-  res.json({ url: req.file.path });
-});
-
-// Route handlers (API)
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/shipping', require('./routes/shippingRoutes').default);
+app.use('/api/shipping', shippingRoutes);
 
-// Serve frontend build files (Production Only)
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(process.cwd(), 'frontend/dist/index.html'));
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Server is running' });
 });
 
-const PORT = process.env.PORT || 443; // Vercel uses 443 for HTTPS
-app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`🌍 Frontend URL: ${process.env.FRONTEND_URL}`);
+});
