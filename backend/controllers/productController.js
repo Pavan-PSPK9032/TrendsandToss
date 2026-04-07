@@ -1,5 +1,4 @@
 import Product from '../models/Product.js';
-import cloudinary from '../config/cloudinary.js';
 
 // GET all products with search, filter, pagination
 export const getProducts = async (req, res) => {
@@ -49,32 +48,13 @@ export const getProductById = async (req, res) => {
   }
 };
 
-// CREATE product (Cloudinary for production, local for dev)
+// CREATE product (Local storage only - NO Cloudinary)
 export const createProduct = async (req, res) => {
   try {
     const { name, description, price, category, stock } = req.body;
     
-    // Handle image uploads
-    let images = [];
-    
-    if (req.files && req.files.length > 0) {
-      if (process.env.NODE_ENV === 'production') {
-        // Upload to Cloudinary
-        for (const file of req.files) {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: 'trendsandtoss-products',
-            width: 800,
-            height: 800,
-            crop: 'limit',
-            quality: 'auto'
-          });
-          images.push(result.secure_url);
-        }
-      } else {
-        // Local storage for development
-        images = req.files.map(file => `/uploads/${file.filename}`);
-      }
-    }
+    // Handle image uploads - Local storage only
+    const images = req.files?.map(file => `/uploads/${file.filename}`) || [];
     
     const product = await Product.create({
       name,
@@ -105,23 +85,8 @@ export const updateProduct = async (req, res) => {
     
     // Add new uploads if any
     if (req.files && req.files.length > 0) {
-      if (process.env.NODE_ENV === 'production') {
-        // Upload new images to Cloudinary
-        for (const file of req.files) {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: 'trendsandtoss-products',
-            width: 800,
-            height: 800,
-            crop: 'limit',
-            quality: 'auto'
-          });
-          images.push(result.secure_url);
-        }
-      } else {
-        // Local storage for development
-        const newImages = req.files.map(file => `/uploads/${file.filename}`);
-        images = [...images, ...newImages];
-      }
+      const newImages = req.files.map(file => `/uploads/${file.filename}`);
+      images = [...images, ...newImages];
     }
     
     // Limit to 3 images max
@@ -147,24 +112,11 @@ export const updateProduct = async (req, res) => {
   }
 };
 
-// DELETE product (also delete images from Cloudinary in production)
+// DELETE product
 export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
-    
-    // Delete images from Cloudinary in production
-    if (process.env.NODE_ENV === 'production' && product.images?.length > 0) {
-      for (const imageUrl of product.images) {
-        // Extract public_id from Cloudinary URL
-        const publicId = imageUrl.split('/').pop().split('.')[0];
-        try {
-          await cloudinary.uploader.destroy(`trendsandtoss-products/${publicId}`);
-        } catch (err) {
-          console.warn('Failed to delete image from Cloudinary:', publicId);
-        }
-      }
-    }
     
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: 'Product deleted successfully' });
