@@ -19,14 +19,20 @@ connectDB();
 
 const app = express();
 
-// CORS Configuration
+// 🔥 CORS CONFIGURATION - THIS IS THE FIX! 🔥
 app.use(cors({
-  origin: ['https://trendsand-toss.vercel.app', 'http://localhost:5173', '*'],
+  origin: [
+    'https://trendsand-toss.vercel.app',
+    'https://trendsandtoss.vercel.app',
+    'http://localhost:5173',
+    '*'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   optionsSuccessStatus: 200
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -43,7 +49,11 @@ app.use('/api/shipping', shippingRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Server is running' });
+  res.json({ 
+    status: 'OK', 
+    message: 'Server is running',
+    cors: 'enabled'
+  });
 });
 
 // Error handling middleware
@@ -56,4 +66,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`🌍 Frontend URL: ${process.env.FRONTEND_URL}`);
+  console.log(`🔓 CORS enabled for Vercel`);
 });
