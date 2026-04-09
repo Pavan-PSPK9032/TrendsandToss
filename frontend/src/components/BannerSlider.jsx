@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 
 // 🔧 CONFIGURE YOUR BANNERS HERE - Add/Edit/Remove easily
 const BANNERS = [
@@ -96,12 +97,12 @@ export default function BannerSlider() {
               <p className="text-slate-300 text-lg sm:text-xl font-light mb-8 max-w-xl mx-auto">
                 {banner.subtitle}
               </p>
-              <a
-                href={banner.ctaLink}
+              <Link
+                to={banner.ctaLink}
                 className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-medium px-8 py-3 rounded-full transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 {banner.ctaText} →
-              </a>
+              </Link>
             </div>
           </div>
         </div>
