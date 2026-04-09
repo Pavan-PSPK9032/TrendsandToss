@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { getImageUrl } from '../utils/imageHelper';
 
 export default function ProductCard({ product }) {
   const [currentImg, setCurrentImg] = useState(0);
@@ -8,7 +9,7 @@ export default function ProductCard({ product }) {
     <div className="border rounded-lg p-4 shadow hover:shadow-xl transition relative group">
       <div className="relative h-48 mb-2 overflow-hidden">
         {product.images.map((img, i) => (
-          <img key={i} src={img} className={`absolute inset-0 w-full h-full object-contain transition-opacity ${i === currentImg ? 'opacity-100' : 'opacity-0 group-hover:opacity-0'}`} />
+          <img key={i} src={getImageUrl(img)} className={`absolute inset-0 w-full h-full object-contain transition-opacity ${i === currentImg ? 'opacity-100' : 'opacity-0 group-hover:opacity-0'}`} />
         ))}
         {/* Hover dots */}
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
