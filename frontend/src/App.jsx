@@ -36,6 +36,7 @@ function App() {
             </Link>
             <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-sm font-medium tracking-wide">
               <Link to="/" className="hover:text-amber-400 transition-colors">Home</Link>
+              <Link to="/products" className="hover:text-amber-400 transition-colors">Products</Link>
               <Link to="/cart" className="hover:text-amber-400 transition-colors">Cart</Link>
               <Link to="/admin" className="hover:text-amber-400 transition-colors">Admin</Link>
               <Link to="/login" className="hover:text-amber-400 transition-colors">Login</Link>
@@ -47,6 +48,7 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Home />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
