@@ -68,11 +68,6 @@ export default function Login() {
         <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
           Login
         </button>
-        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
-          <p className="font-semibold text-yellow-800">🔑 Admin Credentials:</p>
-          <p className="text-yellow-700">Email: admin@trendsandtoss.com</p>
-          <p className="text-yellow-700">Password: Admin@2024Secure</p>
-        </div>
         <p className="mt-4 text-center">
           Don't have an account? <Link to="/register" className="text-blue-600">Register</Link>
         </p>

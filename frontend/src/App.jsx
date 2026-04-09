@@ -38,7 +38,6 @@ function App() {
               <Link to="/" className="hover:text-amber-400 transition-colors">Home</Link>
               <Link to="/products" className="hover:text-amber-400 transition-colors">Products</Link>
               <Link to="/cart" className="hover:text-amber-400 transition-colors">Cart</Link>
-              <Link to="/admin" className="hover:text-amber-400 transition-colors">Admin</Link>
               <Link to="/login" className="hover:text-amber-400 transition-colors">Login</Link>
               <Link to="/register" className="text-amber-400 hover:text-amber-300 transition-colors">Register</Link>
             </div>

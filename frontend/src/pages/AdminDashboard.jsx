@@ -21,6 +21,15 @@ export default function AdminDashboard() {
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
+  
+  // Admin management state
+  const [admins, setAdmins] = useState([]);
+  const [showAdminForm, setShowAdminForm] = useState(false);
+  const [adminFormData, setAdminFormData] = useState({
+    name: '',
+    email: '',
+    password: ''
+  });
 
   const navigate = useNavigate();
 
@@ -28,6 +37,8 @@ export default function AdminDashboard() {
     checkAdmin();
     if (activeTab === 'products') {
       fetchProducts();
+    } else if (activeTab === 'admins') {
+      fetchAdmins();
     }
   }, [activeTab]);
 
@@ -125,6 +136,55 @@ export default function AdminDashboard() {
     setImagePreviews([]);
     setEditingProduct(null);
     setShowForm(false);
+  };
+
+  // Admin management functions
+  const fetchAdmins = async () => {
+    try {
+      const { data } = await api.get('/admin/users');
+      setAdmins(data.filter(user => user.role === 'admin'));
+    } catch (err) {
+      toast.error('Failed to fetch admins');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateAdmin = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/admin/users', {
+        ...adminFormData,
+        role: 'admin'
+      });
+      toast.success('New admin created successfully!');
+      setAdminFormData({ name: '', email: '', password: '' });
+      setShowAdminForm(false);
+      fetchAdmins();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to create admin');
+    }
+  };
+
+  const handleDeleteAdmin = async (adminId) => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user.id === adminId) {
+      toast.error('You cannot delete your own account');
+      return;
+    }
+    if (!window.confirm('Are you sure you want to remove this admin?')) return;
+    try {
+      await api.delete(`/admin/users/${adminId}`);
+      toast.success('Admin removed successfully!');
+      fetchAdmins();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to remove admin');
+    }
+  };
+
+  const resetAdminForm = () => {
+    setAdminFormData({ name: '', email: '', password: '' });
+    setShowAdminForm(false);
   };
 
   if (loading) return <div className="text-center mt-20">Loading...</div>;
