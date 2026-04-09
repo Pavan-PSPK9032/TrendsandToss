@@ -198,11 +198,14 @@ export default function AdminDashboard() {
             📦 Products
           </button>
           <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'orders' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-            🛒 Orders
+            Orders
+          </button>
+          <button onClick={() => setActiveTab('admins')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'admins' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
+            Admins
           </button>
         </div>
       </div>
-
+      
       {activeTab === 'products' ? (
         <div>
           <div className="flex justify-between items-center mb-8">
@@ -311,8 +314,69 @@ export default function AdminDashboard() {
             {products.length === 0 && <div className="text-center py-12 text-gray-500">No products found. Click "Add Product" to create one.</div>}
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'orders' ? (
         <AdminOrders />
+      ) : (
+        <div>
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold">Admin Management</h2>
+            <button onClick={() => setShowAdminForm(!showAdminForm)} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+              {showAdminForm ? 'Cancel' : '+ Create Admin'}
+            </button>
+          </div>
+
+          {showAdminForm && (
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+              <h2 className="text-2xl font-bold mb-4">Create New Admin</h2>
+              <form onSubmit={handleCreateAdmin} className="space-y-4">
+                <div>
+                  <label className="block text-gray-700 mb-2">Full Name *</label>
+                  <input type="text" value={adminFormData.name} onChange={(e) => setAdminFormData({...adminFormData, name: e.target.value})} className="w-full border rounded-lg p-2" required />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-2">Email *</label>
+                  <input type="email" value={adminFormData.email} onChange={(e) => setAdminFormData({...adminFormData, email: e.target.value})} className="w-full border rounded-lg p-2" required />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-2">Password *</label>
+                  <input type="password" value={adminFormData.password} onChange={(e) => setAdminFormData({...adminFormData, password: e.target.value})} className="w-full border rounded-lg p-2" required minLength="6" />
+                </div>
+                <div className="flex gap-4">
+                  <button type="submit" className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700">
+                    Create Admin
+                  </button>
+                  <button type="button" onClick={resetAdminForm} className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400">Cancel</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-4 text-left">Name</th>
+                  <th className="p-4 text-left">Email</th>
+                  <th className="p-4 text-left">Created</th>
+                  <th className="p-4 text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {admins.map(admin => (
+                  <tr key={admin._id} className="border-t hover:bg-gray-50">
+                    <td className="p-4 font-semibold">{admin.name}</td>
+                    <td className="p-4">{admin.email}</td>
+                    <td className="p-4">{new Date(admin.createdAt).toLocaleDateString()}</td>
+                    <td className="p-4">
+                      <button onClick={() => handleDeleteAdmin(admin._id)} className="text-red-600 hover:text-red-800">Remove</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {admins.length === 0 && <div className="text-center py-12 text-gray-500">No admins found.</div>}
+          </div>
+        </div>
       )}
     </div>
   );
