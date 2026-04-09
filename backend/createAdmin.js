@@ -11,25 +11,26 @@ const createAdmin = async () => {
     console.log('✅ Connected to MongoDB');
 
     // Check if admin already exists
-    const existingAdmin = await User.findOne({ email: 'admin@shophub.com' });
+    const existingAdmin = await User.findOne({ email: 'admin@trendsandtoss.com' });
     if (existingAdmin) {
       console.log('⚠️ Admin user already exists!');
+      console.log('Email: admin@trendsandtoss.com');
+      console.log('Password: Admin@2024Secure');
       process.exit(0);
     }
-
-    // Create admin user
-    const hashedPassword = await bcrypt.hash('admin123', 10);
     
+    // Create admin user
     const admin = await User.create({
-      name: 'Admin User',
-      email: 'admin@shophub.com',
-      password: hashedPassword,
+      name: 'Trends & Toss Admin',
+      email: 'admin@trendsandtoss.com',
+      password: 'Admin@2024Secure',
       role: 'admin'
     });
-
+    
     console.log('✅ Admin user created successfully!');
-    console.log('Email: admin@shophub.com');
-    console.log('Password: admin123');
+    console.log('\n📧 Email: admin@trendsandtoss.com');
+    console.log('🔑 Password: Admin@2024Secure');
+    console.log('\n⚠️  Please change this password after first login!');
     
     process.exit(0);
   } catch (error) {
