@@ -67,7 +67,24 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Server is running',
-    cors: 'enabled'
+    cors: 'enabled',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Trends & Toss API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/api/health',
+      products: '/api/products',
+      auth: '/api/auth',
+      cart: '/api/cart',
+      orders: '/api/orders'
+    }
   });
 });
 
