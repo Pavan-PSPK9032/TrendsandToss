@@ -19,17 +19,32 @@ connectDB();
 
 const app = express();
 
-// 🔥 CORS CONFIGURATION - THIS IS THE FIX! 🔥
+// 🔥 CORS CONFIGURATION - PRODUCTION READY 🔥
+const allowedOrigins = [
+  'https://trendsand-toss-3lee0a6w9-pavan-pspk9032s-projects.vercel.app',
+  'https://trendsand-toss.vercel.app',
+  'https://trendsandtoss.vercel.app',
+  'http://localhost:5173',  // Vite dev server
+  'http://localhost:3000',  // Alternative dev port
+  process.env.FRONTEND_URL  // Environment variable for flexibility
+].filter(Boolean); // Remove any undefined values
+
 app.use(cors({
-  origin: [
-    'https://trendsand-toss.vercel.app',
-    'https://trendsandtoss.vercel.app',
-    'http://localhost:5173',
-    '*'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 600, // Cache preflight request results for 10 minutes
   optionsSuccessStatus: 200
 }));
 
