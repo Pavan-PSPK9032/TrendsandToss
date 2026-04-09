@@ -31,9 +31,15 @@ function GlassNav() {
   
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
+      const isScrolled = window.scrollY > 20
+      console.log('Scroll position:', window.scrollY, 'Is scrolled:', isScrolled)
+      setScrolled(isScrolled)
     }
-    window.addEventListener('scroll', handleScroll)
+    
+    // Run immediately on mount
+    handleScroll()
+    
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
   
@@ -48,10 +54,10 @@ function GlassNav() {
   return (
     <>
       {/* Desktop: Translucent Top Nav */}
-      <nav className={`hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      <nav className={`hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled 
-          ? 'bg-slate-950/70 backdrop-blur-xl border-b border-white/10 shadow-2xl' 
-          : 'bg-gradient-to-b from-slate-950/90 to-transparent'
+          ? 'bg-slate-950/90 backdrop-blur-xl shadow-2xl shadow-black/50 border-b border-white/20' 
+          : 'bg-gradient-to-b from-slate-950/60 via-slate-950/30 to-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
