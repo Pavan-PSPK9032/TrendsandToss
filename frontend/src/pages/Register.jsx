@@ -1,24 +1,39 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import toast from 'react-hot-toast'
 
 export default function Register() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Validate phone number
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      toast.error('Please enter a valid 10-digit Indian phone number')
+      return
+    }
+    
+    // Validate email
+    if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+      toast.error('Please enter a valid email address')
+      return
+    }
+    
     try {
-      const { data } = await api.post('/auth/register', { name, email, password })
+      const { data } = await api.post('/auth/register', { name, email, phone, password })
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
-      alert('Registration successful!')
+      toast.success('Registration successful! Welcome to Trends & Toss! 🎉')
       navigate('/')
     } catch (err) {
-      alert('Registration failed: ' + (err.response?.data?.error || 'Unknown error'))
+      toast.error(err.response?.data?.error || 'Registration failed')
     }
   }
 
@@ -43,6 +58,18 @@ export default function Register() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full border rounded-lg p-2"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700 mb-2">Phone Number</label>
+          <input 
+            type="tel" 
+            value={phone}
+            onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+            placeholder="10-digit mobile number"
+            className="w-full border rounded-lg p-2"
+            maxLength={10}
             required
           />
         </div>

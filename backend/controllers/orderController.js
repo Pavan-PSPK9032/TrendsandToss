@@ -1,8 +1,11 @@
 import Cart from '../models/Cart.js';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
+import User from '../models/User.js';
 import crypto from 'crypto';
 import { razorpay } from '../utils/razorpay.js';
+import { sendOrderConfirmationEmail, sendWelcomeEmail } from '../utils/emailService.js';
+import { sendOrderConfirmationWhatsApp, sendWhatsAppTextMessage } from '../utils/whatsappService.js';
 
 // GET single order by ID
 export const getOrderById = async (req, res) => {
@@ -134,6 +137,30 @@ export const createOrder = async (req, res) => {
     // Clear cart after successful order
     await Cart.findOneAndDelete({ userId: req.user._id });
     await Cart.create({ userId: req.user._id, items: [] });
+
+    // Populate order with user details for notifications
+    const populatedOrder = await Order.findById(order._id).populate('userId', 'name email phone');
+
+    // Send order confirmation notifications (async - don't block response)
+    if (populatedOrder) {
+      // Send email
+      sendOrderConfirmationEmail(populatedOrder).then(result => {
+        if (result.success) {
+          console.log('✅ Order email sent successfully');
+        } else {
+          console.error('❌ Order email failed:', result.error);
+        }
+      }).catch(err => console.error('❌ Email error:', err));
+
+      // Send WhatsApp
+      sendOrderConfirmationWhatsApp(populatedOrder).then(result => {
+        if (result.success) {
+          console.log('✅ Order WhatsApp sent successfully');
+        } else {
+          console.error('❌ Order WhatsApp failed:', result.error);
+        }
+      }).catch(err => console.error('❌ WhatsApp error:', err));
+    }
 
     res.status(201).json({ 
       message: isCOD ? 'Order placed successfully! Pay on delivery 📦' : 'Order placed successfully! 🎉', 
