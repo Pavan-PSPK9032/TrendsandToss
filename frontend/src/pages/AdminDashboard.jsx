@@ -32,6 +32,7 @@ export default function AdminDashboard() {
   });
 
   const navigate = useNavigate();
+  const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
 
   useEffect(() => {
     checkAdmin();
@@ -40,14 +41,47 @@ export default function AdminDashboard() {
     } else if (activeTab === 'admins') {
       fetchAdmins();
     }
+    
+    // Set up session timeout
+    const sessionTimer = setTimeout(() => {
+      toast.error('Session expired. Please login again.');
+      handleLogout();
+    }, SESSION_TIMEOUT);
+    
+    // Clean up timer on unmount
+    return () => clearTimeout(sessionTimer);
   }, [activeTab]);
 
   const checkAdmin = () => {
     const user = JSON.parse(localStorage.getItem('user'));
-    if (!user || user.role !== 'admin') {
-      toast.error('Admin access required');
+    const adminSession = localStorage.getItem('adminSession');
+    
+    // Check if admin session exists and is still valid
+    if (!adminSession || !user || user.role !== 'admin') {
+      toast.error('Admin access required. Please login again.');
       navigate('/login');
+      return false;
     }
+    
+    // Check if session has expired
+    const sessionTime = parseInt(adminSession);
+    const now = Date.now();
+    if (now - sessionTime > SESSION_TIMEOUT) {
+      toast.error('Session expired. Please login again.');
+      handleLogout();
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleLogout = () => {
+    // Clear admin session
+    localStorage.removeItem('adminSession');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    toast.success('Logged out successfully');
+    navigate('/login');
   };
 
   const fetchProducts = async () => {
@@ -193,15 +227,26 @@ export default function AdminDashboard() {
     <div className="max-w-7xl mx-auto p-4">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <div className="flex bg-gray-100 rounded-lg p-1">
-          <button onClick={() => setActiveTab('products')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'products' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-            📦 Products
-          </button>
-          <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'orders' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-            Orders
-          </button>
-          <button onClick={() => setActiveTab('admins')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'admins' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-            Admins
+        <div className="flex items-center gap-4">
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button onClick={() => setActiveTab('products')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'products' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
+              📦 Products
+            </button>
+            <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'orders' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
+              Orders
+            </button>
+            <button onClick={() => setActiveTab('admins')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'admins' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
+              Admins
+            </button>
+          </div>
+          <button 
+            onClick={handleLogout} 
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
           </button>
         </div>
       </div>

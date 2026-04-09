@@ -14,6 +14,12 @@ export default function Login() {
       const { data } = await api.post('/auth/login', { email, password })
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
+      
+      // Set admin session timestamp if user is admin
+      if (data.user.role === 'admin') {
+        localStorage.setItem('adminSession', Date.now().toString())
+      }
+      
       alert('Login successful! Welcome ' + data.user.name)
       navigate('/')
     } catch (err) {
