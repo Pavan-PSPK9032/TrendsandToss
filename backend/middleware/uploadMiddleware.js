@@ -1,5 +1,6 @@
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
+import '../config/cloudinary.js'; // Import and configure Cloudinary
 
 // Custom multer storage engine for Cloudinary
 const cloudinaryStorage = {
