@@ -121,7 +121,7 @@ export const deleteReview = async (req, res) => {
     }
     
     // Check if user owns this review or is admin
-    if (review.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+    if (review.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Not authorized to delete this review' });
     }
     
