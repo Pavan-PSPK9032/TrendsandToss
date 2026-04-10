@@ -22,10 +22,10 @@
 
 ## Update Summary
 **Changes Made**
-- Added Vercel SPA routing configuration section
-- Updated Vercel Serverless Deployment section to include SPA routing requirements
-- Enhanced Frontend SPA configuration documentation
-- Added React Router integration details for proper SPA deployment
+- Updated CORS configuration section to reflect dynamic Vercel preview deployment detection
+- Added new Vercel preview URL patterns and automatic origin detection capabilities
+- Enhanced troubleshooting guide with CORS-related preview deployment issues
+- Updated environment variable management section to include Vercel preview environment variables
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -82,7 +82,7 @@ APP --> INDEX
 ```
 
 **Diagram sources**
-- [backend/server.js:1-102](file://backend/server.js#L1-L102)
+- [backend/server.js:1-116](file://backend/server.js#L1-L116)
 - [backend/routes/authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
 - [backend/config/db.js:1-14](file://backend/config/db.js#L1-L14)
 - [backend/config/cloudinary.js:1-13](file://backend/config/cloudinary.js#L1-L13)
@@ -94,7 +94,7 @@ APP --> INDEX
 - [vercel-serverless/package.json:1-29](file://vercel-serverless/package.json#L1-L29)
 
 **Section sources**
-- [backend/server.js:1-102](file://backend/server.js#L1-L102)
+- [backend/server.js:1-116](file://backend/server.js#L1-L116)
 - [frontend/vite.config.js:1-15](file://frontend/vite.config.js#L1-L15)
 - [vercel-serverless/package.json:1-29](file://vercel-serverless/package.json#L1-L29)
 
@@ -111,9 +111,10 @@ Key runtime behaviors:
 - CORS allowlisted origins plus environment override.
 - Static file serving for uploaded images.
 - SPA routing support through Vercel rewrite configuration.
+- **Dynamic Vercel preview deployment detection** for seamless testing across multiple preview environments.
 
 **Section sources**
-- [backend/server.js:1-102](file://backend/server.js#L1-L102)
+- [backend/server.js:1-116](file://backend/server.js#L1-L116)
 - [backend/config/db.js:1-14](file://backend/config/db.js#L1-L14)
 - [backend/config/cloudinary.js:1-13](file://backend/config/cloudinary.js#L1-L13)
 - [backend/routes/authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
@@ -133,11 +134,14 @@ API["Backend (Express)"]
 DB["MongoDB"]
 CDN["Cloudinary"]
 VERCEL["Vercel SPA Routing"]
+PREVIEW["Vercel Preview Detection"]
 FE --> |HTTP/HTTPS| API
 API --> DB
 API --> CDN
 FE --> VERCEL
 VERCEL --> FE
+API --> PREVIEW
+PREVIEW --> API
 ```
 
 [No sources needed since this diagram shows conceptual workflow, not actual code structure]
@@ -146,6 +150,7 @@ VERCEL --> FE
 
 ### Backend Server Configuration
 - CORS policy is production-ready with allowlist and credentials support.
+- **Enhanced with dynamic Vercel preview deployment detection** that automatically allows any origin containing "vercel.app".
 - JSON and URL-encoded bodies are parsed.
 - Static route serves uploaded images from the backend uploads directory.
 - API routes are mounted under /api/*.
@@ -171,13 +176,13 @@ Express-->>Client : 200 with URL
 ```
 
 **Diagram sources**
-- [backend/server.js:57-78](file://backend/server.js#L57-L78)
+- [backend/server.js:80-116](file://backend/server.js#L80-L116)
 - [backend/config/db.js:5-13](file://backend/config/db.js#L5-L13)
 - [backend/config/cloudinary.js:6-11](file://backend/config/cloudinary.js#L6-L11)
 - [backend/routes/authRoutes.js:6-7](file://backend/routes/authRoutes.js#L6-L7)
 
 **Section sources**
-- [backend/server.js:22-78](file://backend/server.js#L22-L78)
+- [backend/server.js:23-116](file://backend/server.js#L23-L116)
 - [backend/config/db.js:5-13](file://backend/config/db.js#L5-L13)
 - [backend/config/cloudinary.js:6-11](file://backend/config/cloudinary.js#L6-L11)
 - [backend/routes/authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
@@ -253,13 +258,16 @@ Critical environment variables used across components:
 - PORT: Backend listening port (default 5000).
 - NODE_ENV: Controls logging and behavior differences across environments.
 
+**Enhanced** Added Vercel preview environment variable support.
+
 Recommended practice:
 - Maintain separate .env files per environment (development, staging, production).
 - Store secrets in platform-provided secret managers (Railway, Vercel, Docker secrets).
 - Never commit secrets to version control.
+- **Vercel preview deployments automatically detect and allow any vercel.app origin** without manual configuration.
 
 **Section sources**
-- [backend/server.js:17-30](file://backend/server.js#L17-L30)
+- [backend/server.js:23-62](file://backend/server.js#L23-L62)
 - [backend/config/db.js:3-7](file://backend/config/db.js#L3-L7)
 - [backend/config/cloudinary.js:4-10](file://backend/config/cloudinary.js#L4-L10)
 - [backend/.gitignore:2-5](file://backend/.gitignore#L2-L5)
@@ -287,7 +295,7 @@ Health checks:
 
 **Section sources**
 - [backend/Dockerfile:1-18](file://backend/Dockerfile#L1-L18)
-- [backend/server.js:65-72](file://backend/server.js#L65-L72)
+- [backend/server.js:80-87](file://backend/server.js#L80-L87)
 
 ## Railway Deployment
 Railway configuration:
@@ -307,7 +315,7 @@ Practical steps:
 - [backend/nixpacks.toml:1-11](file://backend/nixpacks.toml#L1-L11)
 
 ## Vercel Serverless Deployment
-**Updated** Enhanced with SPA routing configuration for React Router support.
+**Updated** Enhanced with SPA routing configuration for React Router support and dynamic Vercel preview deployment detection.
 
 Vercel serverless setup:
 - The vercel-serverless package.json coordinates backend/frontend development.
@@ -323,6 +331,12 @@ SPA Routing Implementation:
 - Vercel's `vercel.json` configuration enables client-side routing by rewriting all routes to `index.html`.
 - This prevents server-side routing conflicts and allows deep links to work properly.
 - Essential for React Router-based applications with dynamic routes.
+
+**Enhanced** Dynamic Vercel Preview Deployment Detection:
+- The backend automatically detects and allows any Vercel preview deployment URL ending with "vercel.app".
+- No manual configuration required for preview environments.
+- Supports multiple simultaneous preview deployments without CORS conflicts.
+- Seamlessly handles preview URLs like trendsand-toss-3lee0a6w9-pavan-pspk9032s-projects.vercel.app.
 
 Performance optimization:
 - Enable Vercel Edge Functions for latency-sensitive endpoints.
@@ -340,6 +354,8 @@ Vercel->>Vercel : Check vercel.json rewrite rules
 Vercel->>SPA : Rewrite to /index.html
 SPA->>SPA : React Router handles /products
 SPA->>API : Fetch product data
+API->>API : Check if origin contains vercel.app
+API-->>SPA : Allow request (dynamic preview detection)
 API-->>SPA : Return product data
 SPA-->>Browser : Render product page
 ```
@@ -347,10 +363,11 @@ SPA-->>Browser : Render product page
 **Diagram sources**
 - [frontend/vercel.json:1-9](file://frontend/vercel.json#L1-L9)
 - [frontend/src/App.jsx:48-58](file://frontend/src/App.jsx#L48-L58)
+- [backend/server.js:34-47](file://backend/server.js#L34-L47)
 
 **Section sources**
 - [vercel-serverless/package.json:5-8](file://vercel-serverless/package.json#L5-L8)
-- [backend/server.js:57-63](file://backend/server.js#L57-L63)
+- [backend/server.js:80-87](file://backend/server.js#L80-L87)
 - [frontend/vercel.json:1-9](file://frontend/vercel.json#L1-L9)
 
 ## CI/CD Pipeline Setup
@@ -377,6 +394,7 @@ Production hardening checklist:
 - Sanitize uploaded files and limit file types/size via multer configuration.
 - Rate-limit API endpoints to mitigate abuse.
 - Use strong CORS policies and avoid wildcard origins in production.
+- **Enhanced Vercel preview security**: Dynamic preview detection automatically allows legitimate preview deployments while blocking unauthorized origins.
 - Enable audit logging for authentication and admin actions.
 - Scan container images for vulnerabilities.
 
@@ -404,6 +422,7 @@ Optimization strategies:
 ## Troubleshooting Guide
 Common issues and resolutions:
 - CORS errors: Verify FRONTEND_URL and allowlist origins match client URLs.
+- **Vercel Preview CORS Issues**: The dynamic preview detection automatically allows any vercel.app origin, eliminating manual configuration requirements.
 - Database connection failures: Confirm MONGO_URI and network ACLs.
 - Health check timeouts: Increase healthcheckTimeout or optimize startup time.
 - File uploads failing: Check Cloudinary credentials and permissions.
@@ -411,13 +430,13 @@ Common issues and resolutions:
 - Missing environment variables: Validate .env presence and Railway/Vercel variable sets.
 - SPA routing issues: Verify vercel.json rewrite rules are properly configured for React Router.
 
-**Updated** Added SPA routing troubleshooting guidance
+**Updated** Added Vercel preview deployment troubleshooting guidance
 
 **Section sources**
-- [backend/server.js:22-49](file://backend/server.js#L22-L49)
+- [backend/server.js:23-62](file://backend/server.js#L23-L62)
 - [backend/config/db.js:5-13](file://backend/config/db.js#L5-L13)
 - [backend/railway.toml:6-7](file://backend/railway.toml#L6-L7)
 - [frontend/vercel.json:1-9](file://frontend/vercel.json#L1-L9)
 
 ## Conclusion
-By following this guide, you can deploy the E-commerce App reliably across Docker, Railway, and Vercel serverless environments. The addition of Vercel SPA routing configuration ensures proper client-side routing for React Router-based applications. Use environment variables for configuration, implement robust security and monitoring, and establish CI/CD automation to streamline updates. Apply the troubleshooting tips to resolve common issues quickly and maintain high availability.
+By following this guide, you can deploy the E-commerce App reliably across Docker, Railway, and Vercel serverless environments. The enhanced CORS configuration with dynamic Vercel preview deployment detection ensures seamless testing across multiple preview environments without manual configuration. The addition of Vercel SPA routing configuration ensures proper client-side routing for React Router-based applications. Use environment variables for configuration, implement robust security and monitoring, and establish CI/CD automation to streamline updates. Apply the troubleshooting tips to resolve common issues quickly and maintain high availability.

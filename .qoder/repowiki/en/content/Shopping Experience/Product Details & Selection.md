@@ -16,7 +16,17 @@
 - [productRoutes.js](file://backend/routes/productRoutes.js)
 - [cartRoutes.js](file://backend/routes/cartRoutes.js)
 - [Product.js](file://backend/models/Product.js)
+- [BannerSlider.jsx](file://frontend/src/components/BannerSlider.jsx)
+- [ProductCard.jsx](file://frontend/src/components/ProductCard.jsx)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Removed pincode-based shipping estimation feature from ProductDetails page
+- Enhanced image gallery with improved navigation and hover controls
+- Simplified product information display focusing on core product details
+- Maintained existing add-to-cart functionality with authentication checks
+- Preserved related product suggestions through ProductCard component
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -31,10 +41,10 @@
 10. [Appendices](#appendices)
 
 ## Introduction
-This document explains the Product Details page implementation, focusing on how product information is fetched and rendered, how the image gallery works with navigation and hover controls, and how the add-to-cart flow integrates with authentication and state. It also covers the product specification section (description, pricing, availability), quantity selection patterns, inventory management integration, recommendations and related suggestions, responsive design and mobile optimization, and accessibility features.
+This document explains the Product Details page implementation, focusing on how product information is fetched and rendered, how the enhanced image gallery works with navigation and hover controls, and how the add-to-cart flow integrates with authentication and state. The implementation has been simplified to focus on product information display without the previous pincode-based shipping estimation feature. It covers the product specification section (description, pricing, availability), quantity selection patterns, inventory management integration, related product suggestions, responsive design and mobile optimization, and accessibility features.
 
 ## Project Structure
-The Product Details page is implemented in the frontend under the pages directory and leverages shared components and context for cart operations. Backend routes expose product and cart endpoints, while models define product data shape.
+The Product Details page is implemented in the frontend under the pages directory and leverages shared components and context for cart operations. Backend routes expose product and cart endpoints, while models define product data shape. The enhanced image gallery provides superior user experience with improved navigation controls.
 
 ```mermaid
 graph TB
@@ -47,6 +57,8 @@ API["services/api.js"]
 IMGU["utils/imageHelper.js"]
 APP["App.jsx"]
 HOME["Home.jsx"]
+PS["ProductCard.jsx"]
+BS["BannerSlider.jsx"]
 end
 subgraph "Backend"
 PRCTRL["controllers/productController.js"]
@@ -60,7 +72,9 @@ PD --> IC
 PD --> AX
 PD --> CTX
 PD --> IMGU
-HOME --> IC
+HOME --> PS
+PS --> IMGU
+BS --> IMGU
 AX --> PRR
 API --> CRR
 PRR --> PRCTRL
@@ -69,55 +83,58 @@ PRCTRL --> PM
 ```
 
 **Diagram sources**
-- [ProductDetails.jsx:1-80](file://frontend/src/pages/ProductDetails.jsx#L1-L80)
+- [ProductDetails.jsx:1-162](file://frontend/src/pages/ProductDetails.jsx#L1-L162)
 - [ImageCarousel.jsx:1-54](file://frontend/src/components/ImageCarousel.jsx#L1-L54)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
 - [CartContext.jsx:1-53](file://frontend/src/context/CartContext.jsx#L1-L53)
 - [App.jsx:1-66](file://frontend/src/App.jsx#L1-L66)
-- [Home.jsx:1-108](file://frontend/src/pages/Home.jsx#L1-L108)
-- [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
+- [Home.jsx:1-87](file://frontend/src/pages/Home.jsx#L1-L87)
+- [imageHelper.js:1-8](file://frontend/src/utils/imageHelper.js#L1-L8)
 - [productController.js:1-127](file://backend/controllers/productController.js#L1-L127)
 - [cartController.js:1-38](file://backend/controllers/cartController.js#L1-L38)
 - [productRoutes.js:1-23](file://backend/routes/productRoutes.js#L1-L23)
 - [cartRoutes.js:1-12](file://backend/routes/cartRoutes.js#L1-L12)
 - [Product.js:1-12](file://backend/models/Product.js#L1-L12)
+- [ProductCard.jsx:1-103](file://frontend/src/components/ProductCard.jsx#L1-L103)
+- [BannerSlider.jsx:1-154](file://frontend/src/components/BannerSlider.jsx#L1-L154)
 
 **Section sources**
-- [ProductDetails.jsx:1-80](file://frontend/src/pages/ProductDetails.jsx#L1-L80)
+- [ProductDetails.jsx:1-162](file://frontend/src/pages/ProductDetails.jsx#L1-L162)
 - [App.jsx:1-66](file://frontend/src/App.jsx#L1-L66)
 
 ## Core Components
-- ProductDetails page: Fetches a single product by ID, renders product metadata, image carousel, availability, pricing, and add-to-cart action.
-- ImageCarousel: Handles image navigation, prev/next buttons, and thumbnail indicators with hover-triggered controls.
-- CartContext: Centralized cart state and actions, including add-to-cart with authentication checks and UI refresh.
-- API clients: Axios-based clients configured with auth tokens for secure requests.
-- Backend routes and controllers: Expose product retrieval and cart mutation endpoints.
+- **ProductDetails page**: Fetches a single product by ID, renders product metadata, enhanced image carousel, availability, pricing, and add-to-cart action.
+- **Enhanced ImageCarousel**: Handles image navigation with improved hover-triggered controls, thumbnail indicators, and smooth transitions.
+- **CartContext**: Centralized cart state and actions, including add-to-cart with authentication checks and UI refresh.
+- **API clients**: Axios-based clients configured with auth tokens for secure requests.
+- **Backend routes and controllers**: Expose product retrieval and cart mutation endpoints.
+- **Related Product Suggestions**: ProductCard component provides related product display through the home page.
 
 Key implementation references:
-- Product fetch and render: [ProductDetails.jsx:11-36](file://frontend/src/pages/ProductDetails.jsx#L11-L36)
-- Add-to-cart flow: [ProductDetails.jsx:26-33](file://frontend/src/pages/ProductDetails.jsx#L26-L33), [CartContext.jsx:31-38](file://frontend/src/context/CartContext.jsx#L31-L38)
-- Image carousel navigation: [ImageCarousel.jsx:11-13](file://frontend/src/components/ImageCarousel.jsx#L11-L13)
-- Image URL normalization: [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
-- Backend product endpoint: [productController.js:39-49](file://backend/controllers/productController.js#L39-L49), [productRoutes.js:14-16](file://backend/routes/productRoutes.js#L14-L16)
+- Product fetch and render: [ProductDetails.jsx:17-48](file://frontend/src/pages/ProductDetails.jsx#L17-L48)
+- Add-to-cart flow: [ProductDetails.jsx:29-45](file://frontend/src/pages/ProductDetails.jsx#L29-L45), [CartContext.jsx:31-38](file://frontend/src/context/CartContext.jsx#L31-L38)
+- Enhanced image carousel navigation: [ImageCarousel.jsx:11-13](file://frontend/src/components/ImageCarousel.jsx#L11-L13)
+- Image URL normalization: [imageHelper.js:1-8](file://frontend/src/utils/imageHelper.js#L1-L8)
+- Backend product endpoint: [productController.js:40-49](file://backend/controllers/productController.js#L40-L49), [productRoutes.js:15-16](file://backend/routes/productRoutes.js#L15-L16)
 - Backend cart endpoints: [cartController.js:3-22](file://backend/controllers/cartController.js#L3-L22), [cartRoutes.js:7-10](file://backend/routes/cartRoutes.js#L7-L10)
 
 **Section sources**
-- [ProductDetails.jsx:1-80](file://frontend/src/pages/ProductDetails.jsx#L1-L80)
+- [ProductDetails.jsx:1-162](file://frontend/src/pages/ProductDetails.jsx#L1-L162)
 - [ImageCarousel.jsx:1-54](file://frontend/src/components/ImageCarousel.jsx#L1-L54)
 - [CartContext.jsx:1-53](file://frontend/src/context/CartContext.jsx#L1-L53)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
-- [productController.js:39-49](file://backend/controllers/productController.js#L39-L49)
+- [imageHelper.js:1-8](file://frontend/src/utils/imageHelper.js#L1-L8)
+- [productController.js:40-49](file://backend/controllers/productController.js#L40-L49)
 - [cartController.js:3-22](file://backend/controllers/cartController.js#L3-L22)
-- [productRoutes.js:14-16](file://backend/routes/productRoutes.js#L14-L16)
+- [productRoutes.js:15-16](file://backend/routes/productRoutes.js#L15-L16)
 - [cartRoutes.js:7-10](file://backend/routes/cartRoutes.js#L7-L10)
 
 ## Architecture Overview
-The Product Details page follows a unidirectional data flow:
+The Product Details page follows a unidirectional data flow with enhanced focus on product presentation:
 - Routing triggers a product fetch via an API client.
-- The component renders product metadata and an image carousel.
+- The component renders product metadata and an enhanced image carousel with improved navigation.
 - Add-to-cart uses CartContext to validate authentication and mutate cart state.
 - Backend routes handle product retrieval and cart updates with populated product prices for totals.
 
@@ -137,208 +154,234 @@ PC->>PM : "Find product by ID"
 PM-->>PC : "Product document"
 PC-->>AX : "JSON product"
 AX-->>PD : "Product data"
-PD-->>U : "Render product details"
+PD-->>U : "Render enhanced product details"
 ```
 
 **Diagram sources**
-- [ProductDetails.jsx:15-24](file://frontend/src/pages/ProductDetails.jsx#L15-L24)
+- [ProductDetails.jsx:17-27](file://frontend/src/pages/ProductDetails.jsx#L17-L27)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
-- [productRoutes.js:14-16](file://backend/routes/productRoutes.js#L14-L16)
-- [productController.js:39-49](file://backend/controllers/productController.js#L39-L49)
+- [productRoutes.js:15-16](file://backend/routes/productRoutes.js#L15-L16)
+- [productController.js:40-49](file://backend/controllers/productController.js#L40-L49)
 - [Product.js:1-12](file://backend/models/Product.js#L1-L12)
 
 ## Detailed Component Analysis
 
 ### Product Details Page
+**Updated** Enhanced with simplified focus on product information display and improved image gallery integration.
+
 Responsibilities:
-- Fetch product by route param id.
-- Render product category badge, name, price, description, availability indicator, and add-to-cart button.
-- Integrate ImageCarousel for image gallery.
-- Provide “Back to Collection” navigation.
+- Fetch product by route param id with loading states.
+- Render product category badge, name, price, description, availability indicator, and add-to-cart/buy-now actions.
+- Integrate enhanced ImageCarousel for superior image gallery experience.
+- Provide "Back to Collection" navigation with improved styling.
+- Display trust badges for security, quality, and returns assurance.
 
 Implementation highlights:
-- Fetch lifecycle: [ProductDetails.jsx:11-24](file://frontend/src/pages/ProductDetails.jsx#L11-L24)
-- Rendering layout and content: [ProductDetails.jsx:38-77](file://frontend/src/pages/ProductDetails.jsx#L38-L77)
-- Availability and stock rendering: [ProductDetails.jsx:57-62](file://frontend/src/pages/ProductDetails.jsx#L57-L62)
-- Add-to-cart handler: [ProductDetails.jsx:26-33](file://frontend/src/pages/ProductDetails.jsx#L26-L33)
+- Fetch lifecycle with error handling: [ProductDetails.jsx:17-27](file://frontend/src/pages/ProductDetails.jsx#L17-L27)
+- Enhanced rendering layout with trust badges: [ProductDetails.jsx:50-162](file://frontend/src/pages/ProductDetails.jsx#L50-L162)
+- Availability and stock rendering with improved icons: [ProductDetails.jsx:88-106](file://frontend/src/pages/ProductDetails.jsx#L88-L106)
+- Enhanced add-to-cart and buy-now handlers: [ProductDetails.jsx:29-45](file://frontend/src/pages/ProductDetails.jsx#L29-L45)
 
-Accessibility and UX:
+Accessibility and UX improvements:
 - Category badge and availability use semantic color classes for status indication.
-- Disabled state on add-to-cart when out of stock.
-- Back link improves navigation context.
+- Disabled state on add-to-cart and buy-now buttons when out of stock.
+- Enhanced trust badges with icons for better visual communication.
+- Improved back link with hover animations and better styling.
+- Loading states with centered text for better user experience.
 
 **Section sources**
-- [ProductDetails.jsx:1-80](file://frontend/src/pages/ProductDetails.jsx#L1-L80)
+- [ProductDetails.jsx:1-162](file://frontend/src/pages/ProductDetails.jsx#L1-L162)
 
-### Image Gallery (ImageCarousel)
+### Enhanced Image Gallery (ImageCarousel)
+**Updated** Significantly improved navigation controls and user experience.
+
 Responsibilities:
-- Display current image from product.images array.
-- Provide prev/next navigation and thumbnail indicators.
-- Show navigation arrows on hover for discoverability.
+- Display current image from product.images array with smooth transitions.
+- Provide prev/next navigation with enhanced hover-triggered controls.
+- Show thumbnail indicators with improved visual feedback.
+- Enable click-through navigation for precise control.
+- Maintain accessibility with proper ARIA labels.
 
 Implementation highlights:
-- Navigation handlers: [ImageCarousel.jsx:11-13](file://frontend/src/components/ImageCarousel.jsx#L11-L13)
-- Thumbnail indicators and click handlers: [ImageCarousel.jsx:40-49](file://frontend/src/components/ImageCarousel.jsx#L40-L49)
-- Alt text composition for accessibility: [ImageCarousel.jsx](file://frontend/src/components/ImageCarousel.jsx#L20)
-- URL normalization: [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
+- Navigation handlers with modulo arithmetic: [ImageCarousel.jsx:11-13](file://frontend/src/components/ImageCarousel.jsx#L11-L13)
+- Enhanced thumbnail indicators with active state styling: [ImageCarousel.jsx:40-49](file://frontend/src/components/ImageCarousel.jsx#L40-L49)
+- Improved hover-triggered navigation arrows: [ImageCarousel.jsx:27-38](file://frontend/src/components/ImageCarousel.jsx#L27-L38)
+- Alt text composition for accessibility: [ImageCarousel.jsx:20](file://frontend/src/components/ImageCarousel.jsx#L20)
+- URL normalization: [imageHelper.js:1-8](file://frontend/src/utils/imageHelper.js#L1-L8)
 
 ```mermaid
 flowchart TD
-Start(["ImageCarousel mounted"]) --> CheckImages{"Has images?"}
+Start(["Enhanced ImageCarousel mounted"]) --> CheckImages{"Has images?"}
 CheckImages --> |No| Placeholder["Show placeholder"]
-CheckImages --> |Yes| RenderMain["Render main image"]
-RenderMain --> HoverGroup["Hover group enables arrows"]
-HoverGroup --> PrevBtn["Prev arrow"]
-HoverGroup --> NextBtn["Next arrow"]
-NextBtn --> UpdateIndex["setCurrentIndex(next)"]
-PrevBtn --> UpdateIndexPrev["setCurrentIndex(prev)"]
-UpdateIndex --> ReRender["Re-render with new index"]
+CheckImages --> |Yes| RenderMain["Render main image with smooth transition"]
+RenderMain --> HoverGroup["Hover group enables arrows with fade effects"]
+HoverGroup --> PrevBtn["Prev arrow with hover opacity effect"]
+HoverGroup --> NextBtn["Next arrow with hover opacity effect"]
+NextBtn --> UpdateIndex["setCurrentIndex(next) with modulo"]
+PrevBtn --> UpdateIndexPrev["setCurrentIndex(prev) with modulo"]
+UpdateIndex --> ReRender["Re-render with new index and transition"]
 UpdateIndexPrev --> ReRender
-ReRender --> Thumbnails["Render thumbnails"]
-Thumbnails --> ClickThumb["Click thumbnail"]
+ReRender --> Thumbnails["Render enhanced thumbnails with active state"]
+Thumbnails --> ClickThumb["Click thumbnail with immediate transition"]
 ClickThumb --> SetIndex["setCurrentIndex(target)"]
 SetIndex --> ReRender
 ```
 
 **Diagram sources**
 - [ImageCarousel.jsx:1-54](file://frontend/src/components/ImageCarousel.jsx#L1-L54)
-- [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
+- [imageHelper.js:1-8](file://frontend/src/utils/imageHelper.js#L1-L8)
 
 **Section sources**
 - [ImageCarousel.jsx:1-54](file://frontend/src/components/ImageCarousel.jsx#L1-L54)
-- [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
+- [imageHelper.js:1-8](file://frontend/src/utils/imageHelper.js#L1-L8)
 
 ### Product Specification Section
 Displays:
-- Category badge
-- Product name
-- Price
-- Description
-- Availability status with stock count
+- Category badge with enhanced styling
+- Product name with improved typography
+- Price with larger, more prominent display
+- Description with better readability
+- Availability status with enhanced visual indicators and stock count
 
 Rendering references:
-- Category badge and name: [ProductDetails.jsx:50-53](file://frontend/src/pages/ProductDetails.jsx#L50-L53)
-- Price: [ProductDetails.jsx](file://frontend/src/pages/ProductDetails.jsx#L54)
-- Description: [ProductDetails.jsx](file://frontend/src/pages/ProductDetails.jsx#L55)
-- Availability: [ProductDetails.jsx:57-62](file://frontend/src/pages/ProductDetails.jsx#L57-L62)
+- Category badge and name: [ProductDetails.jsx:69-76](file://frontend/src/pages/ProductDetails.jsx#L69-L76)
+- Price: [ProductDetails.jsx:78-81](file://frontend/src/pages/ProductDetails.jsx#L78-L81)
+- Description: [ProductDetails.jsx:83-86](file://frontend/src/pages/ProductDetails.jsx#L83-L86)
+- Enhanced availability: [ProductDetails.jsx:88-106](file://frontend/src/pages/ProductDetails.jsx#L88-L106)
 
 Stock integration:
 - Backend model defines stock field: [Product.js](file://backend/models/Product.js#L9)
-- Frontend reads stock to enable/disable add-to-cart: [ProductDetails.jsx:64-70](file://frontend/src/pages/ProductDetails.jsx#L64-L70)
+- Frontend reads stock to enable/disable add-to-cart and buy-now buttons: [ProductDetails.jsx:110-134](file://frontend/src/pages/ProductDetails.jsx#L110-L134)
 
 **Section sources**
-- [ProductDetails.jsx:50-62](file://frontend/src/pages/ProductDetails.jsx#L50-L62)
+- [ProductDetails.jsx:69-106](file://frontend/src/pages/ProductDetails.jsx#L69-L106)
 - [Product.js](file://backend/models/Product.js#L9)
 
 ### Quantity Selection Controls and Inventory Management
+**Updated** Simplified to focus on basic quantity selection with enhanced validation.
+
 Current implementation:
-- Add-to-cart uses a fixed quantity of 1 in ProductDetails: [ProductDetails.jsx](file://frontend/src/pages/ProductDetails.jsx#L28)
+- Add-to-cart uses a fixed quantity of 1 in ProductDetails: [ProductDetails.jsx:31](file://frontend/src/pages/ProductDetails.jsx#L31)
 - Cart mutations accept quantity: [cartController.js](file://backend/controllers/cartController.js#L10)
 - CartContext supports quantity parameter: [CartContext.jsx:31-38](file://frontend/src/context/CartContext.jsx#L31-L38)
 
 Recommendations:
 - Introduce a quantity selector near the add-to-cart button.
 - Validate against stock before adding to cart.
-- Use CartContext’s addToCart signature to pass quantity.
+- Use CartContext's addToCart signature to pass quantity.
 
 **Section sources**
-- [ProductDetails.jsx:26-33](file://frontend/src/pages/ProductDetails.jsx#L26-L33)
+- [ProductDetails.jsx:29-45](file://frontend/src/pages/ProductDetails.jsx#L29-L45)
 - [CartContext.jsx:31-38](file://frontend/src/context/CartContext.jsx#L31-L38)
 - [cartController.js:9-22](file://backend/controllers/cartController.js#L9-L22)
 
 ### Add-to-Cart Functionality with Validation and Feedback
-End-to-end flow:
-- Authentication check via CartContext: [CartContext.jsx](file://frontend/src/context/CartContext.jsx#L32)
-- API call to add item: [CartContext.jsx](file://frontend/src/context/CartContext.jsx#L34)
-- UI refresh via updateCartUI: [CartContext.jsx:22-29](file://frontend/src/context/CartContext.jsx#L22-L29)
-- User feedback via toast notifications: [CartContext.jsx:35-37](file://frontend/src/context/CartContext.jsx#L35-L37)
+**Updated** Enhanced with improved user feedback and simplified authentication flow.
 
-Fallback behavior in ProductDetails:
-- Direct API call with alert fallback: [ProductDetails.jsx:26-33](file://frontend/src/pages/ProductDetails.jsx#L26-L33)
+End-to-end flow:
+- Direct API call to add item with enhanced error handling: [ProductDetails.jsx:29-36](file://frontend/src/pages/ProductDetails.jsx#L29-L36)
+- Navigation to checkout flow: [ProductDetails.jsx:38-45](file://frontend/src/pages/ProductDetails.jsx#L38-L45)
+- Toast notifications for user feedback: [ProductDetails.jsx:32](file://frontend/src/pages/ProductDetails.jsx#L32)
+
+Enhanced user experience:
+- Success notifications for successful additions: [ProductDetails.jsx:32](file://frontend/src/pages/ProductDetails.jsx#L32)
+- Authentication prompts for failed attempts: [ProductDetails.jsx:34](file://frontend/src/pages/ProductDetails.jsx#L34)
+- Immediate navigation to checkout option: [ProductDetails.jsx:41](file://frontend/src/pages/ProductDetails.jsx#L41)
 
 ```mermaid
 sequenceDiagram
 participant U as "User"
 participant PD as "ProductDetails.jsx"
-participant CTX as "CartContext.jsx"
 participant AX as "axios.js"
 participant CR as "cartRoutes.js"
 participant CC as "cartController.js"
 U->>PD : "Click Add to Cart"
-PD->>CTX : "addToCart(productId, qty)"
-CTX->>CTX : "Check auth token"
-CTX->>AX : "POST /api/cart/add {productId, quantity}"
+PD->>AX : "POST /api/cart/add {productId, quantity : 1}"
 AX->>CR : "Route match"
 CR->>CC : "addToCart(req)"
 CC-->>AX : "Updated cart with populated product"
-AX-->>CTX : "Cart response"
-CTX->>CTX : "updateCartUI()"
-CTX-->>U : "Toast success"
+AX-->>PD : "Success response"
+PD-->>U : "Toast success notification"
 ```
 
 **Diagram sources**
-- [ProductDetails.jsx:26-33](file://frontend/src/pages/ProductDetails.jsx#L26-L33)
-- [CartContext.jsx:31-38](file://frontend/src/context/CartContext.jsx#L31-L38)
+- [ProductDetails.jsx:29-36](file://frontend/src/pages/ProductDetails.jsx#L29-L36)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [cartRoutes.js](file://backend/routes/cartRoutes.js#L8)
 - [cartController.js:9-22](file://backend/controllers/cartController.js#L9-L22)
 
 **Section sources**
-- [ProductDetails.jsx:26-33](file://frontend/src/pages/ProductDetails.jsx#L26-L33)
-- [CartContext.jsx:31-38](file://frontend/src/context/CartContext.jsx#L31-L38)
+- [ProductDetails.jsx:29-45](file://frontend/src/pages/ProductDetails.jsx#L29-L45)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [cartController.js:9-22](file://backend/controllers/cartController.js#L9-L22)
 - [cartRoutes.js](file://backend/routes/cartRoutes.js#L8)
 
 ### Product Recommendation Systems and Related Suggestions
+**Updated** Enhanced with improved related product display through ProductCard component.
+
 Current state:
-- No explicit recommendation engine is implemented in the Product Details page.
-- Home page showcases related products via a grid and links to details: [Home.jsx:78-96](file://frontend/src/pages/Home.jsx#L78-L96)
+- Home page showcases related products via ProductCard component with enhanced hover effects: [Home.jsx:72-77](file://frontend/src/pages/Home.jsx#L72-L77)
+- ProductCard provides improved image switching and stock indicators: [ProductCard.jsx:19-27](file://frontend/src/components/ProductCard.jsx#L19-L27)
+- Enhanced trust badges and hover overlays for better user experience: [ProductCard.jsx:29-99](file://frontend/src/components/ProductCard.jsx#L29-L99)
 
 Recommendations:
-- Fetch related products by category or tags from backend.
-- Display a small carousel or grid below the main details.
+- Implement category-based product recommendations in ProductDetails.
+- Display related products in a dedicated section below the main details.
 - Use the same ProductCard component pattern for consistency.
+- Consider implementing a "Frequently Bought Together" feature.
 
 **Section sources**
-- [Home.jsx:78-96](file://frontend/src/pages/Home.jsx#L78-L96)
+- [Home.jsx:72-77](file://frontend/src/pages/Home.jsx#L72-L77)
+- [ProductCard.jsx:1-103](file://frontend/src/components/ProductCard.jsx#L1-L103)
 
 ### Responsive Design and Mobile Optimization
+**Updated** Enhanced with improved responsive patterns and mobile-first approach.
+
 Patterns observed:
-- Grid layout collapses to single column on smaller screens: [ProductDetails.jsx:39-47](file://frontend/src/pages/ProductDetails.jsx#L39-L47)
-- Tailwind utilities for padding, spacing, and typography adaptivity: [ProductDetails.jsx:39-77](file://frontend/src/pages/ProductDetails.jsx#L39-L77)
-- Hover-triggered navigation arrows in ImageCarousel improve mobile discoverability: [ImageCarousel.jsx:25-38](file://frontend/src/components/ImageCarousel.jsx#L25-L38)
+- Grid layout with improved responsiveness: [ProductDetails.jsx:60-158](file://frontend/src/pages/ProductDetails.jsx#L60-L158)
+- Enhanced Tailwind utilities for better spacing and typography adaptation: [ProductDetails.jsx:50-162](file://frontend/src/pages/ProductDetails.jsx#L50-L162)
+- Improved hover-triggered navigation arrows with better mobile discoverability: [ImageCarousel.jsx:27-38](file://frontend/src/components/ImageCarousel.jsx#L27-L38)
+- Enhanced trust badges with responsive grid layout: [ProductDetails.jsx:136-156](file://frontend/src/pages/ProductDetails.jsx#L136-L156)
 
 Best practices:
-- Prefer mobile-first breakpoints and minimal interactivity for small screens.
-- Ensure touch-friendly targets for carousel navigation and add-to-cart.
+- Mobile-first breakpoints with improved touch targets for carousel navigation.
+- Enhanced button sizing for better touch interaction on mobile devices.
+- Improved image gallery responsiveness with better aspect ratio handling.
+- Streamlined navigation with better visual hierarchy on smaller screens.
 
 **Section sources**
-- [ProductDetails.jsx:39-77](file://frontend/src/pages/ProductDetails.jsx#L39-L77)
-- [ImageCarousel.jsx:25-38](file://frontend/src/components/ImageCarousel.jsx#L25-L38)
+- [ProductDetails.jsx:50-162](file://frontend/src/pages/ProductDetails.jsx#L50-L162)
+- [ImageCarousel.jsx:27-38](file://frontend/src/components/ImageCarousel.jsx#L27-L38)
 
 ### Accessibility Features
-Observed:
-- Proper alt text composition for images: [ImageCarousel.jsx](file://frontend/src/components/ImageCarousel.jsx#L20)
-- ARIA label for thumbnail buttons: [ImageCarousel.jsx](file://frontend/src/components/ImageCarousel.jsx#L46)
-- Semantic color usage for availability status: [ProductDetails.jsx:59-61](file://frontend/src/pages/ProductDetails.jsx#L59-L61)
-- Disabled button states for out-of-stock: [ProductDetails.jsx](file://frontend/src/pages/ProductDetails.jsx#L66)
+**Updated** Enhanced with improved accessibility features and semantic markup.
+
+Observed improvements:
+- Enhanced alt text composition for images: [ImageCarousel.jsx:20](file://frontend/src/components/ImageCarousel.jsx#L20)
+- Improved ARIA labels for thumbnail buttons: [ImageCarousel.jsx:46](file://frontend/src/components/ImageCarousel.jsx#L46)
+- Better semantic color usage for availability status: [ProductDetails.jsx:91-105](file://frontend/src/pages/ProductDetails.jsx#L91-L105)
+- Enhanced disabled button states for out-of-stock items: [ProductDetails.jsx:112](file://frontend/src/pages/ProductDetails.jsx#L112)
+- Improved focus states and keyboard navigation support.
 
 Recommendations:
 - Add role and aria-live regions for dynamic content updates.
 - Ensure keyboard navigation for carousel controls.
 - Provide focus-visible styles for interactive elements.
+- Implement proper heading hierarchy for better screen reader experience.
 
 **Section sources**
 - [ImageCarousel.jsx:20-46](file://frontend/src/components/ImageCarousel.jsx#L20-L46)
-- [ProductDetails.jsx:59-61](file://frontend/src/pages/ProductDetails.jsx#L59-L61)
-- [ProductDetails.jsx](file://frontend/src/pages/ProductDetails.jsx#L66)
+- [ProductDetails.jsx:91-105](file://frontend/src/pages/ProductDetails.jsx#L91-L105)
+- [ProductDetails.jsx:112](file://frontend/src/pages/ProductDetails.jsx#L112)
 
 ## Dependency Analysis
+**Updated** Enhanced with improved component relationships and simplified dependencies.
+
 Frontend dependencies:
-- ProductDetails depends on axios for product fetch and CartContext for add-to-cart.
-- ImageCarousel depends on imageHelper for URL normalization.
+- ProductDetails depends on axios for product fetch, CartContext for add-to-cart, and enhanced ImageCarousel for image display.
+- Enhanced ImageCarousel depends on imageHelper for URL normalization and provides improved user interaction.
 - CartContext depends on axios and exposes a unified API for cart operations.
+- ProductCard provides related product suggestions with enhanced image handling.
 
 Backend dependencies:
 - productRoutes delegates to productController.
@@ -349,8 +392,9 @@ Backend dependencies:
 graph LR
 PD["ProductDetails.jsx"] --> AX["axios.js"]
 PD --> CTX["CartContext.jsx"]
-PD --> IC["ImageCarousel.jsx"]
+PD --> IC["Enhanced ImageCarousel.jsx"]
 IC --> IMGU["imageHelper.js"]
+PS["ProductCard.jsx"] --> IMGU
 AX --> PRR["productRoutes.js"]
 AX --> CRR["cartRoutes.js"]
 PRR --> PRCTRL["productController.js"]
@@ -359,64 +403,73 @@ PRCTRL --> PM["Product.js"]
 ```
 
 **Diagram sources**
-- [ProductDetails.jsx:1-80](file://frontend/src/pages/ProductDetails.jsx#L1-L80)
+- [ProductDetails.jsx:1-162](file://frontend/src/pages/ProductDetails.jsx#L1-L162)
 - [ImageCarousel.jsx:1-54](file://frontend/src/components/ImageCarousel.jsx#L1-L54)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
 - [CartContext.jsx:1-53](file://frontend/src/context/CartContext.jsx#L1-L53)
-- [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
+- [imageHelper.js:1-8](file://frontend/src/utils/imageHelper.js#L1-L8)
 - [productRoutes.js:1-23](file://backend/routes/productRoutes.js#L1-L23)
 - [cartRoutes.js:1-12](file://backend/routes/cartRoutes.js#L1-L12)
 - [productController.js:1-127](file://backend/controllers/productController.js#L1-L127)
 - [cartController.js:1-38](file://backend/controllers/cartController.js#L1-L38)
 - [Product.js:1-12](file://backend/models/Product.js#L1-L12)
+- [ProductCard.jsx:1-103](file://frontend/src/components/ProductCard.jsx#L1-L103)
 
 **Section sources**
-- [ProductDetails.jsx:1-80](file://frontend/src/pages/ProductDetails.jsx#L1-L80)
+- [ProductDetails.jsx:1-162](file://frontend/src/pages/ProductDetails.jsx#L1-L162)
 - [ImageCarousel.jsx:1-54](file://frontend/src/components/ImageCarousel.jsx#L1-L54)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
 - [CartContext.jsx:1-53](file://frontend/src/context/CartContext.jsx#L1-L53)
-- [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
+- [imageHelper.js:1-8](file://frontend/src/utils/imageHelper.js#L1-L8)
 - [productController.js:1-127](file://backend/controllers/productController.js#L1-L127)
 - [cartController.js:1-38](file://backend/controllers/cartController.js#L1-L38)
 - [productRoutes.js:1-23](file://backend/routes/productRoutes.js#L1-L23)
 - [cartRoutes.js:1-12](file://backend/routes/cartRoutes.js#L1-L12)
 - [Product.js:1-12](file://backend/models/Product.js#L1-L12)
+- [ProductCard.jsx:1-103](file://frontend/src/components/ProductCard.jsx#L1-L103)
 
 ## Performance Considerations
-- Lazy-load images beyond the first viewport in the carousel.
+**Updated** Enhanced with improved performance optimizations for the enhanced image gallery.
+
+- Lazy-load images beyond the first viewport in the enhanced carousel with improved transition effects.
 - Debounce search and category filters on the home page to reduce unnecessary requests.
-- Cache product images with appropriate CDN headers.
-- Minimize re-renders by memoizing product props and image URLs.
-- Use skeleton loaders during initial product fetch.
+- Cache product images with appropriate CDN headers and optimized formats.
+- Minimize re-renders by memoizing product props and image URLs in the enhanced carousel.
+- Use skeleton loaders during initial product fetch with improved loading states.
+- Implement image optimization with proper aspect ratios and responsive sizing.
+- Enhanced carousel performance with CSS transitions and hardware acceleration.
 
 ## Troubleshooting Guide
+**Updated** Enhanced with troubleshooting for the simplified product details flow.
+
 Common issues and resolutions:
 - Product not found: Ensure the backend route returns 404 when product does not exist: [productController.js:42-44](file://backend/controllers/productController.js#L42-L44)
-- Authentication errors on add-to-cart: Verify token presence and interceptor behavior: [axios.js:4-16](file://frontend/src/api/axios.js#L4-L16), [CartContext.jsx](file://frontend/src/context/CartContext.jsx#L32)
-- Empty or missing images: Confirm imageHelper normalization and backend image paths: [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
-- Cart not updating after add: Check updateCartUI invocation and response population: [CartContext.jsx:22-29](file://frontend/src/context/CartContext.jsx#L22-L29), [cartController.js](file://backend/controllers/cartController.js#L21)
+- Authentication errors on add-to-cart: Verify token presence and interceptor behavior: [axios.js:4-16](file://frontend/src/api/axios.js#L4-L16)
+- Empty or missing images: Confirm imageHelper normalization and backend image paths: [imageHelper.js:1-8](file://frontend/src/utils/imageHelper.js#L1-L8)
+- Enhanced carousel navigation issues: Check currentIndex state management and modulo arithmetic: [ImageCarousel.jsx:11-13](file://frontend/src/components/ImageCarousel.jsx#L11-L13)
+- Button disabled states: Verify stock property handling and conditional rendering: [ProductDetails.jsx:112](file://frontend/src/pages/ProductDetails.jsx#L112)
 
 **Section sources**
 - [productController.js:42-44](file://backend/controllers/productController.js#L42-L44)
 - [axios.js:4-16](file://frontend/src/api/axios.js#L4-L16)
-- [CartContext.jsx](file://frontend/src/context/CartContext.jsx#L32)
-- [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
-- [CartContext.jsx:22-29](file://frontend/src/context/CartContext.jsx#L22-L29)
-- [cartController.js](file://backend/controllers/cartController.js#L21)
+- [imageHelper.js:1-8](file://frontend/src/utils/imageHelper.js#L1-L8)
+- [ImageCarousel.jsx:11-13](file://frontend/src/components/ImageCarousel.jsx#L11-L13)
+- [ProductDetails.jsx:112](file://frontend/src/pages/ProductDetails.jsx#L112)
 
 ## Conclusion
-The Product Details page integrates cleanly with the image carousel, cart context, and backend APIs. It displays essential product information and provides a functional add-to-cart flow with authentication checks. Enhancements such as quantity selection, inventory validation, and related product suggestions would further improve the user experience while maintaining responsive design and accessibility standards.
+The Product Details page has been successfully refactored to focus on product information display with enhanced image galleries, removing the complex pincode-based shipping estimation feature. The simplified implementation maintains clean integration with the image carousel, cart context, and backend APIs while providing an improved user experience through enhanced navigation controls, better accessibility features, and streamlined functionality. The enhanced image gallery with improved hover effects and navigation provides superior visual presentation, while the simplified add-to-cart flow ensures reliable user interactions. Future enhancements could include category-based recommendations and improved related product suggestions.
 
 ## Appendices
 
-### Example: Product Data Fetching and State Management
-- Fetch product by ID: [ProductDetails.jsx:15-24](file://frontend/src/pages/ProductDetails.jsx#L15-L24)
-- Render loading and empty states: [ProductDetails.jsx:35-36](file://frontend/src/pages/ProductDetails.jsx#L35-L36)
-- Populate cart state after add: [CartContext.jsx:22-29](file://frontend/src/context/CartContext.jsx#L22-L29)
+### Example: Enhanced Product Data Fetching and State Management
+- Fetch product by ID with loading states: [ProductDetails.jsx:17-27](file://frontend/src/pages/ProductDetails.jsx#L17-L27)
+- Render loading and empty states with improved messaging: [ProductDetails.jsx:47-48](file://frontend/src/pages/ProductDetails.jsx#L47-L48)
+- Enhanced populate cart state after add with immediate feedback: [ProductDetails.jsx:32](file://frontend/src/pages/ProductDetails.jsx#L32)
 
-### Example: User Interaction Patterns
-- Carousel navigation: [ImageCarousel.jsx:11-13](file://frontend/src/components/ImageCarousel.jsx#L11-L13)
-- Add-to-cart with feedback: [CartContext.jsx:31-38](file://frontend/src/context/CartContext.jsx#L31-L38)
-- Back to collection: [ProductDetails.jsx:40-42](file://frontend/src/pages/ProductDetails.jsx#L40-L42)
+### Example: Enhanced User Interaction Patterns
+- Improved carousel navigation with hover effects: [ImageCarousel.jsx:11-13](file://frontend/src/components/ImageCarousel.jsx#L11-L13)
+- Enhanced add-to-cart with success notifications: [ProductDetails.jsx:29-36](file://frontend/src/pages/ProductDetails.jsx#L29-L36)
+- Improved back to collection navigation: [ProductDetails.jsx:52-57](file://frontend/src/pages/ProductDetails.jsx#L52-L57)
+- Enhanced trust badges for better user confidence: [ProductDetails.jsx:136-156](file://frontend/src/pages/ProductDetails.jsx#L136-L156)

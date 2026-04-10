@@ -9,6 +9,7 @@
 - [orderRoutes.js](file://backend/routes/orderRoutes.js)
 - [adminRoutes.js](file://backend/routes/adminRoutes.js)
 - [shippingRoutes.js](file://backend/routes/shippingRoutes.js)
+- [deliveryController.js](file://backend/controllers/deliveryController.js)
 - [authMiddleware.js](file://backend/middleware/authMiddleware.js)
 - [uploadMiddleware.js](file://backend/middleware/uploadMiddleware.js)
 - [authController.js](file://backend/controllers/authController.js)
@@ -36,7 +37,7 @@
 10. [Appendices](#appendices)
 
 ## Introduction
-This document provides comprehensive API documentation for the E-commerce App’s backend RESTful APIs. It covers endpoint groups, HTTP methods, URL patterns, request/response schemas, authentication and authorization, error handling, and operational workflows. It also documents JWT usage, role-based access control via middleware, and practical examples for common integration scenarios.
+This document provides comprehensive API documentation for the E-commerce App's backend RESTful APIs. It covers endpoint groups, HTTP methods, URL patterns, request/response schemas, authentication and authorization, error handling, and operational workflows. It also documents JWT usage, role-based access control via middleware, and practical examples for common integration scenarios.
 
 ## Project Structure
 The backend is organized by feature-based routes and controllers, with shared middleware and models. The Express server mounts route groups under /api/* and serves static uploads.
@@ -57,7 +58,7 @@ ProductRoute --> ProdCtrl["productController.js"]
 CartRoute --> CartCtrl["cartController.js"]
 OrderRoute --> OrderCtrl["orderController.js"]
 AdminRoute --> AdminCtrl["adminController.js"]
-ShippingRoute --> ShipCfg["shipping.js"]
+ShippingRoute --> DeliveryCtrl["deliveryController.js"]
 ```
 
 **Diagram sources**
@@ -67,7 +68,7 @@ ShippingRoute --> ShipCfg["shipping.js"]
 - [cartRoutes.js:1-12](file://backend/routes/cartRoutes.js#L1-L12)
 - [orderRoutes.js:1-28](file://backend/routes/orderRoutes.js#L1-L28)
 - [adminRoutes.js:1-14](file://backend/routes/adminRoutes.js#L1-L14)
-- [shippingRoutes.js:1-32](file://backend/routes/shippingRoutes.js#L1-L32)
+- [shippingRoutes.js:1-13](file://backend/routes/shippingRoutes.js#L1-L13)
 
 **Section sources**
 - [server.js:57-72](file://backend/server.js#L57-L72)
@@ -78,7 +79,7 @@ ShippingRoute --> ShipCfg["shipping.js"]
 - Cart Operations API (/api/cart): Retrieve, add, update, and clear cart items for authenticated users.
 - Order Processing API (/api/orders): Place orders, manage payments (Razorpay), fetch orders, and admin order status updates.
 - Admin Dashboard API (/api/admin): Dashboard metrics and order management.
-- Shipping Calculations API (/api/shipping): Calculate shipping costs and zones based on pincode and cart total.
+- Shipping Calculations API (/api/shipping): Enhanced delivery availability checking and bulk shipping charge calculation with improved free delivery eligibility.
 
 **Section sources**
 - [authRoutes.js:6-7](file://backend/routes/authRoutes.js#L6-L7)
@@ -86,7 +87,7 @@ ShippingRoute --> ShipCfg["shipping.js"]
 - [cartRoutes.js:7-10](file://backend/routes/cartRoutes.js#L7-L10)
 - [orderRoutes.js:15-26](file://backend/routes/orderRoutes.js#L15-L26)
 - [adminRoutes.js:10-12](file://backend/routes/adminRoutes.js#L10-L12)
-- [shippingRoutes.js:6-30](file://backend/routes/shippingRoutes.js#L6-L30)
+- [shippingRoutes.js:6-12](file://backend/routes/shippingRoutes.js#L6-L12)
 
 ## Architecture Overview
 The API follows a layered architecture:
@@ -116,6 +117,7 @@ CProd["productController.js"]
 CCart["cartController.js"]
 COrder["orderController.js"]
 CAdmin["adminController.js"]
+CDelivery["deliveryController.js"]
 end
 subgraph "Models"
 MUser["User.js"]
@@ -128,7 +130,7 @@ RProd --> CProd --> MProd
 RCart --> CCart --> MCart
 ROrder --> COrder --> MOrder
 RAdmin --> CAdmin --> MOrder
-RShip --> ShipCfg["shipping.js"]
+RShip --> CDelivery
 RProd --> MUpload
 RAuth --> MAuth
 RProd --> MAuth
@@ -143,7 +145,7 @@ RAdmin --> MAuth
 - [cartRoutes.js:1-12](file://backend/routes/cartRoutes.js#L1-L12)
 - [orderRoutes.js:1-28](file://backend/routes/orderRoutes.js#L1-L28)
 - [adminRoutes.js:1-14](file://backend/routes/adminRoutes.js#L1-L14)
-- [shippingRoutes.js:1-32](file://backend/routes/shippingRoutes.js#L1-L32)
+- [shippingRoutes.js:1-13](file://backend/routes/shippingRoutes.js#L1-L13)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [uploadMiddleware.js](file://backend/middleware/uploadMiddleware.js)
 - [authController.js:1-27](file://backend/controllers/authController.js#L1-L27)
@@ -155,7 +157,6 @@ RAdmin --> MAuth
 - [Product.js:1-12](file://backend/models/Product.js#L1-L12)
 - [Cart.js:1-12](file://backend/models/Cart.js#L1-L12)
 - [Order.js:1-33](file://backend/models/Order.js#L1-L33)
-- [shipping.js](file://backend/config/shipping.js)
 
 ## Detailed Component Analysis
 
@@ -418,31 +419,47 @@ Ctrl-->>Client : {users,orders,totalRevenue}
 - [adminRoutes.js:7-12](file://backend/routes/adminRoutes.js#L7-L12)
 - [adminController.js:5-24](file://backend/controllers/adminController.js#L5-L24)
 
-### Shipping Calculations API (/api/shipping)
-- Purpose: Compute shipping charges and delivery estimates by pincode and cart total.
-- Endpoint:
-  - POST /api/shipping/calculate
-    - Body: { pincode, cartTotal }
-    - Response: { success, shippingCharge, zone, message, estimatedDays, isFree }
-    - Errors: 400 (missing fields), 500 (calculation failure)
-- Implementation: Delegates to shipping configuration module.
+### Enhanced Shipping Calculations API (/api/shipping)
+**Updated** Enhanced with improved delivery availability checking and bulk shipping charge calculation with better free delivery eligibility.
+
+- Purpose: Check delivery availability by pincode and calculate shipping charges for multiple locations with tier-based pricing.
+- Endpoints:
+  - GET /api/shipping/check/:pincode
+    - Path param: pincode (6-digit numeric)
+    - Response: { available, pincode, charge, estimatedDays, message }
+    - Errors: 400 (invalid pincode format), 500 (service unavailable)
+  - POST /api/shipping/charges
+    - Body: { pincodes[], orderValue }
+    - Response: Array of { pincode, charge, available } for each pincode
+    - Errors: 400 (invalid input), 500 (calculation failed)
+- Features:
+  - **Tier-based pricing**: Different shipping charges based on geographic regions
+  - **Free delivery thresholds**: Varying free shipping minimums across zones
+  - **Metro city discounts**: Lower charges for major metropolitan areas
+  - **Bulk calculation**: Efficiently process multiple pincodes in a single request
 
 ```mermaid
 flowchart TD
-Start(["POST /api/shipping/calculate"]) --> Validate["Validate pincode and cartTotal"]
-Validate --> |Missing| E400["400 Bad Request"]
-Validate --> |Valid| Calc["calculateShipping(pincode,cartTotal)"]
-Calc --> Resp["200 {success,charge,zone,message,days,free}"]
+Start(["GET /api/shipping/check/:pincode"]) --> Validate["Validate 6-digit pincode"]
+Validate --> |Invalid| E400["400 Invalid format"]
+Validate --> |Valid| MetroCheck["Check metro city ranges"]
+MetroCheck --> TierPricing["Apply tier-based pricing"]
+TierPricing --> FreeEligible{"Order >= Free Threshold?"}
+FreeEligible --> |Yes| Free["Charge: 0 (Free Delivery)"]
+FreeEligible --> |No| Standard["Charge: Zone rate"]
+Free --> Resp["200 Delivery available"]
+Standard --> Resp
 E400 --> End
 Resp --> End(["Done"])
 ```
 
 **Diagram sources**
-- [shippingRoutes.js:8-30](file://backend/routes/shippingRoutes.js#L8-L30)
-- [shipping.js](file://backend/config/shipping.js)
+- [shippingRoutes.js:6-12](file://backend/routes/shippingRoutes.js#L6-L12)
+- [deliveryController.js:2-78](file://backend/controllers/deliveryController.js#L2-L78)
 
 **Section sources**
-- [shippingRoutes.js:6-30](file://backend/routes/shippingRoutes.js#L6-L30)
+- [shippingRoutes.js:6-12](file://backend/routes/shippingRoutes.js#L6-L12)
+- [deliveryController.js:2-118](file://backend/controllers/deliveryController.js#L2-L118)
 
 ## Dependency Analysis
 - Route-to-Controller mapping is explicit and centralized.
@@ -457,7 +474,7 @@ PR["productRoutes.js"] --> PC["productController.js"]
 CR["cartRoutes.js"] --> CC["cartController.js"]
 OR["orderRoutes.js"] --> OC["orderController.js"]
 Adr["adminRoutes.js"] --> ADC["adminController.js"]
-Sr["shippingRoutes.js"] --> SCfg["shipping.js"]
+Sr["shippingRoutes.js"] --> DC["deliveryController.js"]
 PC --> PM["Product.js"]
 CC --> CM["Cart.js"]
 OC --> OM["Order.js"]
@@ -470,7 +487,7 @@ AC --> UM["User.js"]
 - [cartRoutes.js:1-12](file://backend/routes/cartRoutes.js#L1-L12)
 - [orderRoutes.js:1-28](file://backend/routes/orderRoutes.js#L1-L28)
 - [adminRoutes.js:1-14](file://backend/routes/adminRoutes.js#L1-L14)
-- [shippingRoutes.js:1-32](file://backend/routes/shippingRoutes.js#L1-L32)
+- [shippingRoutes.js:1-13](file://backend/routes/shippingRoutes.js#L1-L13)
 - [authController.js:1-27](file://backend/controllers/authController.js#L1-L27)
 - [productController.js:1-127](file://backend/controllers/productController.js#L1-L127)
 - [cartController.js:1-38](file://backend/controllers/cartController.js#L1-L38)
@@ -491,8 +508,7 @@ AC --> UM["User.js"]
 - Image handling: Product images are stored locally with a cap of three per product to control payload sizes.
 - CORS caching: Preflight requests cached for 10 minutes to reduce overhead.
 - Middleware: JWT verification occurs on protected routes; ensure token invalidation strategies if needed.
-
-[No sources needed since this section provides general guidance]
+- **Enhanced Shipping Performance**: Bulk shipping calculations reduce API calls for multiple location checks.
 
 ## Troubleshooting Guide
 - Authentication failures:
@@ -508,8 +524,10 @@ AC --> UM["User.js"]
   - Empty cart on place order: 400 Cart is empty.
   - Unauthorized order access: 403 Access denied.
   - Invalid Razorpay signature: 400 Invalid signature.
-- Shipping:
-  - Missing pincode or invalid cartTotal: 400 Pincode and cartTotal are required.
+- **Enhanced Shipping Issues**:
+  - Invalid pincode format: 400 Pincode must be 6 digits.
+  - Service unavailable: 500 Failed to check delivery availability.
+  - Bulk calculation errors: 400 Pincodes must be an array; 500 Failed to calculate delivery charges.
 - Server health:
   - GET /api/health returns OK with CORS status.
 
@@ -521,13 +539,12 @@ AC --> UM["User.js"]
 - [orderController.js:98-99](file://backend/controllers/orderController.js#L98-L99)
 - [orderController.js:12-12](file://backend/controllers/orderController.js#L12-L12)
 - [orderController.js:61-63](file://backend/controllers/orderController.js#L61-L63)
-- [shippingRoutes.js:12-14](file://backend/routes/shippingRoutes.js#L12-L14)
+- [deliveryController.js:7-12](file://backend/controllers/deliveryController.js#L7-L12)
+- [deliveryController.js:85-87](file://backend/controllers/deliveryController.js#L85-L87)
 - [server.js:65-72](file://backend/server.js#L65-L72)
 
 ## Conclusion
-The backend provides a clear, modular REST API with strong separation of concerns. Authentication and authorization are enforced consistently via middleware, while controllers encapsulate business logic. The design supports product management, cart operations, robust order processing with multiple payment modes, administrative dashboards, and shipping cost estimation. Following the documented endpoints, schemas, and security practices ensures reliable integration and operation.
-
-[No sources needed since this section summarizes without analyzing specific files]
+The backend provides a clear, modular REST API with strong separation of concerns. Authentication and authorization are enforced consistently via middleware, while controllers encapsulate business logic. The design supports product management, cart operations, robust order processing with multiple payment modes, administrative dashboards, and enhanced shipping cost estimation with improved delivery availability checking. Following the documented endpoints, schemas, and security practices ensures reliable integration and operation.
 
 ## Appendices
 

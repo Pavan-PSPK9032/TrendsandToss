@@ -12,9 +12,18 @@
 - [AuthContext.jsx](file://frontend/src/context/AuthContext.jsx)
 - [Register.jsx](file://frontend/src/pages/Register.jsx)
 - [Login.jsx](file://frontend/src/pages/Login.jsx)
+- [App.jsx](file://frontend/src/App.jsx)
 - [package.json](file://backend/package.json)
 - [package.json](file://frontend/package.json)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Enhanced frontend form validation with phone number validation for Indian mobile numbers
+- Implemented real-time phone number formatting and input restrictions
+- Replaced alert dialogs with toast notifications for improved user experience
+- Added comprehensive input validation feedback system
+- Integrated react-hot-toast for consistent notification handling
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -30,10 +39,10 @@
 11. [Appendices](#appendices)
 
 ## Introduction
-This document explains the end-to-end user registration and login processes in the E-commerce App. It covers backend flows (input validation, password hashing with bcrypt, duplicate email checks, JWT token generation), frontend form handling and authentication state management, and security considerations such as CORS, bearer token usage, and session persistence. Practical examples focus on API integration patterns, error handling, and user feedback mechanisms.
+This document explains the end-to-end user registration and login processes in the E-commerce App. It covers backend flows (input validation, password hashing with bcrypt, duplicate email checks, JWT token generation), frontend form handling and authentication state management, and security considerations such as CORS, bearer token usage, and session persistence. The system now features enhanced frontend validation with phone number verification, real-time input formatting, and toast notifications replacing traditional alert dialogs for improved user experience.
 
 ## Project Structure
-The authentication system spans the backend Express server and MongoDB via Mongoose, and the React frontend with Axios and local storage for tokens and user data.
+The authentication system spans the backend Express server and MongoDB via Mongoose, and the React frontend with Axios and local storage for tokens and user data. The frontend now includes comprehensive validation and notification systems.
 
 ```mermaid
 graph TB
@@ -50,6 +59,8 @@ SVC["API Service<br/>api.js"]
 REG["Register Page<br/>Register.jsx"]
 LOG["Login Page<br/>Login.jsx"]
 CTX["Auth Context<br/>AuthContext.jsx"]
+APP["App Root<br/>App.jsx"]
+TOAST["Toast Notifications<br/>react-hot-toast"]
 end
 S --> R --> C --> M
 S --> MW
@@ -58,6 +69,8 @@ LOG --> AX --> SVC --> R
 AX --> AX
 SVC --> AX
 CTX --> AX
+APP --> TOAST
+REG --> TOAST
 ```
 
 **Diagram sources**
@@ -68,9 +81,10 @@ CTX --> AX
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [Register.jsx:1-67](file://frontend/src/pages/Register.jsx#L1-L67)
-- [Login.jsx:1-56](file://frontend/src/pages/Login.jsx#L1-L56)
+- [Register.jsx:1-113](file://frontend/src/pages/Register.jsx#L1-L113)
+- [Login.jsx:1-83](file://frontend/src/pages/Login.jsx#L1-L83)
 - [AuthContext.jsx:1-33](file://frontend/src/context/AuthContext.jsx#L1-L33)
+- [App.jsx:198](file://frontend/src/App.jsx#L198)
 
 **Section sources**
 - [server.js:1-102](file://backend/server.js#L1-L102)
@@ -80,9 +94,10 @@ CTX --> AX
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [Register.jsx:1-67](file://frontend/src/pages/Register.jsx#L1-L67)
-- [Login.jsx:1-56](file://frontend/src/pages/Login.jsx#L1-L56)
+- [Register.jsx:1-113](file://frontend/src/pages/Register.jsx#L1-L113)
+- [Login.jsx:1-83](file://frontend/src/pages/Login.jsx#L1-L83)
 - [AuthContext.jsx:1-33](file://frontend/src/context/AuthContext.jsx#L1-L33)
+- [App.jsx:198](file://frontend/src/App.jsx#L198)
 
 ## Core Components
 - Backend server initializes CORS, routes, and middleware; exposes authentication endpoints under /api/auth.
@@ -91,6 +106,9 @@ CTX --> AX
 - Frontend pages manage form state, submit requests, persist tokens, and redirect on success.
 - Axios interceptors attach Authorization headers and handle 401 responses globally.
 - Auth context centralizes login/logout and user state hydration from localStorage.
+- **Enhanced**: Real-time phone number validation with Indian mobile number format (/^[6-9]\d{9}$/).
+- **Enhanced**: Toast notification system using react-hot-toast for consistent user feedback.
+- **Enhanced**: Formatted input handling with automatic digit stripping and length limitations.
 
 **Section sources**
 - [server.js:22-49](file://backend/server.js#L22-L49)
@@ -103,17 +121,21 @@ CTX --> AX
 - [axios.js:4-8](file://frontend/src/api/axios.js#L4-L8)
 - [axios.js:10-16](file://frontend/src/api/axios.js#L10-L16)
 - [AuthContext.jsx:16-28](file://frontend/src/context/AuthContext.jsx#L16-L28)
+- [Register.jsx:17-27](file://frontend/src/pages/Register.jsx#L17-L27)
+- [Register.jsx:69](file://frontend/src/pages/Register.jsx#L69)
 
 ## Architecture Overview
-The authentication architecture follows a clean separation of concerns:
+The authentication architecture follows a clean separation of concerns with enhanced frontend validation and notification systems:
 - Routes define HTTP endpoints for registration and login.
 - Controllers encapsulate business logic and interact with the User model.
 - Middleware protects downstream routes and verifies JWTs.
-- Frontend communicates via Axios with automatic bearer token injection and centralized error handling.
+- Frontend communicates via Axios with automatic bearer token injection, centralized error handling, and comprehensive form validation.
+- Toast notifications provide immediate feedback for user actions.
 
 ```mermaid
 sequenceDiagram
 participant FE as "Frontend Page<br/>Register/Login"
+participant VAL as "Validation System<br/>Phone/Email Regex"
 participant AX as "Axios<br/>axios.js"
 participant API as "API Service<br/>api.js"
 participant SRV as "Express Server<br/>server.js"
@@ -121,7 +143,9 @@ participant RT as "Auth Routes<br/>authRoutes.js"
 participant CTRL as "Auth Controller<br/>authController.js"
 participant MDL as "User Model<br/>User.js"
 participant MW as "Auth Middleware<br/>authMiddleware.js"
-FE->>AX : "Submit form"
+FE->>VAL : "Validate phone/email format"
+VAL-->>FE : "Validation result"
+FE->>AX : "Submit form with validation"
 AX->>API : "Attach Authorization header if present"
 API->>SRV : "POST /api/auth/register or /api/auth/login"
 SRV->>RT : "Route to controller"
@@ -130,13 +154,14 @@ CTRL->>MDL : "Check duplicate / Create user / Compare passwords"
 MDL-->>CTRL : "Result"
 CTRL-->>SRV : "JSON response {token, user}"
 SRV-->>API : "HTTP 201/200"
-API-->>FE : "Data"
-FE->>FE : "Persist token/user, redirect"
+API-->>FE : "Data with toast feedback"
+FE->>FE : "Persist token/user, show toast, redirect"
 ```
 
 **Diagram sources**
-- [Register.jsx:11-22](file://frontend/src/pages/Register.jsx#L11-L22)
-- [Login.jsx:10-21](file://frontend/src/pages/Login.jsx#L10-L21)
+- [Register.jsx:17-27](file://frontend/src/pages/Register.jsx#L17-L27)
+- [Register.jsx:29-38](file://frontend/src/pages/Register.jsx#L29-L38)
+- [Login.jsx:11-30](file://frontend/src/pages/Login.jsx#L11-L30)
 - [axios.js:4-8](file://frontend/src/api/axios.js#L4-L8)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
 - [server.js:57-63](file://backend/server.js#L57-L63)
@@ -148,7 +173,7 @@ FE->>FE : "Persist token/user, redirect"
 ## Detailed Component Analysis
 
 ### Backend Registration Flow
-- Input extraction: name, email, password from request body.
+- Input extraction: name, email, password, phone from request body.
 - Duplicate email check: findOne by email; responds with error if found.
 - User creation: User.create persists with bcrypt-hashed password via pre-save hook.
 - Token generation: signToken creates a signed JWT with a 7-day expiry.
@@ -156,7 +181,7 @@ FE->>FE : "Persist token/user, redirect"
 
 ```mermaid
 flowchart TD
-Start(["POST /api/auth/register"]) --> Extract["Extract name, email, password"]
+Start(["POST /api/auth/register"]) --> Extract["Extract name, email, password, phone"]
 Extract --> CheckDup["Find existing user by email"]
 CheckDup --> Exists{"Email exists?"}
 Exists --> |Yes| ErrDup["Return 400: Email exists"]
@@ -204,19 +229,27 @@ Respond --> End
 - [authController.js:18-27](file://backend/controllers/authController.js#L18-L27)
 - [User.js:16-18](file://backend/models/User.js#L16-L18)
 
-### Frontend Registration Implementation
-- Form state: manages name, email, password.
-- Submission: posts to /api/auth/register via Axios.
-- Persistence: stores token and user in localStorage.
-- Feedback: alerts on success/failure; navigates to home on success.
+### Enhanced Frontend Registration Implementation
+- **Enhanced Form State**: Manages name, email, phone, password with real-time validation.
+- **Phone Number Validation**: Uses regex `/^[6-9]\d{9}$/` for 10-digit Indian mobile numbers.
+- **Real-time Formatting**: Phone input strips non-digits and limits to 10 characters.
+- **Email Validation**: Comprehensive email format validation using regex pattern.
+- **Toast Notifications**: Uses react-hot-toast for immediate user feedback.
+- **Submission**: Posts to /api/auth/register via Axios with validation.
+- **Persistence**: Stores token and user in localStorage.
+- **Feedback**: Toast notifications for success/failure; navigates to home on success.
 
 ```mermaid
 sequenceDiagram
 participant P as "Register Page"
+participant V as "Validation System"
 participant AX as "Axios"
 participant API as "API Service"
 participant SRV as "Server"
 P->>P : "Collect form state"
+P->>V : "Validate phone/email"
+V-->>P : "Validation result"
+alt Valid Phone & Email
 P->>AX : "POST /api/auth/register"
 AX->>API : "Attach Authorization header if any"
 API->>SRV : "Send request"
@@ -225,16 +258,21 @@ API-->>AX : "Data"
 AX-->>P : "Data"
 P->>P : "localStorage.setItem('token','...')"
 P->>P : "localStorage.setItem('user','...')"
-P->>P : "alert + navigate('/')"
+P->>P : "toast.success + navigate('/')"
+else Invalid Input
+P->>P : "toast.error with specific message"
+end
 ```
 
 **Diagram sources**
-- [Register.jsx:11-22](file://frontend/src/pages/Register.jsx#L11-L22)
+- [Register.jsx:17-27](file://frontend/src/pages/Register.jsx#L17-L27)
+- [Register.jsx:29-38](file://frontend/src/pages/Register.jsx#L29-L38)
+- [Register.jsx:69](file://frontend/src/pages/Register.jsx#L69)
 - [axios.js:4-8](file://frontend/src/api/axios.js#L4-L8)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
 
 **Section sources**
-- [Register.jsx:1-67](file://frontend/src/pages/Register.jsx#L1-L67)
+- [Register.jsx:1-113](file://frontend/src/pages/Register.jsx#L1-L113)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
 
@@ -242,7 +280,7 @@ P->>P : "alert + navigate('/')"
 - Form state: manages email, password.
 - Submission: posts to /api/auth/login via Axios.
 - Persistence: stores token and user in localStorage.
-- Feedback: alerts on success/failure; navigates to home on success.
+- **Note**: Currently uses alert dialogs for feedback instead of toast notifications.
 
 ```mermaid
 sequenceDiagram
@@ -263,12 +301,12 @@ P->>P : "alert + navigate('/')"
 ```
 
 **Diagram sources**
-- [Login.jsx:10-21](file://frontend/src/pages/Login.jsx#L10-L21)
+- [Login.jsx:11-30](file://frontend/src/pages/Login.jsx#L11-L30)
 - [axios.js:4-8](file://frontend/src/api/axios.js#L4-L8)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
 
 **Section sources**
-- [Login.jsx:1-56](file://frontend/src/pages/Login.jsx#L1-L56)
+- [Login.jsx:1-83](file://frontend/src/pages/Login.jsx#L1-L83)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
 
@@ -325,9 +363,23 @@ MW->>Client : "Next()"
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [User.js:10](file://backend/models/User.js#L10)
 
+### Enhanced Validation and Notification Systems
+- **Phone Number Validation**: Indian mobile numbers validated with `/^[6-9]\d{9}$/` pattern.
+- **Real-time Input Formatting**: Phone input automatically strips non-digits and limits to 10 characters.
+- **Email Validation**: Comprehensive email format validation using regex pattern.
+- **Toast Notifications**: Consistent user feedback using react-hot-toast library.
+- **Input Restrictions**: Phone input has maxLength={10} and tel type for mobile optimization.
+
+**Section sources**
+- [Register.jsx:17-27](file://frontend/src/pages/Register.jsx#L17-L27)
+- [Register.jsx:69](file://frontend/src/pages/Register.jsx#L69)
+- [Register.jsx:4](file://frontend/src/pages/Register.jsx#L4)
+- [App.jsx:198](file://frontend/src/App.jsx#L198)
+
 ## Dependency Analysis
 - Backend dependencies include bcryptjs for password hashing, jsonwebtoken for JWT signing, and mongoose for ODM.
-- Frontend depends on axios for HTTP requests and react-router-dom for navigation.
+- Frontend depends on axios for HTTP requests, react-router-dom for navigation, and react-hot-toast for notifications.
+- **Enhanced**: Added react-hot-toast dependency for consistent user feedback across the application.
 
 ```mermaid
 graph LR
@@ -336,6 +388,7 @@ BE_PKG --> JWT["jsonwebtoken"]
 BE_PKG --> MONGO["mongoose"]
 FE_PKG["frontend/package.json"] --> AX["axios"]
 FE_PKG --> RR["react-router-dom"]
+FE_PKG --> RT["react-hot-toast"]
 ```
 
 **Diagram sources**
@@ -347,12 +400,12 @@ FE_PKG --> RR["react-router-dom"]
 - [package.json:8-16](file://frontend/package.json#L8-L16)
 
 ## Performance Considerations
-- Password hashing cost: bcrypt uses a fixed salt and cost factor in the model’s pre-save hook; ensure appropriate deployment settings for production workloads.
+- Password hashing cost: bcrypt uses a fixed salt and cost factor in the model's pre-save hook; ensure appropriate deployment settings for production workloads.
 - Token lifetime: JWT expires in seven days; consider refresh token strategies for long-lived sessions.
 - Request parsing: server enables JSON and URL-encoded bodies; keep payload sizes reasonable for registration/login.
 - Frontend caching: localStorage is synchronous and single-threaded; avoid excessive writes during rapid user interactions.
-
-[No sources needed since this section provides general guidance]
+- **Enhanced**: Toast notifications are lightweight and don't block UI thread, improving perceived performance.
+- **Enhanced**: Real-time validation prevents unnecessary API calls by catching errors client-side.
 
 ## Security Measures
 - CORS configuration: Strict origins list with credentials support and allowed headers/methods; preflight caching reduces latency.
@@ -360,6 +413,8 @@ FE_PKG --> RR["react-router-dom"]
 - Token removal on 401: Response interceptor clears token on unauthorized responses to prevent stale tokens.
 - Protected routes: JWT verification middleware decodes token and attaches user without password.
 - Role-based access: Admin middleware restricts endpoints to admin users.
+- **Enhanced**: Input sanitization: Phone numbers are automatically sanitized by removing non-digit characters.
+- **Enhanced**: Real-time validation: Client-side validation prevents malformed data from reaching the server.
 
 ```mermaid
 flowchart TD
@@ -387,13 +442,13 @@ Next --> End
 - [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
 
 ## Troubleshooting Guide
-- Registration fails with “Email exists”:
+- Registration fails with "Email exists":
   - Cause: Duplicate email detected by the backend.
   - Action: Prompt user to use another email or log in instead.
   - Section sources
     - [authController.js:9-11](file://backend/controllers/authController.js#L9-L11)
 
-- Login fails with “Invalid credentials”:
+- Login fails with "Invalid credentials":
   - Cause: No user found or password mismatch.
   - Action: Prompt user to re-enter credentials; ensure caps lock is off and spelling is correct.
   - Section sources
@@ -411,23 +466,34 @@ Next --> End
   - Section sources
     - [AuthContext.jsx:24-28](file://frontend/src/context/AuthContext.jsx#L24-L28)
 
-- Protected route returns “Not authorized”:
+- Protected route returns "Not authorized":
   - Cause: Missing or malformed Authorization header.
   - Action: Confirm interceptor injects Bearer token; verify JWT_SECRET environment variable.
   - Section sources
     - [authMiddleware.js:5-6](file://backend/middleware/authMiddleware.js#L5-L6)
     - [authMiddleware.js:9](file://backend/middleware/authMiddleware.js#L9)
 
-## Conclusion
-The authentication system integrates secure backend processing (bcrypt hashing, JWT signing, duplicate checks) with robust frontend state management (form handling, token persistence, global error handling). The architecture supports protected routes and role-based access while maintaining a clean separation of concerns. For production hardening, consider adding input sanitization, rate limiting, CSRF protection, and password reset/account verification flows.
+- **Enhanced**: Phone number validation fails:
+  - Cause: Phone number doesn't match Indian mobile pattern (6-9 followed by 9 digits).
+  - Action: Ensure phone number starts with 6, 7, 8, or 9 and is exactly 10 digits.
+  - Section sources
+    - [Register.jsx:17-21](file://frontend/src/pages/Register.jsx#L17-L21)
 
-[No sources needed since this section summarizes without analyzing specific files]
+- **Enhanced**: Toast notifications not appearing:
+  - Cause: react-hot-toast not properly configured or imported.
+  - Action: Verify Toaster component is included in App.jsx and react-hot-toast is installed.
+  - Section sources
+    - [App.jsx:198](file://frontend/src/App.jsx#L198)
+    - [package.json:14](file://frontend/package.json#L14)
+
+## Conclusion
+The authentication system integrates secure backend processing (bcrypt hashing, JWT signing, duplicate checks) with robust frontend state management (form handling, token persistence, global error handling). The system now features enhanced validation with phone number verification, real-time input formatting, and toast notifications replacing traditional alert dialogs for improved user experience. The architecture supports protected routes and role-based access while maintaining a clean separation of concerns. For production hardening, consider adding input sanitization, rate limiting, CSRF protection, and password reset/account verification flows.
 
 ## Appendices
 
 ### API Endpoints Reference
 - POST /api/auth/register
-  - Body: { name, email, password }
+  - Body: { name, email, phone, password }
   - Response: { token, user: { id, name, email, role } }
   - Status: 201 on success, 400 on duplicate email, 500 on server error
   - Section sources
@@ -455,22 +521,52 @@ The authentication system integrates secure backend processing (bcrypt hashing, 
   - Section sources
     - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
 
+- **Enhanced**: Toast notification system:
+  - Centralized toast configuration in App.jsx.
+  - Consistent notification styling and positioning.
+  - Section sources
+    - [App.jsx:198](file://frontend/src/App.jsx#L198)
+    - [Register.jsx:4](file://frontend/src/pages/Register.jsx#L4)
+
 ### Practical Examples
 - Registration form submission:
-  - Collects name, email, password; posts to /api/auth/register; stores token/user; navigates on success.
+  - Collects name, email, phone, password with real-time validation; posts to /api/auth/register; stores token/user; shows toast notifications; navigates on success.
   - Section sources
-    - [Register.jsx:11-22](file://frontend/src/pages/Register.jsx#L11-L22)
+    - [Register.jsx:17-38](file://frontend/src/pages/Register.jsx#L17-L38)
 
 - Login form submission:
-  - Posts credentials to /api/auth/login; stores token/user; navigates on success.
+  - Posts credentials to /api/auth/login; stores token/user; currently uses alert dialogs for feedback; navigates on success.
   - Section sources
-    - [Login.jsx:10-21](file://frontend/src/pages/Login.jsx#L10-L21)
+    - [Login.jsx:11-30](file://frontend/src/pages/Login.jsx#L11-L30)
 
 - Protected route usage:
   - Apply protect middleware to routes requiring authentication; apply admin middleware for admin-only routes.
   - Section sources
     - [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
     - [authMiddleware.js:17-20](file://backend/middleware/authMiddleware.js#L17-L20)
+
+### Enhanced Validation Features
+- **Phone Number Validation**:
+  - Pattern: `/^[6-9]\d{9}$/` for 10-digit Indian mobile numbers
+  - Real-time formatting: Automatic digit stripping and length limitation
+  - Input restrictions: Tel type and maxLength={10}
+  - Section sources
+    - [Register.jsx:17-21](file://frontend/src/pages/Register.jsx#L17-L21)
+    - [Register.jsx:69](file://frontend/src/pages/Register.jsx#L69)
+
+- **Email Validation**:
+  - Pattern: `/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/` for comprehensive email format
+  - Real-time validation feedback
+  - Section sources
+    - [Register.jsx:23-27](file://frontend/src/pages/Register.jsx#L23-L27)
+
+- **Toast Notification System**:
+  - Library: react-hot-toast
+  - Positioning: Top-right corner
+  - Consistent styling across all user interactions
+  - Section sources
+    - [Register.jsx:4](file://frontend/src/pages/Register.jsx#L4)
+    - [App.jsx:198](file://frontend/src/App.jsx#L198)
 
 ### Additional Workflows (Planned Enhancements)
 - Account verification:
@@ -479,5 +575,7 @@ The authentication system integrates secure backend processing (bcrypt hashing, 
   - Implement reset token generation, email delivery, and secure password update endpoint.
 - Session management:
   - Introduce refresh tokens and sliding expiration; enforce logout on token refresh failures.
-
-[No sources needed since this section provides general guidance]
+- **Enhanced**: Login page toast notifications:
+  - Replace alert dialogs with toast notifications for consistent user experience.
+- **Enhanced**: Real-time validation improvements:
+  - Expand validation to cover additional input fields and edge cases.

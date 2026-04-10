@@ -4,8 +4,11 @@
 **Referenced Files in This Document**
 - [orderController.js](file://backend/controllers/orderController.js)
 - [orderRoutes.js](file://backend/routes/orderRoutes.js)
+- [emailService.js](file://backend/utils/emailService.js)
+- [whatsappService.js](file://backend/utils/whatsappService.js)
 - [razorpay.js](file://backend/utils/razorpay.js)
 - [Order.js](file://backend/models/Order.js)
+- [User.js](file://backend/models/User.js)
 - [authMiddleware.js](file://backend/middleware/authMiddleware.js)
 - [Checkout.jsx](file://frontend/src/pages/Checkout.jsx)
 - [AdminOrders.jsx](file://frontend/src/components/admin/AdminOrders.jsx)
@@ -15,22 +18,30 @@
 - [db.js](file://backend/config/db.js)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Added asynchronous order confirmation notification system via email and WhatsApp
+- Enhanced order details population with user information for notifications
+- Implemented comprehensive error handling for notification failures
+- Updated order creation workflow to include notification dispatch
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
 3. [Core Components](#core-components)
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
-6. [Dependency Analysis](#dependency-analysis)
-7. [Performance Considerations](#performance-considerations)
-8. [Troubleshooting Guide](#troubleshooting-guide)
-9. [Conclusion](#conclusion)
+6. [Notification System](#notification-system)
+7. [Dependency Analysis](#dependency-analysis)
+8. [Performance Considerations](#performance-considerations)
+9. [Troubleshooting Guide](#troubleshooting-guide)
+10. [Conclusion](#conclusion)
 
 ## Introduction
-This document provides comprehensive API documentation for the Order Processing system, covering order placement, payment processing via Razorpay, order retrieval, and administrative order management. It also outlines the complete order workflow including address validation, cart checkout, payment initiation, order confirmation, inventory deduction, and error handling for payment failures. Integration points with shipping systems and administrative controls are documented to support end-to-end order lifecycle management.
+This document provides comprehensive API documentation for the Order Processing system, covering order placement, payment processing via Razorpay, order retrieval, and administrative order management. The system now includes asynchronous order confirmation notifications via email and WhatsApp, enhanced order details population with user information, and comprehensive error handling for notification failures. It also outlines the complete order workflow including address validation, cart checkout, payment initiation, order confirmation, inventory deduction, and error handling for payment failures. Integration points with shipping systems and administrative controls are documented to support end-to-end order lifecycle management.
 
 ## Project Structure
-The Order Processing API spans backend controllers, routes, middleware, models, and frontend pages that orchestrate the user experience. The backend exposes REST endpoints under `/api/orders`, while the frontend components manage user interactions for checkout, payment, and order confirmation.
+The Order Processing API spans backend controllers, routes, middleware, models, and frontend pages that orchestrate the user experience. The backend exposes REST endpoints under `/api/orders`, while the frontend components manage user interactions for checkout, payment, and order confirmation. The system now includes notification utilities for email and WhatsApp services.
 
 ```mermaid
 graph TB
@@ -40,6 +51,8 @@ BE_Routes --> BE_Controller["Backend: orderController.js"]
 BE_Controller --> BE_Model["Backend: Order.js"]
 BE_Controller --> BE_Middleware["Backend: authMiddleware.js"]
 BE_Controller --> BE_Razorpay["Backend: razorpay.js"]
+BE_Controller --> BE_Email["Backend: emailService.js"]
+BE_Controller --> BE_WA["Backend: whatsappService.js"]
 BE_Controller --> BE_Shipping["Backend: shipping.js"]
 BE_Server["Backend: server.js"] --> BE_Routes
 BE_Server --> BE_DB["Backend: db.js"]
@@ -47,10 +60,12 @@ BE_Server --> BE_DB["Backend: db.js"]
 
 **Diagram sources**
 - [orderRoutes.js:1-28](file://backend/routes/orderRoutes.js#L1-L28)
-- [orderController.js:1-146](file://backend/controllers/orderController.js#L1-L146)
+- [orderController.js:1-173](file://backend/controllers/orderController.js#L1-L173)
 - [Order.js:1-33](file://backend/models/Order.js#L1-L33)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [razorpay.js:1-10](file://backend/utils/razorpay.js#L1-L10)
+- [emailService.js:1-149](file://backend/utils/emailService.js#L1-L149)
+- [whatsappService.js:1-127](file://backend/utils/whatsappService.js#L1-L127)
 - [shipping.js:1-73](file://backend/config/shipping.js#L1-L73)
 - [server.js:1-102](file://backend/server.js#L1-L102)
 - [db.js:1-14](file://backend/config/db.js#L1-L14)
@@ -60,27 +75,31 @@ BE_Server --> BE_DB["Backend: db.js"]
 - [server.js:57-63](file://backend/server.js#L57-L63)
 
 ## Core Components
-- Order Controller: Implements order creation, retrieval, Razorpay order creation and verification, and admin order status updates.
+- Order Controller: Implements order creation, retrieval, Razorpay order creation and verification, and admin order status updates. Now includes asynchronous notification dispatch.
 - Order Model: Defines the schema for orders, including items, pricing breakdown, shipping details, payment metadata, and order tracking.
 - Authentication Middleware: Protects routes and enforces admin-only access for administrative endpoints.
 - Razorpay Utility: Initializes the Razorpay client using environment variables.
+- Email Service: Handles order confirmation email notifications with HTML templates.
+- WhatsApp Service: Manages order confirmation WhatsApp notifications via Business Cloud API.
 - Shipping Configuration: Provides shipping zone calculation and free shipping thresholds.
 - Frontend Pages: Manage checkout, payment, and order confirmation flows.
 
 **Section sources**
-- [orderController.js:1-146](file://backend/controllers/orderController.js#L1-L146)
+- [orderController.js:1-173](file://backend/controllers/orderController.js#L1-L173)
 - [Order.js:1-33](file://backend/models/Order.js#L1-L33)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [razorpay.js:1-10](file://backend/utils/razorpay.js#L1-L10)
+- [emailService.js:1-149](file://backend/utils/emailService.js#L1-L149)
+- [whatsappService.js:1-127](file://backend/utils/whatsappService.js#L1-L127)
 - [shipping.js:1-73](file://backend/config/shipping.js#L1-L73)
 
 ## Architecture Overview
-The Order Processing API follows a layered architecture:
+The Order Processing API follows a layered architecture with enhanced notification capabilities:
 - Presentation Layer: Frontend pages handle user interactions for checkout and order management.
 - Application Layer: Express routes delegate to controller functions for business logic.
-- Domain Layer: Controllers coordinate with models, middleware, and external services (Razorpay).
+- Domain Layer: Controllers coordinate with models, middleware, and external services (Razorpay, email, WhatsApp).
 - Persistence Layer: Mongoose models define schemas stored in MongoDB.
-- External Integrations: Razorpay for payments and shipping zone calculations for logistics.
+- External Integrations: Razorpay for payments, Nodemailer for emails, and WhatsApp Business Cloud API for notifications.
 
 ```mermaid
 sequenceDiagram
@@ -89,10 +108,17 @@ participant Routes as "orderRoutes.js"
 participant Ctrl as "orderController.js"
 participant Model as "Order.js"
 participant Razorpay as "razorpay.js"
+participant Email as "emailService.js"
+participant WA as "whatsappService.js"
 participant Shipping as "shipping.js"
 Client->>Routes : POST /api/orders/create
 Routes->>Ctrl : createOrder()
 Ctrl->>Model : Create order record
+Ctrl->>Ctrl : Populate order with user details
+Ctrl->>Email : Send order confirmation email
+Ctrl->>WA : Send order confirmation WhatsApp
+Email-->>Ctrl : Email result
+WA-->>Ctrl : WhatsApp result
 Ctrl->>Ctrl : Clear cart
 Ctrl-->>Client : 201 Created with order
 Client->>Routes : POST /api/orders/razorpay/order
@@ -110,14 +136,16 @@ Ctrl-->>Client : {success, message}
 
 **Diagram sources**
 - [orderRoutes.js:15-26](file://backend/routes/orderRoutes.js#L15-L26)
-- [orderController.js:83-146](file://backend/controllers/orderController.js#L83-L146)
+- [orderController.js:86-173](file://backend/controllers/orderController.js#L86-L173)
 - [Order.js:1-33](file://backend/models/Order.js#L1-L33)
 - [razorpay.js:1-10](file://backend/utils/razorpay.js#L1-L10)
+- [emailService.js:17-109](file://backend/utils/emailService.js#L17-L109)
+- [whatsappService.js:57-85](file://backend/utils/whatsappService.js#L57-L85)
 
 ## Detailed Component Analysis
 
 ### POST /api/orders/create
-Purpose: Place an order using either Cash on Delivery (COD), Razorpay, or manual UPI. Validates cart presence, constructs order items, determines payment and order statuses, and clears the cart upon successful order creation.
+Purpose: Place an order using either Cash on Delivery (COD), Razorpay, or manual UPI. Validates cart presence, constructs order items, determines payment and order statuses, clears the cart upon successful order creation, and dispatches asynchronous notifications.
 
 Key Behaviors:
 - Validates that the cart is not empty.
@@ -126,6 +154,8 @@ Key Behaviors:
 - Determines final payment and order statuses based on payment method and status flags.
 - Persists order with subtotal, shipping charge, total price, shipping address, and payment metadata.
 - Clears the cart after successful order creation.
+- **Enhanced**: Populates order with user details for notification purposes.
+- **Enhanced**: Asynchronously sends order confirmation notifications via email and WhatsApp.
 
 Request Body Fields:
 - shippingAddress: Object containing fullName, phone, address, city, state, pincode, country.
@@ -146,8 +176,10 @@ Response:
 Frontend Integration:
 - Checkout page handles COD, online payment, and manual UPI flows and posts to this endpoint.
 
+**Updated** Enhanced with asynchronous notification dispatch and user information population
+
 **Section sources**
-- [orderController.js:83-146](file://backend/controllers/orderController.js#L83-L146)
+- [orderController.js:86-173](file://backend/controllers/orderController.js#L86-L173)
 - [Checkout.jsx:67-86](file://frontend/src/pages/Checkout.jsx#L67-L86)
 - [Checkout.jsx:88-137](file://frontend/src/pages/Checkout.jsx#L88-L137)
 - [Checkout.jsx:139-165](file://frontend/src/pages/Checkout.jsx#L139-L165)
@@ -164,7 +196,7 @@ Response:
 - 500 Internal Server Error on failure.
 
 **Section sources**
-- [orderController.js:19-27](file://backend/controllers/orderController.js#L19-L27)
+- [orderController.js:22-30](file://backend/controllers/orderController.js#L22-L30)
 
 ### GET /api/orders/:orderId
 Purpose: Retrieve a specific order by ID with access control for owners and admins.
@@ -182,7 +214,7 @@ Response:
 - 500 Internal Server Error on failure.
 
 **Section sources**
-- [orderController.js:7-17](file://backend/controllers/orderController.js#L7-L17)
+- [orderController.js:10-20](file://backend/controllers/orderController.js#L10-L20)
 
 ### POST /api/orders/razorpay/order
 Purpose: Create a Razorpay order for payment capture.
@@ -197,7 +229,7 @@ Response:
 - 500 Internal Server Error on failure.
 
 **Section sources**
-- [orderController.js:39-50](file://backend/controllers/orderController.js#L39-L50)
+- [orderController.js:42-53](file://backend/controllers/orderController.js#L42-L53)
 
 ### POST /api/orders/razorpay/verify
 Purpose: Verify Razorpay payment signature and update order payment status.
@@ -217,7 +249,7 @@ Frontend Integration:
 - Frontend opens Razorpay checkout, collects response, verifies signature, then posts to create order.
 
 **Section sources**
-- [orderController.js:52-67](file://backend/controllers/orderController.js#L52-L67)
+- [orderController.js:55-70](file://backend/controllers/orderController.js#L55-L70)
 - [Checkout.jsx:101-122](file://frontend/src/pages/Checkout.jsx#L101-L122)
 
 ### PUT /api/orders/:orderId/status (Admin)
@@ -241,7 +273,7 @@ Frontend Integration:
 - Admin dashboard allows changing order status with immediate UI feedback.
 
 **Section sources**
-- [orderController.js:69-81](file://backend/controllers/orderController.js#L69-L81)
+- [orderController.js:72-84](file://backend/controllers/orderController.js#L72-L84)
 - [AdminOrders.jsx:26-34](file://frontend/src/components/admin/AdminOrders.jsx#L26-L34)
 
 ### Order Data Model
@@ -311,6 +343,8 @@ participant FE as "Checkout.jsx"
 participant API as "orderRoutes.js"
 participant CTRL as "orderController.js"
 participant RP as "razorpay.js"
+participant EMAIL as "emailService.js"
+participant WA as "whatsappService.js"
 User->>FE : Select payment method (Razorpay)
 FE->>API : POST /api/orders/razorpay/order {amount}
 API->>CTRL : createRazorpayOrder()
@@ -324,6 +358,10 @@ CTRL->>CTRL : Update order payment status
 CTRL-->>FE : Verification result
 FE->>API : POST /api/orders/create {shippingAddress, payment details}
 API->>CTRL : createOrder()
+CTRL->>EMAIL : Send order confirmation email
+CTRL->>WA : Send order confirmation WhatsApp
+EMAIL-->>CTRL : Email result
+WA-->>CTRL : WhatsApp result
 CTRL->>CTRL : Clear cart
 CTRL-->>FE : Order confirmation
 ```
@@ -331,7 +369,9 @@ CTRL-->>FE : Order confirmation
 **Diagram sources**
 - [Checkout.jsx:88-137](file://frontend/src/pages/Checkout.jsx#L88-L137)
 - [orderRoutes.js:20-22](file://backend/routes/orderRoutes.js#L20-L22)
-- [orderController.js:39-67](file://backend/controllers/orderController.js#L39-L67)
+- [orderController.js:42-70](file://backend/controllers/orderController.js#L42-L70)
+- [emailService.js:17-109](file://backend/utils/emailService.js#L17-L109)
+- [whatsappService.js:57-85](file://backend/utils/whatsappService.js#L57-L85)
 
 #### Order Confirmation Page
 - Displays order ID, total amount, and basic order details after successful placement.
@@ -347,6 +387,37 @@ CTRL-->>FE : Order confirmation
 - [AdminOrders.jsx:67-73](file://frontend/src/components/admin/AdminOrders.jsx#L67-L73)
 - [AdminOrders.jsx:174-191](file://frontend/src/components/admin/AdminOrders.jsx#L174-L191)
 
+## Notification System
+
+### Asynchronous Order Confirmation Notifications
+The system now implements asynchronous order confirmation notifications via both email and WhatsApp to enhance customer experience and provide real-time order updates.
+
+#### Email Notifications
+- **Service**: Nodemailer with Gmail SMTP
+- **Template**: Rich HTML email with order details, items ordered, delivery address, and pricing breakdown
+- **Trigger**: Asynchronously sent after successful order creation
+- **Error Handling**: Comprehensive error logging with success/failure indicators
+- **Content**: Order confirmation with payment status, shipping details, and tracking information
+
+#### WhatsApp Notifications
+- **Service**: WhatsApp Business Cloud API
+- **Template**: Pre-configured template "order_confirmation" with dynamic parameters
+- **Fallback**: Text message support if template is not configured
+- **Trigger**: Asynchronously sent after successful order creation
+- **Error Handling**: Phone number validation and comprehensive error logging
+- **Parameters**: Customer name, order ID (last 6 digits), total amount, order date
+
+#### Notification Dispatch Logic
+- **Population**: Order details are populated with user information (name, email, phone) before sending notifications
+- **Asynchronous**: Notifications are sent asynchronously to avoid blocking the order creation response
+- **Error Isolation**: Individual notification failures don't affect order creation success
+- **Logging**: Success and failure logs are maintained for monitoring and debugging
+
+**Section sources**
+- [orderController.js:141-163](file://backend/controllers/orderController.js#L141-L163)
+- [emailService.js:17-109](file://backend/utils/emailService.js#L17-L109)
+- [whatsappService.js:57-85](file://backend/utils/whatsappService.js#L57-L85)
+
 ## Dependency Analysis
 The Order Processing API depends on:
 - Express routes for endpoint exposure.
@@ -354,6 +425,8 @@ The Order Processing API depends on:
 - Order controller for business logic.
 - Order model for persistence.
 - Razorpay utility for payment processing.
+- Email service for order confirmation emails.
+- WhatsApp service for order confirmation notifications.
 - Shipping configuration for logistics integration.
 
 ```mermaid
@@ -362,6 +435,8 @@ Routes["orderRoutes.js"] --> Controller["orderController.js"]
 Controller --> Model["Order.js"]
 Controller --> Middleware["authMiddleware.js"]
 Controller --> Razorpay["razorpay.js"]
+Controller --> Email["emailService.js"]
+Controller --> WA["whatsappService.js"]
 Controller --> Shipping["shipping.js"]
 Server["server.js"] --> Routes
 Server --> DB["db.js"]
@@ -369,9 +444,11 @@ Server --> DB["db.js"]
 
 **Diagram sources**
 - [orderRoutes.js:1-28](file://backend/routes/orderRoutes.js#L1-L28)
-- [orderController.js:1-146](file://backend/controllers/orderController.js#L1-L146)
+- [orderController.js:1-173](file://backend/controllers/orderController.js#L1-L173)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [razorpay.js:1-10](file://backend/utils/razorpay.js#L1-L10)
+- [emailService.js:1-149](file://backend/utils/emailService.js#L1-L149)
+- [whatsappService.js:1-127](file://backend/utils/whatsappService.js#L1-L127)
 - [shipping.js:1-73](file://backend/config/shipping.js#L1-L73)
 - [server.js:57-63](file://backend/server.js#L57-L63)
 - [db.js:1-14](file://backend/config/db.js#L1-L14)
@@ -385,6 +462,8 @@ Server --> DB["db.js"]
 - Batch cart population and order population to reduce round trips.
 - Cache frequently accessed shipping zone configurations if scale demands.
 - Use pagination for admin order listing when order volume grows.
+- **Enhanced**: Asynchronous notification dispatch prevents blocking order creation responses.
+- **Enhanced**: Notification errors are isolated and don't impact core order processing performance.
 
 ## Troubleshooting Guide
 Common Issues and Resolutions:
@@ -393,6 +472,8 @@ Common Issues and Resolutions:
 - Access Denied: Verify JWT validity and admin role for admin-only endpoints.
 - Invalid Status Update: Ensure status is one of Pending, Shipped, Delivered, Cancelled.
 - Shipping Calculation Mismatch: Validate pincode format and ensure shipping zone logic aligns with delivery location.
+- **New**: Notification Failures: Check email service credentials, WhatsApp API configuration, and phone number formats.
+- **New**: Asynchronous Processing: Monitor console logs for notification success/failure messages.
 
 **Section sources**
 - [orderController.js:98-99](file://backend/controllers/orderController.js#L98-L99)
@@ -401,4 +482,4 @@ Common Issues and Resolutions:
 - [orderController.js:73-74](file://backend/controllers/orderController.js#L73-L74)
 
 ## Conclusion
-The Order Processing API provides a robust foundation for order placement, payment handling via Razorpay, order retrieval, and administrative oversight. By leveraging the documented endpoints, integrating shipping zone logic, and following the outlined workflows, developers can implement reliable order management with clear error handling and user-friendly frontend experiences.
+The Order Processing API provides a robust foundation for order placement, payment handling via Razorpay, order retrieval, and administrative oversight. The enhanced system now includes asynchronous order confirmation notifications via email and WhatsApp, comprehensive error handling for notification failures, and improved order details population with user information. By leveraging the documented endpoints, integrating shipping zone logic, implementing the notification system, and following the outlined workflows, developers can implement reliable order management with clear error handling, user-friendly frontend experiences, and comprehensive customer communication.
