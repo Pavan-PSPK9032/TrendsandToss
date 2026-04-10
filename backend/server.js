@@ -25,19 +25,31 @@ const allowedOrigins = [
   'https://trendsand-toss-3lee0a6w9-pavan-pspk9032s-projects.vercel.app',
   'https://trendsand-toss.vercel.app',
   'https://trendsandtoss.vercel.app',
+  'https://trendsand-toss-8wxczdy8p-pavan-pspk9032s-projects.vercel.app', // New preview URL
   'http://localhost:5173',  // Vite dev server
   'http://localhost:3000',  // Alternative dev port
   process.env.FRONTEND_URL  // Environment variable for flexibility
 ].filter(Boolean); // Remove any undefined values
+
+// Also allow any Vercel preview deployment
+const isVercelPreview = (origin) => {
+  return origin && origin.includes('vercel.app');
+};
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
     
+    // Allow all Vercel preview deployments
+    if (isVercelPreview(origin)) {
+      return callback(null, true);
+    }
+    
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log('CORS blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
