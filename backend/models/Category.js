@@ -11,7 +11,8 @@ const categorySchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    lowercase: true
+    lowercase: true,
+    default: '' // Allow empty initially, will be set by pre-save hook
   },
   description: {
     type: String,

@@ -41,8 +41,14 @@ export const createCategory = async (req, res) => {
   try {
     const { name, description, icon, displayOrder } = req.body;
     
+    // Generate slug from name
+    const slug = name.toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]+/g, '');
+    
     const category = await Category.create({
       name,
+      slug,
       description,
       icon,
       displayOrder: Number(displayOrder) || 0
@@ -50,6 +56,7 @@ export const createCategory = async (req, res) => {
     
     res.status(201).json({ category });
   } catch (err) {
+    console.error('Create category error:', err);
     res.status(500).json({ error: err.message });
   }
 };
