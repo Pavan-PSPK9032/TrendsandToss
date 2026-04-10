@@ -40,11 +40,20 @@ export default function Cart() {
     
     setCheckingShipping(true)
     try {
-      const { data } = await api.post('/shipping/calculate', {
-        pincode,
-        cartTotal: subtotal
+      const { data } = await api.get(`/shipping/check/${pincode}`)
+      
+      // Check if order qualifies for free delivery
+      const isFree = subtotal >= 500
+      const charge = isFree ? 0 : data.charge
+      
+      setShippingInfo({
+        available: data.available,
+        charge: charge,
+        shippingCharge: charge,
+        isFree: isFree,
+        estimatedDays: data.estimatedDays,
+        message: isFree ? 'FREE delivery on this order!' : data.message
       })
-      setShippingInfo(data)
     } catch (err) {
       alert('Failed to calculate shipping. Please try again.')
     } finally {
