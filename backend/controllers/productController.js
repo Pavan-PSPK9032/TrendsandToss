@@ -48,13 +48,13 @@ export const getProductById = async (req, res) => {
   }
 };
 
-// CREATE product (Local storage only - NO Cloudinary)
+// CREATE product (Cloudinary storage)
 export const createProduct = async (req, res) => {
   try {
     const { name, description, price, category, stock } = req.body;
     
-    // Handle image uploads - Local storage only
-    const images = req.files?.map(file => `/uploads/${file.filename}`) || [];
+    // Handle image uploads - Cloudinary storage
+    const images = req.files?.map(file => file.path) || [];
     
     const product = await Product.create({
       name,
@@ -85,7 +85,7 @@ export const updateProduct = async (req, res) => {
     
     // Add new uploads if any
     if (req.files && req.files.length > 0) {
-      const newImages = req.files.map(file => `/uploads/${file.filename}`);
+      const newImages = req.files.map(file => file.path); // Cloudinary URL
       images = [...images, ...newImages];
     }
     
