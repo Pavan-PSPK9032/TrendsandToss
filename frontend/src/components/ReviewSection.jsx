@@ -4,7 +4,8 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 
 export default function ReviewSection({ productId }) {
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
   const [reviews, setReviews] = useState([]);
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
