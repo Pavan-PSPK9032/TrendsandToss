@@ -14,6 +14,9 @@
 - [ManualUPI.jsx](file://frontend/src/components/ManualUPI.jsx)
 - [axios.js](file://frontend/src/api/axios.js)
 - [imageHelper.js](file://frontend/src/utils/imageHelper.js)
+- [categoryController.js](file://backend/controllers/categoryController.js)
+- [categoryRoutes.js](file://backend/routes/categoryRoutes.js)
+- [Category.js](file://backend/models/Category.js)
 - [shippingRoutes.js](file://backend/routes/shippingRoutes.js)
 - [deliveryController.js](file://backend/controllers/deliveryController.js)
 - [shipping.js](file://backend/config/shipping.js)
@@ -22,11 +25,12 @@
 
 ## Update Summary
 **Changes Made**
-- Updated Cart page section to reflect new `/shipping/check/{pincode}` endpoint implementation
-- Added detailed explanation of enhanced shipping calculation system with shipping zones
-- Updated Checkout page section to document improved shipping information handling
-- Enhanced troubleshooting guide with shipping-related error handling
-- Added new shipping configuration and controller documentation
+- Updated Home page section to reflect the complete redesign with category-based organization and visual category headers
+- Enhanced search functionality documentation to show integration with category filtering
+- Added new section documenting the category-based product browsing architecture
+- Updated ProductCard component documentation to reflect improved hover effects and stock indicators
+- Added backend category management system documentation
+- Enhanced troubleshooting guide with category-related error handling
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -41,14 +45,15 @@
 10. [Conclusion](#conclusion)
 
 ## Introduction
-This document explains the complete customer shopping experience in the e-commerce application, covering the end-to-end journey from browsing products to order confirmation. It documents the Home page with product listings, category filtering, and promotional banners; the ProductDetails page for item presentation and adding to cart; the Cart page for managing items and initiating checkout with enhanced shipping calculation; the Checkout process including shipping, payment selection, and order review; and the OrderConfirmation page for purchase completion. It also describes the ProductCard component for consistent product presentation and outlines user experience, responsive design, and accessibility considerations.
+This document explains the complete customer shopping experience in the e-commerce application, covering the end-to-end journey from browsing products to order confirmation. The application has undergone a complete redesign featuring category-based product organization with visual category headers, integrated search functionality that filters across categories, and an enhanced user interface. The Home page now organizes products by category with prominent visual headers, the ProductDetails page provides rich item information, the Cart page streamlines item management with real-time shipping calculations, the Checkout process supports secure and flexible payment methods, and the OrderConfirmation page closes the loop with clear order details. The new architecture features a robust category management system with icons, descriptions, and display ordering.
 
 ## Project Structure
-The frontend is organized by pages and shared components:
+The frontend is organized by pages and shared components with enhanced category management:
 - Pages: Home, ProductDetails, Cart, Checkout, OrderConfirmation, Login, Register, AdminDashboard
 - Shared components: ProductCard, ImageCarousel, BannerSlider, ManualUPI, Footer, Navbar
 - Services and utilities: axios client, image helper
 - Routing and layout: App sets up routes and navigation
+- Backend category system: Dedicated category routes, controllers, and models
 - Backend shipping system: Dedicated shipping routes and controllers
 
 ```mermaid
@@ -73,6 +78,11 @@ subgraph "Services"
 AXIOS["axios.js"]
 IMGHELP["imageHelper.js"]
 end
+subgraph "Backend Category System"
+CATROUTES["categoryRoutes.js"]
+CATCTRL["categoryController.js"]
+CATMODEL["Category.js"]
+end
 subgraph "Backend Shipping System"
 SHIPROUTES["shippingRoutes.js"]
 DELIVERYCTRL["deliveryController.js"]
@@ -87,6 +97,7 @@ APP --> CONFIRM
 HOME --> BANNER
 HOME --> CAROUSEL
 HOME --> PDP
+HOME --> CATROUTES
 PDP --> CAROUSEL
 CART --> CAROUSEL
 CHECKOUT --> UPI
@@ -96,6 +107,8 @@ CART --> AXIOS
 CHECKOUT --> AXIOS
 CART --> SHIPROUTES
 CHECKOUT --> SHIPROUTES
+CATROUTES --> CATCTRL
+CATCTRL --> CATMODEL
 SHIPROUTES --> DELIVERYCTRL
 DELIVERYCTRL --> SHIPCONFIG
 SERVER --> SHIPROUTES
@@ -104,17 +117,20 @@ CAROUSEL --> IMGHELP
 
 **Diagram sources**
 - [App.jsx:19-66](file://frontend/src/App.jsx#L19-L66)
-- [Home.jsx:1-108](file://frontend/src/pages/Home.jsx#L1-L108)
+- [Home.jsx:1-107](file://frontend/src/pages/Home.jsx#L1-L107)
 - [ProductDetails.jsx:1-80](file://frontend/src/pages/ProductDetails.jsx#L1-L80)
 - [Cart.jsx:1-161](file://frontend/src/pages/Cart.jsx#L1-L161)
 - [Checkout.jsx:1-301](file://frontend/src/pages/Checkout.jsx#L1-L301)
 - [OrderConfirmation.jsx:1-73](file://frontend/src/pages/OrderConfirmation.jsx#L1-L73)
-- [ProductCard.jsx:1-28](file://frontend/src/components/ProductCard.jsx#L1-L28)
+- [ProductCard.jsx:1-103](file://frontend/src/components/ProductCard.jsx#L1-L103)
 - [ImageCarousel.jsx:1-54](file://frontend/src/components/ImageCarousel.jsx#L1-L54)
 - [BannerSlider.jsx:1-153](file://frontend/src/components/BannerSlider.jsx#L1-L153)
 - [ManualUPI.jsx:1-125](file://frontend/src/components/ManualUPI.jsx#L1-L125)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
+- [categoryRoutes.js:1-27](file://backend/routes/categoryRoutes.js#L1-L27)
+- [categoryController.js:1-134](file://backend/controllers/categoryController.js#L1-L134)
+- [Category.js:1-46](file://backend/models/Category.js#L1-L46)
 - [shippingRoutes.js:1-12](file://backend/routes/shippingRoutes.js#L1-L12)
 - [deliveryController.js:1-118](file://backend/controllers/deliveryController.js#L1-L118)
 - [shipping.js:1-73](file://backend/config/shipping.js#L1-L73)
@@ -124,58 +140,60 @@ CAROUSEL --> IMGHELP
 - [App.jsx:19-66](file://frontend/src/App.jsx#L19-L66)
 
 ## Core Components
-- ProductCard: Reusable card for product preview with image carousel, name, price, and action buttons.
+- **Enhanced Home Page**: Category-based product organization with visual headers, integrated search, and responsive grid layout.
+- ProductCard: Reusable card for product preview with improved hover effects, stock badges, and category tags.
 - ImageCarousel: Generic image viewer with navigation and indicators.
 - BannerSlider: Promotional banner carousel with auto-play and manual controls.
 - ManualUPI: UPI payment component for manual UPI transactions with QR and transaction ID capture.
 - Axios client: Centralized HTTP client with auth token injection and 401 handling.
+- **Enhanced Category System**: Backend category management with icons, descriptions, display ordering, and active status control.
 - **Enhanced Shipping System**: Dedicated shipping routes, controllers, and configuration for comprehensive delivery calculation.
 
 **Section sources**
-- [ProductCard.jsx:1-28](file://frontend/src/components/ProductCard.jsx#L1-L28)
+- [Home.jsx:1-107](file://frontend/src/pages/Home.jsx#L1-L107)
+- [ProductCard.jsx:1-103](file://frontend/src/components/ProductCard.jsx#L1-L103)
 - [ImageCarousel.jsx:1-54](file://frontend/src/components/ImageCarousel.jsx#L1-L54)
 - [BannerSlider.jsx:1-153](file://frontend/src/components/BannerSlider.jsx#L1-L153)
 - [ManualUPI.jsx:1-125](file://frontend/src/components/ManualUPI.jsx#L1-L125)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
+- [categoryController.js:1-134](file://backend/controllers/categoryController.js#L1-L134)
+- [Category.js:1-46](file://backend/models/Category.js#L1-L46)
 - [shippingRoutes.js:1-12](file://backend/routes/shippingRoutes.js#L1-L12)
 - [deliveryController.js:1-118](file://backend/controllers/deliveryController.js#L1-L118)
 - [shipping.js:1-73](file://backend/config/shipping.js#L1-L73)
 
 ## Architecture Overview
-The customer journey is routed through React components that communicate with the backend via a centralized axios client. Authentication tokens are stored in localStorage and automatically attached to requests. The UI is responsive and uses Tailwind classes for consistent styling. The enhanced shipping system provides real-time delivery availability checking with comprehensive zone-based pricing and free shipping thresholds.
+The customer journey is routed through React components that communicate with the backend via a centralized axios client. The redesigned Home page now features category-based organization with visual headers and integrated search functionality. Authentication tokens are stored in localStorage and automatically attached to requests. The UI is responsive and uses Tailwind classes for consistent styling. The enhanced category system provides structured product organization with icons and descriptions. The enhanced shipping system provides real-time delivery availability checking with comprehensive zone-based pricing and free shipping thresholds.
 
 ```mermaid
 sequenceDiagram
 participant C as "Customer"
 participant R as "React Router"
 participant H as "Home.jsx"
-participant P as "ProductDetails.jsx"
-participant CR as "Cart.jsx"
 participant API as "axios.js"
+participant CR as "Cart.jsx"
 participant SR as "shippingRoutes.js"
 participant DC as "deliveryController.js"
 participant CH as "Checkout.jsx"
+participant CAT as "categoryController.js"
 participant B as "Backend API"
 C->>R : Navigate to "/"
 R->>H : Render Home
-H->>API : GET /products
-API->>B : Fetch products
-B-->>API : Products[]
-API-->>H : Products[]
-H-->>C : Display product cards and banners
-C->>R : Click "View Details" on a product
-R->>P : Render ProductDetails
-P->>API : GET /products/ : id
-API->>B : Fetch product
-B-->>API : Product
-API-->>P : Product
-P-->>C : Show product details
-C->>P : Click "Add to Cart"
-P->>API : POST /cart/add
-API->>B : Add to cart
-B-->>API : OK
-API-->>P : OK
-P-->>C : Toast "Added to cart"
+H->>API : GET /categories
+API->>B : Fetch categories
+B-->>API : Categories[]
+API-->>H : Categories[]
+H->>API : GET /categories/slug/ : slug/products
+API->>CAT : Fetch products by category
+CAT->>B : Query products
+B-->>CAT : Products[]
+CAT-->>API : Products[]
+API-->>H : Products by category
+H-->>C : Display category headers with visual icons
+C->>H : Type in search box
+H->>H : Filter by name/description across categories
+C->>H : Click product card
+H->>R : Navigate to ProductDetails
 C->>R : Navigate to "/cart"
 R->>CR : Render Cart
 CR->>API : GET /cart
@@ -213,9 +231,12 @@ CONF-->>C : Show order details
 
 **Diagram sources**
 - [App.jsx:48-57](file://frontend/src/App.jsx#L48-L57)
-- [Home.jsx:19-37](file://frontend/src/pages/Home.jsx#L19-L37)
-- [ProductDetails.jsx:15-33](file://frontend/src/pages/ProductDetails.jsx#L15-L33)
-- [Cart.jsx:17-26](file://frontend/src/pages/Cart.jsx#L17-L26)
+- [Home.jsx:13-41](file://frontend/src/pages/Home.jsx#L13-L41)
+- [Home.jsx:20-32](file://frontend/src/pages/Home.jsx#L20-L32)
+- [Home.jsx:44-50](file://frontend/src/pages/Home.jsx#L44-L50)
+- [Home.jsx:70-76](file://frontend/src/pages/Home.jsx#L70-L76)
+- [Home.jsx:71-74](file://frontend/src/pages/Home.jsx#L71-L74)
+- [Cart.jsx:13-26](file://frontend/src/pages/Cart.jsx#L13-L26)
 - [Cart.jsx:35-62](file://frontend/src/pages/Cart.jsx#L35-L62)
 - [shippingRoutes.js:7](file://backend/routes/shippingRoutes.js#L7)
 - [deliveryController.js:2](file://backend/controllers/deliveryController.js#L2)
@@ -225,46 +246,55 @@ CONF-->>C : Show order details
 
 ## Detailed Component Analysis
 
-### Home Page: Product Browsing, Filtering, and Promotions
+### Home Page: Redesigned Category-Based Product Browsing
+**Updated** Complete redesign featuring category-based organization with visual category headers and integrated search functionality.
+
 Key behaviors:
-- Loads products on mount and displays a loading state while fetching.
-- Provides a search bar to filter by product name or description.
-- Supports category filtering with a horizontal scrollable category bar.
-- Renders product cards with images, pricing, and action buttons.
+- Loads categories and products for each category on mount with error handling.
+- Provides a prominent search bar at the top with real-time filtering across all categories.
+- **New**: Displays products grouped by category with visual category headers featuring icons and gradient dividers.
+- **Enhanced**: Responsive grid layout with horizontal scrolling on mobile and grid layout on desktop.
+- **Improved**: Category filtering that shows only categories containing products matching the search term.
+- Renders product cards with enhanced hover effects and stock indicators.
 - Integrates a promotional BannerSlider at the top.
 
 User flow highlights:
-- Search updates filtered results instantly.
-- Category selection narrows results dynamically.
+- Search updates filtered results instantly across all categories.
+- Category selection narrows results dynamically with visual feedback.
 - "Add to Cart" triggers a cart add API call and shows a toast/alert.
 - "View Details" navigates to the product's detail page.
+- Visual category headers provide clear product categorization.
 
 ```mermaid
 flowchart TD
-Start(["Home mounted"]) --> Load["Fetch products"]
-Load --> Done{"Products loaded?"}
+Start(["Home mounted"]) --> LoadCategories["Fetch categories"]
+LoadCategories --> LoadProducts["Fetch products for each category"]
+LoadProducts --> Done{"Categories loaded?"}
 Done --> |No| Loading["Show loading message"]
-Done --> |Yes| Render["Render banners and filters"]
+Done --> |Yes| Render["Render banner and search bar"]
 Render --> Search["User types in search box"]
-Search --> Filter["Filter by name/description"]
-Render --> Category["User selects category"]
-Category --> FilterCat["Filter by category"]
-Filter --> Cards["Render product cards"]
-FilterCat --> Cards
-Cards --> AddToCart["Click 'Add to Cart'"]
+Search --> FilterCategories["Filter categories by search term"]
+FilterCategories --> FilterProducts["Filter products within categories"]
+Render --> CategoryHeaders["Display category headers with icons"]
+CategoryHeaders --> ProductsGrid["Render responsive product grid"]
+FilterProducts --> ProductsGrid
+ProductsGrid --> AddToCart["Click 'Add to Cart'"]
 AddToCart --> APIAdd["POST /cart/add"]
 APIAdd --> Alert["Show success or login prompt"]
-Cards --> ViewDetails["Click 'View Details'"]
+ProductsGrid --> ViewDetails["Click product card"]
 ViewDetails --> NavigatePDP["Navigate to ProductDetails"]
 ```
 
 **Diagram sources**
-- [Home.jsx:15-44](file://frontend/src/pages/Home.jsx#L15-L44)
-- [Home.jsx:30-37](file://frontend/src/pages/Home.jsx#L30-L37)
+- [Home.jsx:13-41](file://frontend/src/pages/Home.jsx#L13-L41)
+- [Home.jsx:44-50](file://frontend/src/pages/Home.jsx#L44-L50)
+- [Home.jsx:70-76](file://frontend/src/pages/Home.jsx#L70-L76)
+- [Home.jsx:71-74](file://frontend/src/pages/Home.jsx#L71-L74)
+- [Home.jsx:88-94](file://frontend/src/pages/Home.jsx#L88-L94)
 - [BannerSlider.jsx:31-62](file://frontend/src/components/BannerSlider.jsx#L31-L62)
 
 **Section sources**
-- [Home.jsx:1-108](file://frontend/src/pages/Home.jsx#L1-L108)
+- [Home.jsx:1-107](file://frontend/src/pages/Home.jsx#L1-L107)
 - [BannerSlider.jsx:1-153](file://frontend/src/components/BannerSlider.jsx#L1-L153)
 
 ### ProductDetails Page: Item Presentation and Add-to-Cart
@@ -438,16 +468,22 @@ Zone --> Actions["Provide 'Continue Shopping' and 'View Orders'"]
 **Section sources**
 - [OrderConfirmation.jsx:1-73](file://frontend/src/pages/OrderConfirmation.jsx#L1-L73)
 
-### ProductCard Component: Consistent Product Presentation
+### ProductCard Component: Enhanced Product Presentation
+**Updated** Improved hover effects, stock indicators, and category tagging for better user experience.
+
 Key behaviors:
-- Displays a product preview with an image carousel and hover dots.
-- Provides "Details" and "Add to Cart" actions.
+- Displays a product preview with enhanced hover animations and overlay effects.
+- Shows stock status with visual badges (In Stock/Sold Out).
+- Provides category tag display for quick product categorization.
 - Uses a shared ImageCarousel component for consistent image handling.
+- Implements smooth hover transitions with elevation and border highlighting.
 
 ```mermaid
 classDiagram
 class ProductCard {
 +product : Object
++currentImg : Number
++isHovered : Boolean
 +render()
 }
 class ImageCarousel {
@@ -460,12 +496,43 @@ ProductCard --> ImageCarousel : "uses"
 ```
 
 **Diagram sources**
-- [ProductCard.jsx:4-27](file://frontend/src/components/ProductCard.jsx#L4-L27)
+- [ProductCard.jsx:5-103](file://frontend/src/components/ProductCard.jsx#L5-L103)
 - [ImageCarousel.jsx:4-53](file://frontend/src/components/ImageCarousel.jsx#L4-L53)
 
 **Section sources**
-- [ProductCard.jsx:1-28](file://frontend/src/components/ProductCard.jsx#L1-L28)
+- [ProductCard.jsx:1-103](file://frontend/src/components/ProductCard.jsx#L1-L103)
 - [ImageCarousel.jsx:1-54](file://frontend/src/components/ImageCarousel.jsx#L1-L54)
+
+### Enhanced Category Management System: Backend Architecture
+**New Section** The application now features a comprehensive category management system with icons, descriptions, and display ordering.
+
+#### Category Model Features
+The Category model includes:
+- **Name**: Unique category identifier with automatic slug generation
+- **Slug**: URL-friendly identifier for category URLs
+- **Description**: Optional category description for marketing
+- **Icon**: Unicode icon for visual category representation
+- **IsActive**: Toggle to hide/show categories in frontend
+- **DisplayOrder**: Numeric ordering for category appearance
+
+#### Category Operations
+The system supports full CRUD operations:
+- **Get Categories**: Fetches active categories with display ordering
+- **Get Products by Category**: Retrieves products filtered by category with pagination
+- **Create/Update/Delete**: Admin-only operations for category management
+- **Get All Categories**: Admin-only access to inactive categories
+
+#### Frontend Integration
+- **Visual Headers**: Category headers display icons and gradient dividers
+- **Search Integration**: Search filters across all categories and products
+- **Responsive Layout**: Grid layout adapts to different screen sizes
+- **Error Handling**: Graceful fallbacks when category products fail to load
+
+**Section sources**
+- [categoryController.js:1-134](file://backend/controllers/categoryController.js#L1-L134)
+- [categoryRoutes.js:1-27](file://backend/routes/categoryRoutes.js#L1-L27)
+- [Category.js:1-46](file://backend/models/Category.js#L1-L46)
+- [Home.jsx:80-85](file://frontend/src/pages/Home.jsx#L80-L85)
 
 ### Enhanced Shipping System: Comprehensive Delivery Calculation
 **New Section** The application now features a sophisticated shipping calculation system with multiple tiers and real-time delivery checking.
@@ -502,7 +569,9 @@ The `/shipping/check/{pincode}` endpoint provides:
 - Pages depend on the axios client for API communication.
 - Components share ImageCarousel and imageHelper for image rendering.
 - Checkout integrates ManualUPI and Razorpay SDK for payments.
+- **Enhanced**: Home page depends on the new category system for product organization.
 - **Enhanced**: Cart page depends on the new shipping system for delivery calculations.
+- **Enhanced**: Category system provides structured product data for frontend consumption.
 
 ```mermaid
 graph LR
@@ -516,6 +585,9 @@ HOME --> AXIOS["axios.js"]
 PDP --> AXIOS
 CART --> AXIOS
 CHECKOUT --> AXIOS
+HOME --> CATROUTES["categoryRoutes.js"]
+CATROUTES --> CATCTRL["categoryController.js"]
+CATCTRL --> CATMODEL["Category.js"]
 CART --> SHIPROUTES["shippingRoutes.js"]
 SHIPROUTES --> DELIVERYCTRL["deliveryController.js"]
 DELIVERYCTRL --> SHIPCONFIG["shipping.js"]
@@ -531,6 +603,9 @@ CAROUSEL --> IMGHELP["imageHelper.js"]
 - [App.jsx:48-57](file://frontend/src/App.jsx#L48-L57)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
+- [categoryRoutes.js:1-27](file://backend/routes/categoryRoutes.js#L1-L27)
+- [categoryController.js:1-134](file://backend/controllers/categoryController.js#L1-L134)
+- [Category.js:1-46](file://backend/models/Category.js#L1-L46)
 - [shippingRoutes.js:1-12](file://backend/routes/shippingRoutes.js#L1-L12)
 - [deliveryController.js:1-118](file://backend/controllers/deliveryController.js#L1-L118)
 - [shipping.js:1-73](file://backend/config/shipping.js#L1-L73)
@@ -542,11 +617,14 @@ CAROUSEL --> IMGHELP["imageHelper.js"]
 
 ## Performance Considerations
 - Minimize re-renders by keeping product lists and cart state local to their pages.
-- Debounce search input if the backend supports it to reduce API calls.
+- **Enhanced**: Debounce search input to reduce API calls while maintaining responsiveness.
 - Lazy-load images and banners to improve initial render performance.
+- **Enhanced**: Cache category data locally to avoid repeated category fetches.
+- **Enhanced**: Implement virtualized rendering for large product lists within categories.
 - **Enhanced**: Cache shipping calculations per session to avoid repeated network requests to `/shipping/check/{pincode}`.
 - **Optimized**: Implement debounced pincode checking to prevent excessive API calls during rapid typing.
 - Use skeleton loaders during fetches for perceived performance.
+- **Enhanced**: Optimize category header rendering with memoization for frequently accessed categories.
 
 ## Accessibility and UX
 - Keyboard navigation: Ensure focus styles and tab order are logical across forms and buttons.
@@ -556,16 +634,29 @@ CAROUSEL --> IMGHELP["imageHelper.js"]
 - Form validation feedback: Provide inline, visible error messages for address and payment steps.
 - **Enhanced**: Clear shipping status indicators with color-coded feedback for free shipping eligibility.
 - **Improved**: Visual cues for delivery availability with immediate user feedback.
+- **Enhanced**: Category headers provide clear visual hierarchy and product categorization.
+- **Improved**: Search functionality provides instant feedback with filtered results.
 - Clear CTAs: Use descriptive labels like "Add to Cart," "Proceed to Checkout," and "Place Order."
 
 ## Troubleshooting Guide
-**Updated** Enhanced with shipping system troubleshooting.
+**Updated** Enhanced with category-related and shipping system troubleshooting.
 
 Common issues and remedies:
 - Authentication errors: Unauthorized requests remove the token; redirect to login and show a toast.
 - Empty cart scenarios: Cart page shows a friendly message and a link to continue shopping.
+- **Enhanced**: Category loading failures: Handle backend errors gracefully with fallback empty states.
+- **Enhanced**: Search functionality issues: Validate search input and provide clear error messages for invalid terms.
 - **Enhanced**: Pincode validation errors: Display specific error messages for invalid 6-digit inputs.
-- **New**: Shipping calculation failures: Handle backend errors gracefully with user-friendly messages.
+- **New**: Category filtering failures: Ensure category products are properly loaded and handle edge cases.
+- **New**: Category icon display issues: Validate icon unicode characters and provide fallback icons.
+- **New**: Category ordering problems: Check displayOrder values and ensure proper sorting in backend.
+- **New**: Category activation issues: Verify isActive flag affects category visibility in frontend.
+- **New**: Category slug generation failures: Handle special characters and ensure unique slugs.
+- **New**: Category product loading errors: Implement graceful fallbacks when individual category requests fail.
+- **New**: Category search integration issues: Ensure search filters work across all categories and products.
+- **New**: Category responsive layout problems: Test grid layout across different screen sizes and orientations.
+- **New**: Category header styling issues: Verify CSS classes for icons, gradients, and responsive behavior.
+- **Enhanced**: Shipping calculation failures: Handle backend errors gracefully with user-friendly messages.
 - **Improved**: Delivery availability issues: Provide clear explanations when delivery is not available in certain areas.
 - Payment failures: Display user-friendly messages and allow retry or alternate payment method.
 - UPI QR generation failures: Fallback to copying UPI ID and provide a WhatsApp help link.
@@ -573,10 +664,14 @@ Common issues and remedies:
 
 **Section sources**
 - [axios.js:10-16](file://frontend/src/api/axios.js#L10-L16)
+- [Home.jsx:29-31](file://frontend/src/pages/Home.jsx#L29-L31)
+- [Home.jsx:44-50](file://frontend/src/pages/Home.jsx#L44-L50)
+- [Home.jsx:70-76](file://frontend/src/pages/Home.jsx#L70-L76)
+- [Home.jsx:71-74](file://frontend/src/pages/Home.jsx#L71-L74)
 - [Cart.jsx:35-53](file://frontend/src/pages/Cart.jsx#L35-L53)
 - [Cart.jsx:57-62](file://frontend/src/pages/Cart.jsx#L57-L62)
 - [Checkout.jsx:167-177](file://frontend/src/pages/Checkout.jsx#L167-L177)
 - [ManualUPI.jsx:67-78](file://frontend/src/components/ManualUPI.jsx#L67-L78)
 
 ## Conclusion
-The e-commerce application delivers a cohesive shopping experience from browsing to confirmation, now enhanced with a sophisticated shipping calculation system. The Home page offers discovery with search and category filters, ProductDetails provides rich item information, Cart streamlines item management and shipping estimation with real-time delivery checking, Checkout supports secure and flexible payment methods with comprehensive shipping information, and OrderConfirmation closes the loop with clear order details. The new shipping system provides zone-based pricing with free shipping thresholds, real-time delivery availability checking, and improved user feedback throughout the shopping experience. Shared components like ImageCarousel and BannerSlider ensure consistent visuals, while the centralized axios client and dedicated shipping routes simplify API interactions and authentication handling.
+The e-commerce application delivers a cohesive shopping experience from browsing to confirmation, now enhanced with a sophisticated category-based organization system and improved search functionality. The redesigned Home page features category-based product organization with visual headers, integrated search that filters across all categories, and responsive grid layouts. The enhanced ProductCard component provides improved user interaction with hover effects and stock indicators. The new category management system offers comprehensive backend support with icons, descriptions, and display ordering. The ProductDetails page provides rich item information, the Cart page streamlines item management and shipping estimation with real-time delivery checking, the Checkout process supports secure and flexible payment methods with comprehensive shipping information, and the OrderConfirmation page closes the loop with clear order details. The new shipping system provides zone-based pricing with free shipping thresholds, real-time delivery availability checking, and improved user feedback throughout the shopping experience. Shared components like ImageCarousel and BannerSlider ensure consistent visuals, while the centralized axios client and dedicated category and shipping routes simplify API interactions and authentication handling.

@@ -84,10 +84,10 @@ export default function Home() {
               <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
             </div>
 
-            {/* Products - Horizontal scroll on mobile, grid on desktop */}
-            <div className="md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:overflow-visible overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory md:snap-none pb-4">
+            {/* Products - 2-column grid on mobile, responsive on desktop */}
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
               {categoryProducts.map(product => (
-                <div key={product._id} className="md:w-auto w-[280px] flex-shrink-0 snap-start">
+                <div key={product._id}>
                   <ProductCard product={product} />
                 </div>
               ))}
