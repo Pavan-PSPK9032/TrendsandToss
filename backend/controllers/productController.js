@@ -53,8 +53,16 @@ export const createProduct = async (req, res) => {
   try {
     const { name, description, price, category, stock } = req.body;
     
+    console.log('Creating product with:', { name, description, price, category, stock });
+    console.log('Uploaded files:', req.files);
+    
     // Handle image uploads - Cloudinary storage
-    const images = req.files?.map(file => file.path) || [];
+    const images = req.files?.map(file => {
+      console.log('File path:', file.path);
+      return file.path;
+    }) || [];
+    
+    console.log('Image URLs:', images);
     
     const product = await Product.create({
       name,
@@ -65,9 +73,11 @@ export const createProduct = async (req, res) => {
       images
     });
     
+    console.log('Product created successfully:', product._id);
     res.status(201).json(product);
   } catch (err) {
     console.error('Create product error:', err);
+    console.error('Error stack:', err.stack);
     res.status(500).json({ error: err.message || 'Failed to create product' });
   }
 };
