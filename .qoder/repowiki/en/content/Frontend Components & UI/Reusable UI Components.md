@@ -18,6 +18,14 @@
 - [tailwind.config.js](file://frontend/tailwind.config.js)
 </cite>
 
+## Update Summary
+**Changes Made**
+- Enhanced ProductCard component with native touch swipe functionality for mobile devices
+- Replaced hover-based image navigation system with touch gesture support
+- Updated styling optimizations for mobile responsiveness including reduced padding
+- Simplified stock badges for better mobile experience
+- Improved lazy loading implementation with better image handling
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Project Structure](#project-structure)
@@ -31,8 +39,8 @@
 10. [Appendices](#appendices)
 
 ## Introduction
-This document describes the reusable React UI components used across the e-commerce application’s frontend. It focuses on:
-- ProductCard for displaying product tiles
+This document describes the reusable React UI components used across the e-commerce application's frontend. It focuses on:
+- ProductCard for displaying product tiles with enhanced mobile touch swipe functionality
 - Navbar for navigation
 - Footer for site footer
 - BannerSlider for hero sections
@@ -95,13 +103,13 @@ ProductDetails --> Cart
 - [tailwind.config.js](file://frontend/tailwind.config.js)
 
 ## Core Components
-This section summarizes each component’s purpose, props, events, styling patterns, and reusability.
+This section summarizes each component's purpose, props, events, styling patterns, and reusability.
 
 - ProductCard
-  - Purpose: Render a single product tile with image gallery, pricing, and action buttons.
-  - Props: product (object with images[], name, price, _id).
-  - Events: “Details” link navigates to product route; “Add to Cart” button triggers cart action.
-  - Styling: Tailwind utilities for borders, shadows, hover effects, transitions, and opacity/visibility toggles.
+  - Purpose: Render a single product tile with enhanced mobile touch swipe functionality, image gallery, pricing, and action buttons.
+  - Props: product (object with images[], name, price, _id, stock).
+  - Events: "Details" link navigates to product route; "Add to Cart" button triggers cart action; touch gestures enable image navigation on mobile devices.
+  - Styling: Tailwind utilities for borders, shadows, hover effects, transitions, and opacity/visibility toggles with mobile-optimized padding and simplified stock badges.
   - Reusability: Used inside Home page product grid and ProductDetails page promotional cards.
 
 - Navbar
@@ -180,30 +188,44 @@ Detail->>Carousel : Render ImageCarousel(images)
 ## Detailed Component Analysis
 
 ### ProductCard
-- Purpose: Display a product card with image gallery, pricing, and actions.
+- Purpose: Display a product card with enhanced mobile touch swipe functionality, image gallery, pricing, and actions.
 - Props:
-  - product: object with images[], name, price, _id.
+  - product: object with images[], name, price, _id, stock.
 - State:
   - currentImg: index of currently visible image.
+  - touchStart: initial touch position for swipe detection.
+  - touchEnd: current touch position during swipe movement.
 - Interactions:
-  - Hover group reveals navigation dots; clicking a dot switches the image.
-  - “Details” navigates to product route; “Add to Cart” triggers cart action.
+  - **Enhanced**: Native touch swipe functionality for mobile devices with horizontal gesture detection.
+  - **Legacy**: Hover group reveals navigation dots; clicking a dot switches the image.
+  - "Details" navigates to product route; "Add to Cart" triggers cart action.
+  - Touch swipe gestures: left swipe advances to next image, right swipe goes to previous image.
 - Styling:
   - Tailwind classes for border, padding, shadow, hover elevation, transitions, and opacity-based image switching.
+  - **Mobile Optimized**: Reduced padding (p-3) for better mobile screen utilization.
+  - **Simplified Stock Badges**: Compact badge design with reduced font size (text-[10px]) for better mobile readability.
 - Accessibility:
-  - Images use descriptive alt text derived from product name.
+  - Images use descriptive alt text derived from product name with slide number indication.
+  - Touch targets sized appropriately for mobile interaction.
 - Reusability:
   - Used in Home page product grid and ProductDetails promotional cards.
 
+**Updated** Enhanced with native touch swipe functionality for mobile devices, replacing hover-based image navigation system. Added mobile-optimized styling with reduced padding and simplified stock badges.
+
 ```mermaid
 flowchart TD
-Start(["Render ProductCard"]) --> Init["Initialize currentImg = 0"]
-Init --> Hover{"Hover over card?"}
-Hover --> |Yes| ShowDots["Show navigation dots<br/>opacity transition"]
-Hover --> |No| HideDots["Hide navigation dots"]
-DotsClick["Click dot i"] --> SetImg["Set currentImg = i"]
-SetImg --> RenderImg["Render image i with opacity 100%"]
-RenderImg --> End(["Idle"])
+Start(["Render ProductCard"]) --> Init["Initialize currentImg = 0<br/>touchStart = 0<br/>touchEnd = 0"]
+Init --> TouchEvents["Handle Touch Events"]
+TouchStart["Touch Start"] --> SetStart["Set touchStart = clientX"]
+TouchMove["Touch Move"] --> SetEnd["Set touchEnd = clientX"]
+TouchEnd["Touch End"] --> CalcDist["Calculate distance = touchStart - touchEnd"]
+CalcDist --> CheckSwipe{"Check swipe direction"}
+CheckSwipe --> |Left > 50px| NextImg["setCurrentImg(currentImg + 1)<br/>if not last image"]
+CheckSwipe --> |Right < -50px| PrevImg["setCurrentImg(currentImg - 1)<br/>if not first image"]
+NextImg --> Reset["Reset touch positions"]
+PrevImg --> Reset
+Reset --> Render["Render with new currentImg"]
+Render --> End(["Idle"])
 ```
 
 **Diagram sources**
@@ -220,7 +242,7 @@ RenderImg --> End(["Idle"])
 - State: Consumes AuthContext (user, login, logout).
 - Interactions:
   - Conditional links for anonymous/logged-in users.
-  - Admin-only “Admin” link when user.role === 'admin'.
+  - Admin-only "Admin" link when user.role === 'admin'.
   - Logout handler clears local storage and updates context.
 - Styling:
   - Tailwind for layout, spacing, hover accents, and responsive alignment.
@@ -453,23 +475,34 @@ UPI --> PD
 ## Performance Considerations
 - Lazy image resolution:
   - ImageCarousel resolves image URLs via imageHelper, avoiding broken paths and enabling CDN-friendly URLs.
+  - **Enhanced**: ProductCard uses lazy loading attribute (loading="lazy") for improved mobile performance.
 - Minimal re-renders:
   - Components rely on local state and props; avoid unnecessary context subscriptions where not needed.
 - Transitions and animations:
   - Use short durations and hardware-accelerated properties (opacity, transform) to keep animations smooth.
+  - **Optimized**: ProductCard uses efficient CSS transitions with duration-300 for smooth image switching.
 - Auto-play pausing:
   - BannerSlider pauses on hover and after user interaction to reduce CPU usage and improve UX.
+- Mobile touch optimization:
+  - **New**: Native touch swipe functionality reduces reliance on hover events, improving mobile user experience.
+  - Touch gesture detection uses threshold-based approach (50px minimum swipe distance) for reliable interaction.
 - Accessibility and responsiveness:
   - Tailwind utilities provide responsive breakpoints; ensure sufficient contrast and touch targets.
+  - **Improved**: Reduced padding and simplified stock badges enhance mobile readability.
 - Cross-browser compatibility:
-  - Tailwind’s default theme and unprefixed transitions offer broad support; test on target browsers.
-
-[No sources needed since this section provides general guidance]
+  - Tailwind's default theme and unprefixed transitions offer broad support; test on target browsers.
 
 ## Troubleshooting Guide
 - ImageCarousel shows placeholder or fails to load:
   - Verify images array is passed and imageHelper resolves valid URLs.
   - Ensure images are served from the expected origin/path.
+- **ProductCard touch swipe not working**:
+  - Verify touch event handlers are properly attached to the image container.
+  - Check that product.images array contains valid image paths.
+  - Ensure minimum swipe distance threshold (50px) is met for reliable gesture detection.
+- **ProductCard mobile styling issues**:
+  - Verify mobile-optimized padding (p-3) is applied correctly.
+  - Check that simplified stock badges (text-[10px]) display properly on smaller screens.
 - BannerSlider does not auto-advance:
   - Confirm isAutoPlaying is true and useEffect cleanup runs properly.
   - Check for hover interactions that pause the slider.
@@ -481,6 +514,7 @@ UPI --> PD
   - Confirm react-hot-toast Toaster is rendered at the root level.
 
 **Section sources**
+- [ProductCard.jsx](file://frontend/src/components/ProductCard.jsx)
 - [ImageCarousel.jsx](file://frontend/src/components/ImageCarousel.jsx)
 - [imageHelper.js](file://frontend/src/utils/imageHelper.js)
 - [BannerSlider.jsx](file://frontend/src/components/BannerSlider.jsx)
@@ -494,10 +528,9 @@ These reusable components form the backbone of the e-commerce UI. They are:
 - Styled with TailwindCSS for consistency and responsiveness
 - Integrated with context providers for authentication and cart state
 - Designed with accessibility and performance in mind
+- **Enhanced** with native mobile touch swipe functionality for improved user experience
 
-By composing these components thoughtfully across pages, teams can maintain a cohesive, scalable, and user-friendly interface.
-
-[No sources needed since this section summarizes without analyzing specific files]
+By composing these components thoughtfully across pages, teams can maintain a cohesive, scalable, and user-friendly interface that works seamlessly across desktop and mobile devices.
 
 ## Appendices
 
@@ -520,12 +553,16 @@ By composing these components thoughtfully across pages, teams can maintain a co
 ### Styling Patterns with TailwindCSS
 - Spacing and layout:
   - Use gap, p, m utilities for consistent spacing; flex/grid for layout.
+  - **Mobile Optimized**: Reduced padding (p-3) for better mobile screen utilization.
 - Responsive design:
   - Apply sm:, md:, lg: prefixes to adjust layout and typography across breakpoints.
+  - **Enhanced**: ProductCard uses mobile-first design with reduced padding and simplified badges.
 - Transitions and animations:
   - Utilize transition-* and hover:* variants for smooth interactions.
+  - **Optimized**: Duration-300 transitions for smooth image switching and hover effects.
 - Accessibility:
   - Provide aria-labels for interactive elements; ensure sufficient color contrast.
+  - **Improved**: Touch targets sized appropriately for mobile interaction.
 
 **Section sources**
 - [index.css](file://frontend/src/index.css)

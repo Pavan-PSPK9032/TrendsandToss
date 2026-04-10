@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import ImageCarousel from '../components/ImageCarousel'
+import ImageModal from '../components/ImageModal'
+import ReviewSection from '../components/ReviewSection'
 import toast from 'react-hot-toast'
 
 export default function ProductDetails() {
@@ -9,6 +11,8 @@ export default function ProductDetails() {
   const navigate = useNavigate()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [showImageModal, setShowImageModal] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   useEffect(() => {
     fetchProduct()
@@ -58,9 +62,24 @@ export default function ProductDetails() {
       
       <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
         <div className="grid lg:grid-cols-2 gap-0">
-          {/* Image Section */}
+          {/* Image Section - Clickable */}
           <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 lg:p-12">
-            <ImageCarousel images={product.images} alt={product.name} height="h-[500px]" />
+            <div 
+              className="cursor-pointer group relative"
+              onClick={() => {
+                setCurrentImageIndex(0);
+                setShowImageModal(true);
+              }}
+            >
+              <ImageCarousel images={product.images} alt={product.name} height="h-[500px]" />
+              
+              {/* Click to enlarge hint */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 text-white px-4 py-2 rounded-full text-sm font-medium">
+                  Click to enlarge
+                </div>
+              </div>
+            </div>
           </div>
           
           {/* Details Section */}
@@ -159,6 +178,18 @@ export default function ProductDetails() {
           </div>
         </div>
       </div>
+      
+      {/* Reviews Section */}
+      <ReviewSection productId={id} />
+      
+      {/* Full-Screen Image Modal */}
+      {showImageModal && (
+        <ImageModal
+          images={product.images}
+          currentIndex={currentImageIndex}
+          onClose={() => setShowImageModal(false)}
+        />
+      )}
     </div>
   )
 }

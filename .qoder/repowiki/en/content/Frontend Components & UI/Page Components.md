@@ -18,7 +18,15 @@
 - [BannerSlider.jsx](file://frontend/src/components/BannerSlider.jsx)
 - [ManualUPI.jsx](file://frontend/src/components/ManualUPI.jsx)
 - [Footer.jsx](file://frontend/src/components/Footer.jsx)
+- [ProductCard.jsx](file://frontend/src/components/ProductCard.jsx)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Updated Home page documentation to reflect responsive grid system implementation
+- Added detailed explanation of mobile-first grid layout with 2-column design
+- Updated grid spacing and responsive breakpoint information
+- Enhanced product card styling documentation for mobile optimization
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -32,7 +40,7 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
-This document provides comprehensive documentation for the e-commerce app’s page-level React components. It covers the Home, ProductDetails, Cart, Checkout, Login, Register, AdminDashboard, and OrderConfirmation pages. For each page, we explain component structure, props handling, state management, backend integration, routing configuration, navigation patterns, and user flows. We also detail page-specific features such as product filtering, cart operations, checkout validation, and admin functionality. Responsive design considerations, loading states, and UX patterns are addressed to help developers and stakeholders understand how the frontend behaves and integrates with the backend.
+This document provides comprehensive documentation for the e-commerce app's page-level React components. It covers the Home, ProductDetails, Cart, Checkout, Login, Register, AdminDashboard, and OrderConfirmation pages. For each page, we explain component structure, props handling, state management, backend integration, routing configuration, navigation patterns, and user flows. We also detail page-specific features such as product filtering, cart operations, checkout validation, and admin functionality. Responsive design considerations, loading states, and UX patterns are addressed to help developers and stakeholders understand how the frontend behaves and integrates with the backend.
 
 ## Project Structure
 The frontend is organized around pages, shared components, contexts for global state, and API configuration. Pages are routed under the main App shell, which renders a navigation bar and footer. Shared components encapsulate reusable UI elements like carousels and banners. Context providers manage authentication and cart state globally.
@@ -58,6 +66,7 @@ ImageCarousel["ImageCarousel.jsx"]
 BannerSlider["BannerSlider.jsx"]
 ManualUPI["ManualUPI.jsx"]
 Footer["Footer.jsx"]
+ProductCard["ProductCard.jsx"]
 end
 subgraph "State Management"
 AuthContext["AuthContext.jsx"]
@@ -76,7 +85,7 @@ Routes --> Register
 Routes --> AdminDashboard
 Routes --> OrderConfirmation
 Home --> BannerSlider
-Home --> ImageCarousel
+Home --> ProductCard
 ProductDetails --> ImageCarousel
 Cart --> ImageCarousel
 Checkout --> ManualUPI
@@ -93,7 +102,7 @@ CartContext -.-> Axios
 
 **Diagram sources**
 - [App.jsx:19-66](file://frontend/src/App.jsx#L19-L66)
-- [Home.jsx:1-108](file://frontend/src/pages/Home.jsx#L1-L108)
+- [Home.jsx:1-107](file://frontend/src/pages/Home.jsx#L1-L107)
 - [ProductDetails.jsx:1-80](file://frontend/src/pages/ProductDetails.jsx#L1-L80)
 - [Cart.jsx:1-152](file://frontend/src/pages/Cart.jsx#L1-L152)
 - [Checkout.jsx:1-301](file://frontend/src/pages/Checkout.jsx#L1-L301)
@@ -108,13 +117,14 @@ CartContext -.-> Axios
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [AuthContext.jsx:1-33](file://frontend/src/context/AuthContext.jsx#L1-L33)
 - [CartContext.jsx:1-53](file://frontend/src/context/CartContext.jsx#L1-L53)
+- [ProductCard.jsx:1-111](file://frontend/src/components/ProductCard.jsx#L1-L111)
 
 **Section sources**
 - [App.jsx:19-66](file://frontend/src/App.jsx#L19-L66)
 
 ## Core Components
 This section summarizes the primary page components and their responsibilities:
-- Home: Renders hero banner, product listing, search, and category filtering; integrates with product and cart APIs.
+- Home: Renders hero banner, product listing with responsive grid system, search, and category filtering; integrates with product and cart APIs.
 - ProductDetails: Fetches and displays a single product with image carousel and add-to-cart action.
 - Cart: Lists cart items, calculates totals, checks shipping availability by pincode, and navigates to checkout.
 - Checkout: Collects shipping address, selects payment method (Razorpay online, UPI manual, Cash on Delivery), validates inputs, and places orders.
@@ -123,7 +133,7 @@ This section summarizes the primary page components and their responsibilities:
 - OrderConfirmation: Displays order summary and shipping address after successful order placement.
 
 **Section sources**
-- [Home.jsx:7-108](file://frontend/src/pages/Home.jsx#L7-L108)
+- [Home.jsx:7-107](file://frontend/src/pages/Home.jsx#L7-L107)
 - [ProductDetails.jsx:6-80](file://frontend/src/pages/ProductDetails.jsx#L6-L80)
 - [Cart.jsx:6-152](file://frontend/src/pages/Cart.jsx#L6-L152)
 - [Checkout.jsx:7-301](file://frontend/src/pages/Checkout.jsx#L7-L301)
@@ -162,41 +172,48 @@ Page->>Page : Update local state and render UI
 ## Detailed Component Analysis
 
 ### Home Page
-- Purpose: Display promotional banner, searchable product grid, and category filters; enable adding items to cart.
+- Purpose: Display promotional banner, searchable product grid with responsive layout, and category filters; enable adding items to cart.
 - State:
-  - products: fetched product list
+  - categories: fetched category list
+  - productsByCategory: grouped products by category
   - loading: indicates initial fetch
   - searchTerm: controlled input for search
-  - selectedCategory: selected filter category
-- Data fetching: GET /products on mount; sets loading and products.
+- Data fetching: GET /categories and GET /categories/slug/:slug/products on mount; sets loading and products.
 - Filtering: client-side filter by name/description and category.
+- Grid System: **Updated** Responsive 2-column grid on mobile with increased spacing (gap-3), 3-column on tablet (md:gap-4), and 4-column on desktop (lg:gap-6).
 - Cart integration: POST /cart/add with productId and quantity; handles unauthenticated users.
-- UI: BannerSlider, ImageCarousel per product, category chips, and responsive grid.
+- UI: BannerSlider, ProductCard components with mobile-optimized design, category headers with gradient dividers.
+
+**Updated** The Home page has been optimized with a responsive grid system that replaces horizontal scrolling. The new implementation uses Tailwind CSS grid classes with progressive enhancement:
+- Mobile: `grid grid-cols-2` with `gap-3` spacing
+- Tablet: `md:grid-cols-2` with `md:gap-4` spacing  
+- Desktop: `lg:grid-cols-3` with `lg:gap-6` spacing
+- Large screens: `xl:grid-cols-4` for optimal desktop experience
 
 ```mermaid
 flowchart TD
-Start(["Mount Home"]) --> Fetch["Fetch Products"]
+Start(["Mount Home"]) --> Fetch["Fetch Categories & Products"]
 Fetch --> SetLoading["Set loading=true"]
 Fetch --> DoneFetch{"Fetched?"}
-DoneFetch --> |Yes| SetProducts["Set products<br/>Set loading=false"]
+DoneFetch --> |Yes| SetData["Set categories & products<br/>Set loading=false"]
 DoneFetch --> |No| SetLoading
-SetProducts --> Filter["Filter by search term and category"]
-Filter --> Render["Render grid with add-to-cart actions"]
-Render --> AddToCart["POST /cart/add"]
+SetData --> Filter["Filter by search term and category"]
+Filter --> Render["Render responsive grid with ProductCards"]
+Render --> Grid["2-col grid on mobile<br/>Progressive enhancement:<br/>- md: 2-col with md:gap-4<br/>- lg: 3-col with lg:gap-6<br/>- xl: 4-col"]
+Grid --> AddToCart["POST /cart/add"]
 AddToCart --> AuthCheck{"Logged in?"}
 AuthCheck --> |No| AlertLogin["Alert to login"]
 AuthCheck --> |Yes| Success["Show success"]
 ```
 
 **Diagram sources**
-- [Home.jsx:15-28](file://frontend/src/pages/Home.jsx#L15-L28)
-- [Home.jsx:39-44](file://frontend/src/pages/Home.jsx#L39-L44)
-- [Home.jsx:30-37](file://frontend/src/pages/Home.jsx#L30-L37)
+- [Home.jsx:15-41](file://frontend/src/pages/Home.jsx#L15-L41)
+- [Home.jsx:87-96](file://frontend/src/pages/Home.jsx#L87-L96)
 
 **Section sources**
-- [Home.jsx:7-108](file://frontend/src/pages/Home.jsx#L7-L108)
+- [Home.jsx:7-107](file://frontend/src/pages/Home.jsx#L7-L107)
 - [BannerSlider.jsx:31-153](file://frontend/src/components/BannerSlider.jsx#L31-L153)
-- [ImageCarousel.jsx:4-54](file://frontend/src/components/ImageCarousel.jsx#L4-L54)
+- [ProductCard.jsx:35-111](file://frontend/src/components/ProductCard.jsx#L35-L111)
 
 ### ProductDetails Page
 - Purpose: Show detailed product information and allow adding to cart.
@@ -437,7 +454,7 @@ HasState --> |Yes| Render["Render order details and shipping address"]
 - Context:
   - AuthContext: optional provider for login/logout and user state; pages can use it or rely on localStorage.
   - CartContext: optional provider for cart operations and totals; pages can use it or call API directly.
-- Shared components: ImageCarousel and BannerSlider are reused across pages to maintain consistent UX.
+- Shared components: ProductCard and BannerSlider are reused across pages to maintain consistent UX with responsive grid layouts.
 
 ```mermaid
 graph LR
@@ -445,7 +462,7 @@ App["App.jsx"] --> Routes["Routes"]
 Routes --> Pages["Page Components"]
 Pages --> Axios["axios.js"]
 Pages --> Shared["Shared Components"]
-Shared --> ImageCarousel["ImageCarousel.jsx"]
+Shared --> ProductCard["ProductCard.jsx"]
 Shared --> BannerSlider["BannerSlider.jsx"]
 Pages --> Contexts["AuthContext.jsx / CartContext.jsx"]
 ```
@@ -453,7 +470,7 @@ Pages --> Contexts["AuthContext.jsx / CartContext.jsx"]
 **Diagram sources**
 - [App.jsx:48-57](file://frontend/src/App.jsx#L48-L57)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
-- [ImageCarousel.jsx:4-54](file://frontend/src/components/ImageCarousel.jsx#L4-L54)
+- [ProductCard.jsx:35-111](file://frontend/src/components/ProductCard.jsx#L35-L111)
 - [BannerSlider.jsx:31-153](file://frontend/src/components/BannerSlider.jsx#L31-L153)
 - [AuthContext.jsx:6-31](file://frontend/src/context/AuthContext.jsx#L6-L31)
 - [CartContext.jsx:7-50](file://frontend/src/context/CartContext.jsx#L7-L50)
@@ -464,6 +481,7 @@ Pages --> Contexts["AuthContext.jsx / CartContext.jsx"]
 
 ## Performance Considerations
 - Client-side filtering: Home page filters products locally; keep product lists reasonably sized to avoid heavy computations on large datasets.
+- Responsive grid optimization: **Updated** The new grid system reduces layout thrashing by using CSS Grid instead of horizontal scrolling, improving performance on mobile devices.
 - Lazy loading images: Use lazy attributes on images rendered in grids and carousels to improve initial load performance.
 - Debounced search: Consider debouncing search input to reduce frequent re-renders and API calls.
 - Memoization: For frequently changing UI, memoize derived values like totals to prevent unnecessary recalculations.
@@ -479,13 +497,17 @@ Pages --> Contexts["AuthContext.jsx / CartContext.jsx"]
   - Cart totals should be recalculated after updates; ensure UI reflects changes.
 - Checkout validation:
   - Validate required fields and phone length before placing orders.
-  - Ensure shippingInfo is present before enabling “Proceed to Checkout”.
+  - Ensure shippingInfo is present before enabling "Proceed to Checkout".
 - Razorpay integration:
   - Load the checkout script dynamically; handle modal dismissal and verification errors.
 - UPI manual payments:
   - Require transaction ID; provide QR generation fallback and copy-to-clipboard.
 - Admin access:
   - Enforce admin role checks; redirect unauthorized users to Login.
+- **Updated** Grid layout issues:
+  - Verify Tailwind CSS is properly configured for responsive breakpoints.
+  - Check that grid classes are applied correctly: `grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`.
+  - Ensure adequate spacing with `gap-3 md:gap-4 lg:gap-6` for optimal mobile and desktop experience.
 
 **Section sources**
 - [axios.js:10-16](file://frontend/src/api/axios.js#L10-L16)
@@ -495,6 +517,7 @@ Pages --> Contexts["AuthContext.jsx / CartContext.jsx"]
 - [Checkout.jsx:167-177](file://frontend/src/pages/Checkout.jsx#L167-L177)
 - [Checkout.jsx:88-137](file://frontend/src/pages/Checkout.jsx#L88-L137)
 - [AdminDashboard.jsx:34-40](file://frontend/src/pages/AdminDashboard.jsx#L34-L40)
+- [Home.jsx:87-96](file://frontend/src/pages/Home.jsx#L87-L96)
 
 ## Conclusion
-The e-commerce app’s page components are structured around clear responsibilities, consistent data fetching patterns, and robust error handling. Routing, shared components, and optional context providers enable scalable development. By following the documented patterns for state management, API integration, and user flows, teams can extend functionality while maintaining a cohesive user experience across devices.
+The e-commerce app's page components are structured around clear responsibilities, consistent data fetching patterns, and robust error handling. Routing, shared components, and optional context providers enable scalable development. **Updated** The Home page optimization with responsive grid system significantly improves mobile usability while maintaining desktop performance. By following the documented patterns for state management, API integration, and user flows, teams can extend functionality while maintaining a cohesive user experience across devices.
