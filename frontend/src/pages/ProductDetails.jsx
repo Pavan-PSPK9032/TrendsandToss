@@ -9,9 +9,6 @@ export default function ProductDetails() {
   const navigate = useNavigate()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [pincode, setPincode] = useState('')
-  const [deliveryInfo, setDeliveryInfo] = useState(null)
-  const [checkingDelivery, setCheckingDelivery] = useState(false)
 
   useEffect(() => {
     fetchProduct()
@@ -47,158 +44,115 @@ export default function ProductDetails() {
     }
   }
 
-  const checkDelivery = async () => {
-    if (pincode.length !== 6) {
-      toast.error('Please enter a valid 6-digit pincode')
-      return
-    }
-    
-    setCheckingDelivery(true)
-    try {
-      console.log('Checking pincode:', pincode)
-      const { data } = await api.get(`/shipping/check/${pincode}`)
-      console.log('Delivery response:', data)
-      setDeliveryInfo(data)
-      if (data.available) {
-        toast.success('Delivery available!')
-      } else {
-        toast.error(data.message || 'Delivery not available')
-      }
-    } catch (err) {
-      console.error('Delivery check error:', err)
-      const errorMsg = err.response?.data?.message || err.response?.data?.error || 'Failed to check delivery. Please try again.'
-      toast.error(errorMsg)
-    } finally {
-      setCheckingDelivery(false)
-    }
-  }
-
-  if (loading) return <div className="text-center mt-20 text-slate-500">Loading details...</div>
-  if (!product) return <div className="text-center mt-20 text-slate-500">Product not found</div>
-
-  const freeDeliveryThreshold = 500
-  const isFreeDelivery = product.price >= freeDeliveryThreshold
-  const deliveryCharge = deliveryInfo?.charge || (isFreeDelivery ? 0 : 50)
+  if (loading) return <div className="text-center mt-20 text-gray-500">Loading details...</div>
+  if (!product) return <div className="text-center mt-20 text-gray-500">Product not found</div>
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6">
-      <Link to="/products" className="inline-flex items-center gap-2 text-slate-500 hover:text-amber-600 transition mb-6 font-medium">
-        ← Back to Collection
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      <Link to="/products" className="inline-flex items-center gap-2 text-gray-600 hover:text-indigo-600 transition mb-6 font-medium group">
+        <svg className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Collection
       </Link>
       
-      <div className="grid md:grid-cols-2 gap-10 bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
-        {/* Image Section */}
-        <div className="p-6 sm:p-8 bg-gradient-to-br from-slate-50 to-white">
-          <ImageCarousel images={product.images} alt={product.name} height="h-[500px]" />
-        </div>
-        
-        {/* Details Section */}
-        <div className="flex flex-col justify-center p-6 sm:p-10">
-          <span className="inline-block px-4 py-1.5 bg-amber-50 text-amber-700 rounded-full text-xs font-bold uppercase tracking-widest w-fit mb-4">
-            {product.category}
-          </span>
-          
-          <h1 className="text-4xl font-light text-slate-900 mb-4 tracking-tight">{product.name}</h1>
-          
-          <div className="flex items-baseline gap-3 mb-6">
-            <p className="text-4xl text-amber-600 font-light">₹{product.price}</p>
-            {isFreeDelivery && (
-              <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold">
-                FREE Delivery
-              </span>
-            )}
+      <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+        <div className="grid lg:grid-cols-2 gap-0">
+          {/* Image Section */}
+          <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 lg:p-12">
+            <ImageCarousel images={product.images} alt={product.name} height="h-[500px]" />
           </div>
           
-          <p className="text-slate-600 mb-8 leading-relaxed text-lg font-light">{product.description}</p>
-          
-          {/* Availability */}
-          <div className="flex items-center gap-3 mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-            <span className="text-slate-500 font-medium">Availability:</span>
-            <span className={product.stock > 0 ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold'}>
-              {product.stock > 0 ? `✓ ${product.stock} in stock` : '✕ Out of stock'}
-            </span>
-          </div>
+          {/* Details Section */}
+          <div className="flex flex-col justify-center p-8 lg:p-12">
+            {/* Category */}
+            <div className="inline-block px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-widest w-fit mb-4">
+              {product.category}
+            </div>
+            
+            {/* Title */}
+            <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+              {product.name}
+            </h1>
+            
+            {/* Price */}
+            <div className="flex items-baseline gap-3 mb-6">
+              <p className="text-5xl font-bold text-gray-900">₹{product.price}</p>
+            </div>
+            
+            {/* Description */}
+            <p className="text-gray-600 mb-8 leading-relaxed text-lg">
+              {product.description}
+            </p>
+            
+            {/* Availability */}
+            <div className="flex items-center gap-3 mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <span className="text-gray-600 font-medium">Availability:</span>
+              {product.stock > 0 ? (
+                <span className="text-emerald-600 font-bold flex items-center gap-1">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  {product.stock} in stock
+                </span>
+              ) : (
+                <span className="text-red-600 font-bold flex items-center gap-1">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  Out of stock
+                </span>
+              )}
+            </div>
 
-          {/* Pincode Check */}
-          <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Check Delivery Availability
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={pincode}
-                onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="Enter 6-digit pincode"
-                className="flex-1 px-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
-                maxLength={6}
-              />
-              <button
-                onClick={checkDelivery}
-                disabled={checkingDelivery}
-                className="px-6 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:bg-slate-400 transition font-medium"
+            {/* Action Buttons */}
+            <div className="flex gap-4 mb-6">
+              <button 
+                onClick={addToCart}
+                disabled={product.stock === 0}
+                className="flex-1 bg-gray-900 text-white py-4 rounded-xl font-semibold hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition shadow-lg text-lg"
               >
-                {checkingDelivery ? 'Checking...' : 'Check'}
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  Add to Cart
+                </span>
+              </button>
+              <button 
+                onClick={buyNow}
+                disabled={product.stock === 0}
+                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed transition shadow-lg text-lg"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Buy Now
+                </span>
               </button>
             </div>
-            {deliveryInfo && (
-              <div className={`mt-3 p-3 rounded-lg text-sm ${
-                deliveryInfo.available ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'
-              }`}>
-                {deliveryInfo.available ? (
-                  <div>
-                    <p className="font-semibold">✓ Delivery Available</p>
-                    <p className="mt-1">
-                      {isFreeDelivery || product.price >= freeDeliveryThreshold 
-                        ? 'FREE delivery on this order!' 
-                        : `Delivery charge: ₹${deliveryCharge}`}
-                    </p>
-                    <p className="mt-1 text-xs opacity-75">FREE delivery on orders above ₹{freeDeliveryThreshold}</p>
-                  </div>
-                ) : (
-                  <p className="font-semibold">✕ {deliveryInfo.message || 'Delivery not available'}</p>
-                )}
+            
+            {/* Trust Badges */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="text-xs text-gray-700 font-medium text-center">Secure Payment</span>
               </div>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 mb-6">
-            <button 
-              onClick={addToCart}
-              disabled={product.stock === 0}
-              className="flex-1 bg-slate-900 text-white py-4 rounded-xl font-medium hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition shadow-lg text-lg tracking-wide"
-            >
-              Add to Cart
-            </button>
-            <button 
-              onClick={buyNow}
-              disabled={product.stock === 0}
-              className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white py-4 rounded-xl font-medium hover:from-amber-600 hover:to-orange-600 disabled:from-slate-300 disabled:to-slate-300 disabled:cursor-not-allowed transition shadow-lg text-lg tracking-wide"
-            >
-              Buy Now
-            </button>
-          </div>
-          
-          {/* Trust Badges */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col items-center gap-1 p-3 bg-slate-50 rounded-lg">
-              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span className="text-[10px] text-slate-600 text-center">Secure Payment</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-3 bg-slate-50 rounded-lg">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-              <span className="text-[10px] text-slate-600 text-center">Premium Packaging</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-3 bg-slate-50 rounded-lg">
-              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span className="text-[10px] text-slate-600 text-center">30-Day Returns</span>
+              <div className="flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <span className="text-xs text-gray-700 font-medium text-center">Premium Quality</span>
+              </div>
+              <div className="flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span className="text-xs text-gray-700 font-medium text-center">Easy Returns</span>
+              </div>
             </div>
           </div>
         </div>
