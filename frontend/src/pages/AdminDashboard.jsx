@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import AdminOrders from '../components/admin/AdminOrders';
+import CategoryManagement from '../components/admin/CategoryManagement';
 import { getImageUrl } from '../utils/imageHelper';
 
 export default function AdminDashboard() {
@@ -21,6 +22,7 @@ export default function AdminDashboard() {
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [availableCategories, setAvailableCategories] = useState([]);
   
   // Admin management state
   const [admins, setAdmins] = useState([]);
@@ -38,6 +40,7 @@ export default function AdminDashboard() {
     checkAdmin();
     if (activeTab === 'products') {
       fetchProducts();
+      fetchCategories();
     } else if (activeTab === 'admins') {
       fetchAdmins();
     }
@@ -92,6 +95,15 @@ export default function AdminDashboard() {
       toast.error('Failed to fetch products');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const { data } = await api.get('/categories');
+      setAvailableCategories(data.categories);
+    } catch (err) {
+      console.error('Failed to fetch categories');
     }
   };
 
@@ -232,11 +244,14 @@ export default function AdminDashboard() {
             <button onClick={() => setActiveTab('products')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'products' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
               📦 Products
             </button>
+            <button onClick={() => setActiveTab('categories')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'categories' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
+              🏷️ Categories
+            </button>
             <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'orders' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-              Orders
+              📋 Orders
             </button>
             <button onClick={() => setActiveTab('admins')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'admins' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-              Admins
+              👥 Admins
             </button>
           </div>
           <button 
@@ -284,12 +299,22 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <label className="block text-gray-700 mb-2">Category *</label>
-                  <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full border rounded-lg p-2">
-                    <option value="electronics">Electronics</option>
-                    <option value="clothing">Clothing</option>
-                    <option value="accessories">Accessories</option>
-                    <option value="home">Home & Living</option>
+                  <select 
+                    value={formData.category} 
+                    onChange={(e) => setFormData({...formData, category: e.target.value})} 
+                    className="w-full border rounded-lg p-2"
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {availableCategories.map(cat => (
+                      <option key={cat._id} value={cat.name}>{cat.icon} {cat.name}</option>
+                    ))}
                   </select>
+                  {availableCategories.length === 0 && (
+                    <p className="text-sm text-orange-600 mt-1">
+                      ⚠️ No categories found. Please create categories first in the Categories tab.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-gray-700 mb-2">Product Images ({imagePreviews.length}/3)</label>
@@ -421,6 +446,18 @@ export default function AdminDashboard() {
             </table>
             {admins.length === 0 && <div className="text-center py-12 text-gray-500">No admins found.</div>}
           </div>
+        </div>
+      )}
+      
+      {activeTab === 'categories' && (
+        <div>
+          <CategoryManagement />
+        </div>
+      )}
+      
+      {activeTab === 'orders' && (
+        <div>
+          <AdminOrders />
         </div>
       )}
     </div>
