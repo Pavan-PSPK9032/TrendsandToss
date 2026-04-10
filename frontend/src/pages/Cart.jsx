@@ -9,6 +9,9 @@ export default function Cart() {
   const [pincode, setPincode] = useState('')
   const [shippingInfo, setShippingInfo] = useState(null)
   const [checkingShipping, setCheckingShipping] = useState(false)
+  const [couponCode, setCouponCode] = useState('')
+  const [couponInfo, setCouponInfo] = useState(null)
+  const [applyingCoupon, setApplyingCoupon] = useState(false)
 
   useEffect(() => {
     fetchCart()
@@ -30,7 +33,8 @@ export default function Cart() {
   )
 
   const shippingCharge = shippingInfo?.isFree ? 0 : (shippingInfo?.charge || 0)
-  const total = subtotal + shippingCharge
+  const discountAmount = couponInfo?.discountAmount || 0
+  const total = subtotal + shippingCharge - discountAmount
 
   const checkShipping = async () => {
     if (pincode.length !== 6) {
@@ -59,6 +63,34 @@ export default function Cart() {
     } finally {
       setCheckingShipping(false)
     }
+  }
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) {
+      alert('Please enter a coupon code')
+      return
+    }
+    
+    setApplyingCoupon(true)
+    try {
+      const { data } = await api.post('/coupons/validate', {
+        code: couponCode,
+        orderValue: subtotal
+      })
+      
+      setCouponInfo(data)
+      alert(`✅ Coupon applied! You saved ₹${data.discountAmount}`)
+    } catch (err) {
+      setCouponInfo(null)
+      alert(err.response?.data?.error || 'Invalid coupon code')
+    } finally {
+      setApplyingCoupon(false)
+    }
+  }
+
+  const removeCoupon = () => {
+    setCouponCode('')
+    setCouponInfo(null)
   }
 
   if (loading) return <div className="text-center mt-20 text-slate-500">Loading cart...</div>
@@ -124,6 +156,45 @@ export default function Cart() {
                 )}
               </div>
 
+              {/* Coupon Section */}
+              <div>
+                <h3 className="font-medium text-slate-900 mb-3">Have a Coupon?</h3>
+                {!couponInfo ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Enter coupon code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      className="flex-1 p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm uppercase"
+                    />
+                    <button 
+                      onClick={applyCoupon}
+                      disabled={applyingCoupon || !couponCode}
+                      className="bg-slate-900 text-white px-4 py-3 rounded-xl hover:bg-slate-800 disabled:bg-slate-300 transition text-sm font-medium"
+                    >
+                      {applyingCoupon ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-emerald-800">✅ {couponInfo.code}</p>
+                        <p className="text-xs text-emerald-700 mt-1">{couponInfo.description}</p>
+                        <p className="text-sm font-bold text-emerald-800 mt-1">Saved: ₹{couponInfo.discountAmount}</p>
+                      </div>
+                      <button 
+                        onClick={removeCoupon}
+                        className="text-red-500 hover:text-red-700 text-sm font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Order Summary */}
               <div>
                 <h2 className="text-xl font-medium text-slate-900 mb-4">Order Summary</h2>
@@ -135,6 +206,12 @@ export default function Cart() {
                       {shippingInfo ? (shippingInfo.isFree ? 'Free' : `₹${shippingInfo.shippingCharge}`) : '-'}
                     </span>
                   </div>
+                  {couponInfo && (
+                    <div className="flex justify-between text-emerald-600">
+                      <span>Discount ({couponInfo.code})</span>
+                      <span>-₹{couponInfo.discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="border-t border-slate-200 pt-4 mb-6">
                   <div className="flex justify-between items-center">
@@ -142,7 +219,7 @@ export default function Cart() {
                     <span className="text-2xl font-light text-slate-900">₹{total.toFixed(2)}</span>
                   </div>
                 </div>
-                <Link to="/checkout" state={{ shippingInfo, pincode }}>
+                <Link to="/checkout" state={{ shippingInfo, pincode, couponInfo }}>
                   <button 
                     disabled={!shippingInfo}
                     className="w-full bg-amber-500 text-white py-3 rounded-xl font-medium hover:bg-amber-600 transition shadow-lg disabled:bg-slate-300 disabled:cursor-not-allowed"
