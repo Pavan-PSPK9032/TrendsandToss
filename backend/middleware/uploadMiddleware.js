@@ -6,6 +6,8 @@ import '../config/cloudinary.js'; // Import and configure Cloudinary
 const cloudinaryStorage = {
   _handleFile: (req, file, cb) => {
     try {
+      console.log('Starting Cloudinary upload for:', file.originalname);
+      
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: 'trends-and-toss-products',
@@ -14,9 +16,10 @@ const cloudinaryStorage = {
         },
         (error, result) => {
           if (error) {
-            console.error('Cloudinary upload error:', error);
+            console.error('Cloudinary upload error:', error.message);
             cb(error);
           } else {
+            console.log('Cloudinary upload success:', result.secure_url);
             cb(null, {
               path: result.secure_url,
               filename: result.public_id
@@ -25,10 +28,17 @@ const cloudinaryStorage = {
         }
       );
 
-      // Pipe the file stream directly to Cloudinary
-      file.stream.pipe(uploadStream);
+      // Handle both stream and buffer
+      if (file.stream) {
+        file.stream.pipe(uploadStream);
+      } else if (file.buffer) {
+        const { Readable } = require('stream');
+        Readable.from(file.buffer).pipe(uploadStream);
+      } else {
+        cb(new Error('No file data available'));
+      }
     } catch (error) {
-      console.error('Upload handler error:', error);
+      console.error('Upload handler error:', error.message);
       cb(error);
     }
   },
