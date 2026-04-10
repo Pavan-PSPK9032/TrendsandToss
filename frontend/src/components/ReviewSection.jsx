@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 
 export default function ReviewSection({ productId }) {
   const { user } = useAuth();
