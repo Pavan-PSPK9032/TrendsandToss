@@ -9,6 +9,9 @@ export default function ProductDetails() {
   const navigate = useNavigate()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [pincode, setPincode] = useState('')
+  const [deliveryInfo, setDeliveryInfo] = useState(null)
+  const [checkingDelivery, setCheckingDelivery] = useState(false)
 
   useEffect(() => {
     fetchProduct()
@@ -41,6 +44,22 @@ export default function ProductDetails() {
       navigate('/checkout')
     } catch (err) {
       toast.error('Please login to continue')
+    }
+  }
+
+  const checkDelivery = async () => {
+    if (!pincode || pincode.length !== 6) {
+      toast.error('Please enter a valid 6-digit pincode')
+      return
+    }
+    setCheckingDelivery(true)
+    try {
+      const { data } = await api.get(`/shipping/check/${pincode}`)
+      setDeliveryInfo(data)
+    } catch (err) {
+      setDeliveryInfo({ deliverable: false, message: err.response?.data?.error || 'Failed to check delivery' })
+    } finally {
+      setCheckingDelivery(false)
     }
   }
 
@@ -84,6 +103,44 @@ export default function ProductDetails() {
             <p className="text-gray-600 mb-8 leading-relaxed text-lg">
               {product.description}
             </p>
+            
+            {/* Pincode Check */}
+            <div className="mb-8 p-6 bg-white rounded-2xl border-2 border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Check Delivery Availability</h3>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="Enter 6-digit pincode"
+                  maxLength={6}
+                  className="flex-1 p-4 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                />
+                <button
+                  onClick={checkDelivery}
+                  disabled={checkingDelivery}
+                  className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 disabled:bg-gray-400 transition text-lg"
+                >
+                  {checkingDelivery ? 'Checking...' : 'Check'}
+                </button>
+              </div>
+              {deliveryInfo && (
+                <div className={`mt-4 p-4 rounded-xl ${
+                  deliveryInfo.deliverable ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'
+                }`}>
+                  <p className={`font-medium ${
+                    deliveryInfo.deliverable ? 'text-emerald-800' : 'text-red-800'
+                  }`}>
+                    {deliveryInfo.deliverable ? '✓' : '✗'} {deliveryInfo.message}
+                  </p>
+                  {deliveryInfo.deliverable && deliveryInfo.deliveryCharge > 0 && (
+                    <p className="text-sm text-emerald-700 mt-2">
+                      Delivery Charge: ₹{deliveryInfo.deliveryCharge}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
             
             {/* Availability */}
             <div className="flex items-center gap-3 mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
