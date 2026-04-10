@@ -55,7 +55,9 @@ export default function ProductDetails() {
     
     setCheckingDelivery(true)
     try {
+      console.log('Checking pincode:', pincode)
       const { data } = await api.get(`/shipping/check/${pincode}`)
+      console.log('Delivery response:', data)
       setDeliveryInfo(data)
       if (data.available) {
         toast.success('Delivery available!')
@@ -63,7 +65,9 @@ export default function ProductDetails() {
         toast.error(data.message || 'Delivery not available')
       }
     } catch (err) {
-      toast.error('Failed to check delivery')
+      console.error('Delivery check error:', err)
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || 'Failed to check delivery. Please try again.'
+      toast.error(errorMsg)
     } finally {
       setCheckingDelivery(false)
     }
