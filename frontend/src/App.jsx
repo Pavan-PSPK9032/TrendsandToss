@@ -104,11 +104,23 @@ function GlassNav() {
               </Link>
               
               {user ? (
-                user.role === 'admin' && (
-                  <Link to="/admin" className="px-5 py-2 rounded-full text-sm font-medium text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-all">
-                    Admin
-                  </Link>
-                )
+                <>
+                  {user.role === 'admin' && (
+                    <Link to="/admin" className="px-5 py-2 rounded-full text-sm font-medium text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10 transition-all">
+                      Admin
+                    </Link>
+                  )}
+                  <button 
+                    onClick={() => { 
+                      localStorage.removeItem('token'); 
+                      localStorage.removeItem('user'); 
+                      window.location.href = '/'; 
+                    }} 
+                    className="px-5 py-2 rounded-full text-sm font-medium text-red-400/90 hover:text-red-300 hover:bg-red-500/10 transition-all"
+                  >
+                    Logout
+                  </button>
+                </>
               ) : (
                 <>
                   <Link to="/login" className="px-5 py-2 rounded-full text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-all">
