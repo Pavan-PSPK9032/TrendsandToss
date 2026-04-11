@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
     match: [/^[6-9]\d{9}$/, 'Please provide a valid 10-digit Indian phone number']
   },
   password: { type: String, required: true },
+  photo: { type: String, default: '' },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   isEmailVerified: { type: Boolean, default: false },
   isPhoneVerified: { type: Boolean, default: false }

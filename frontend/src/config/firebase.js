@@ -2,14 +2,14 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 
 // Your Firebase configuration
-// You need to get these values from Firebase Console: https://console.firebase.google.com/
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "YOUR_API_KEY",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "YOUR_PROJECT.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "YOUR_PROJECT_ID",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "YOUR_PROJECT.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "YOUR_SENDER_ID",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "YOUR_APP_ID"
+  apiKey: "AIzaSyD5JE0ISgp8X-AlL0iDOgXRfJUmRqy815A",
+  authDomain: "trendsandtoss.firebaseapp.com",
+  projectId: "trendsandtoss",
+  storageBucket: "trendsandtoss.firebasestorage.app",
+  messagingSenderId: "841269549640",
+  appId: "1:841269549640:web:9abd4b23d7d946bd1e967d",
+  measurementId: "G-VTM0W0GYVM"
 };
 
 // Initialize Firebase

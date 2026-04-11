@@ -58,3 +58,53 @@ export const login = async (req, res) => {
     res.status(500).json({ error: err.message }); 
   }
 };
+
+// Google Login
+export const googleLogin = async (req, res) => {
+  try {
+    const { name, email, photo } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    
+    // Find or create user
+    let user = await User.findOne({ email });
+    
+    if (!user) {
+      // Create new user with random password
+      const randomPassword = Math.random().toString(36).slice(-10) + 'A1!';
+      user = await User.create({
+        name: name || email.split('@')[0],
+        email,
+        password: randomPassword,
+        photo: photo || ''
+      });
+      
+      // Send welcome email
+      sendWelcomeEmail(user).catch(err => console.error('Welcome email failed:', err));
+    } else {
+      // Update photo if user exists and has new photo
+      if (photo && !user.photo) {
+        user.photo = photo;
+        await user.save();
+      }
+    }
+    
+    const token = signToken(user._id);
+    
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        photo: user.photo,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
