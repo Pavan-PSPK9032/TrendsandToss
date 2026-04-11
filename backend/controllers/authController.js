@@ -3,101 +3,137 @@ import User from '../models/User.js';
 import { sendWelcomeEmail } from '../utils/emailService.js';
 import { sendWhatsAppTextMessage } from '../utils/whatsappService.js';
 
-const signToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+// 🔐 Generate JWT
+const signToken = (id) =>
+  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
+/* ================= REGISTER ================= */
 export const register = async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
-    
-    // Check if email or phone already exists
-    const emailExists = await User.findOne({ email });
-    if (emailExists) return res.status(400).json({ error: 'Email already registered' });
-    
-    const phoneExists = await User.findOne({ phone });
-    if (phoneExists) return res.status(400).json({ error: 'Phone number already registered' });
 
+    // Validation
+    if (!name || !email || !phone || !password) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    // Check existing user
+    const emailExists = await User.findOne({ email });
+    if (emailExists)
+      return res.status(400).json({ error: 'Email already registered' });
+
+    const phoneExists = await User.findOne({ phone });
+    if (phoneExists)
+      return res.status(400).json({ error: 'Phone number already registered' });
+
+    // Create user
     const user = await User.create({ name, email, phone, password });
+
     const token = signToken(user._id);
-    
-    // Send welcome email (async - don't block response)
-    sendWelcomeEmail(user).catch(err => console.error('Welcome email failed:', err));
-    
-    // Send welcome WhatsApp (async)
-    const welcomeMsg = `🎉 Welcome to Trends & Toss, ${name}!\n\nThank you for joining us! Use code WELCOME10 to get 10% off on your first order.\n\nHappy Shopping! 🛍️`;
-    sendWhatsAppTextMessage(phone, welcomeMsg).catch(err => console.error('Welcome WhatsApp failed:', err));
-    
-    res.status(201).json({ 
-      token, 
-      user: { id: user._id, name: user.name, email, phone: user.phone, role: user.role } 
+
+    // 📧 Send Welcome Email (async)
+    sendWelcomeEmail(user).catch((err) =>
+      console.error('Welcome email failed:', err)
+    );
+
+    // 📱 Send WhatsApp Message (async)
+    const welcomeMsg = `🎉 Welcome to Trends & Toss, ${name}!\n\nUse code WELCOME10 for 10% OFF.\nHappy Shopping! 🛍️`;
+    sendWhatsAppTextMessage(phone, welcomeMsg).catch((err) =>
+      console.error('WhatsApp failed:', err)
+    );
+
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email,
+        phone: user.phone,
+        role: user.role,
+      },
     });
-  } catch (err) { 
-    res.status(500).json({ error: err.message }); 
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
+/* ================= LOGIN ================= */
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email & password required' });
+    }
+
     const user = await User.findOne({ email });
+
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const token = signToken(user._id);
-    res.json({ 
-      token, 
-      user: { 
-        id: user._id, 
-        name: user.name, 
-        email: user.email, 
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
         phone: user.phone,
-        role: user.role 
-      } 
+        role: user.role,
+      },
     });
-  } catch (err) { 
-    res.status(500).json({ error: err.message }); 
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-// Google Login
+/* ================= GOOGLE LOGIN ================= */
 export const googleLogin = async (req, res) => {
   try {
     const { name, email, photo } = req.body;
-    
+
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
     }
-    
-    // Find or create user
+
     let user = await User.findOne({ email });
-    
+
+    // 👉 If new user
     if (!user) {
-      // Create new user with random password and unique placeholder phone
-      const randomPassword = Math.random().toString(36).slice(-10) + 'A1!';
-      // Generate unique 10-digit phone starting with 99999
-      const randomPhone = '99999' + Date.now().toString().slice(-5);
-      
+      const randomPassword =
+        Math.random().toString(36).slice(-10) + 'A1!';
+
+      // ✅ FIXED: Always valid 10-digit phone
+      const randomPhone = String(
+        9000000000 + Math.floor(Math.random() * 1000000000)
+      );
+
       user = await User.create({
         name: name || email.split('@')[0],
         email,
-        phone: randomPhone,
+        phone: randomPhone, // ✅ FIXED ERROR
         password: randomPassword,
         photo: photo || '',
-        isPhoneVerified: false
+        isGoogleUser: true,
       });
-      
-      // Send welcome email
-      sendWelcomeEmail(user).catch(err => console.error('Welcome email failed:', err));
+
+      // 📧 Send welcome email
+      sendWelcomeEmail(user).catch((err) =>
+        console.error('Welcome email failed:', err)
+      );
     } else {
-      // Update photo if user exists and has new photo
+      // Update photo if missing
       if (photo && !user.photo) {
         user.photo = photo;
         await user.save();
       }
     }
-    
+
     const token = signToken(user._id);
-    
+
     res.json({
       token,
       user: {
@@ -106,8 +142,8 @@ export const googleLogin = async (req, res) => {
         email: user.email,
         phone: user.phone,
         photo: user.photo,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } catch (err) {
     console.error('Google login error:', err);
