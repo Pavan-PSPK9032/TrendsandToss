@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useState, useEffect } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import Home from './pages/Home'
 import ProductDetails from './pages/ProductDetails'
 import Cart from './pages/Cart'
@@ -10,6 +11,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import AdminDashboard from './pages/AdminDashboard'
 import Footer from './components/Footer'
+import SplashScreen from './components/SplashScreen'
 import { CartProvider } from './context/CartContext'
 import { useCart } from './context/CartContext'
 
@@ -32,11 +34,9 @@ function GlassNav() {
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 20
-      console.log('Scroll position:', window.scrollY, 'Is scrolled:', isScrolled)
       setScrolled(isScrolled)
     }
     
-    // Run immediately on mount
     handleScroll()
     
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -204,29 +204,42 @@ function GlassNav() {
 }
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true)
+
   return (
     <Router>
       <CartProvider>
         <Toaster position="top-right" />
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-          <GlassNav />
+        
+        {/* Splash Screen */}
+        <AnimatePresence>
+          {showSplash && (
+            <SplashScreen onFinish={() => setShowSplash(false)} />
+          )}
+        </AnimatePresence>
+        
+        {/* Main App */}
+        {!showSplash && (
+          <div className="min-h-screen bg-gray-50 flex flex-col">
+            <GlassNav />
 
-          <main className="flex-grow pt-20 pb-24 md:pb-0">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Home />} /> {/* Products page */}
-            <Route path="/product/:id" element={<ProductDetails />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/order-confirmation" element={<OrderConfirmation />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-          </Routes>
-        </main>
+            <main className="flex-grow pt-20 pb-24 md:pb-0">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/products" element={<Home />} />
+                <Route path="/product/:id" element={<ProductDetails />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/order-confirmation" element={<OrderConfirmation />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+              </Routes>
+            </main>
 
-        <Footer />
-      </div>
+            <Footer />
+          </div>
+        )}
       </CartProvider>
     </Router>
   )
