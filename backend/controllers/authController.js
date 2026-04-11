@@ -72,13 +72,18 @@ export const googleLogin = async (req, res) => {
     let user = await User.findOne({ email });
     
     if (!user) {
-      // Create new user with random password
+      // Create new user with random password and unique placeholder phone
       const randomPassword = Math.random().toString(36).slice(-10) + 'A1!';
+      // Generate unique 10-digit phone starting with 99999
+      const randomPhone = '99999' + Date.now().toString().slice(-5);
+      
       user = await User.create({
         name: name || email.split('@')[0],
         email,
+        phone: randomPhone,
         password: randomPassword,
-        photo: photo || ''
+        photo: photo || '',
+        isPhoneVerified: false
       });
       
       // Send welcome email
@@ -105,6 +110,7 @@ export const googleLogin = async (req, res) => {
       }
     });
   } catch (err) {
+    console.error('Google login error:', err);
     res.status(500).json({ error: err.message });
   }
 };
