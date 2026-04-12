@@ -1,6 +1,7 @@
 import firebaseAdmin from '../config/firebase.js';
 import User from '../models/User.js';
 import { sendWelcomeEmail } from '../utils/emailService.js';
+import { sendWhatsAppTextMessage } from '../utils/whatsappService.js';
 
 export const firebaseLogin = async (req, res) => {
   try {
@@ -45,9 +46,30 @@ export const firebaseLogin = async (req, res) => {
 
     // Send welcome email for new users
     if (isNewUser) {
-      sendWelcomeEmail(user).catch((err) =>
-        console.error('Welcome email failed:', err)
+      console.log('📧 Sending welcome email to new user:', user.email);
+      sendWelcomeEmail(user).then(result => {
+        if (result.success) {
+          console.log('✅ Welcome email sent successfully');
+        } else {
+          console.error('❌ Welcome email failed:', result.error);
+        }
+      }).catch((err) =>
+        console.error('❌ Welcome email error:', err)
       );
+
+      // Send WhatsApp welcome message if phone number exists
+      if (user.phone) {
+        console.log('📱 Sending WhatsApp welcome to:', user.phone);
+        const welcomeMessage = `Welcome to Trends & Toss, ${user.name}! 🎉\n\nThank you for joining us. Start exploring our amazing collection and enjoy exclusive deals!\n\n🎁 Special Welcome Offer:\nUse code: WELCOME10 for 10% off your first order!\n\nHappy Shopping! 🛍️`;
+        
+        sendWhatsAppTextMessage(user.phone, welcomeMessage).then(result => {
+          if (result.success) {
+            console.log('✅ Welcome WhatsApp sent successfully');
+          } else {
+            console.error('❌ Welcome WhatsApp failed:', result.error);
+          }
+        }).catch(err => console.error('❌ WhatsApp error:', err));
+      }
     }
 
     res.json({

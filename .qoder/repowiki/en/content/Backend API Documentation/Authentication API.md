@@ -17,13 +17,10 @@
 
 ## Update Summary
 **Changes Made**
-- Complete Firebase Authentication migration replacing JWT token endpoints
-- Replaced POST /api/auth/register, POST /api/auth/login, and POST /api/auth/google-login with POST /api/auth/firebase-login
-- Updated backend auth controller to use firebaseLogin with Firebase Admin SDK verification
-- Enhanced frontend authentication context with Firebase integration and real-time auth state synchronization
-- Removed JWT token generation and verification middleware
-- Updated user model to support Firebase authentication with provider and firebaseUid fields
-- Integrated Firebase ID token verification and user synchronization flow
+- Updated Firebase SDK v9+ modernization: migrated from legacy Firebase SDK patterns to latest modular SDK v9+ architecture
+- Updated signUpWithEmail function to use new updateProfile API from modular SDK with modern syntax
+- Added updateProfile function import from firebase/auth module for proper modular SDK implementation
+- Enhanced frontend Firebase configuration with proper modular SDK imports and API usage
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -39,8 +36,10 @@
 ## Introduction
 This document provides comprehensive API documentation for the Authentication API endpoints following the Firebase Authentication migration. The system now uses Firebase Authentication for user management with seamless backend synchronization. It covers the POST /api/auth/firebase-login endpoint for Firebase ID token verification, user synchronization, and enhanced authentication flow. The system includes Firebase Admin SDK integration, real-time auth state synchronization, provider-based user management, and comprehensive error handling for Firebase authentication scenarios.
 
+**Updated** Complete Firebase SDK v9+ modernization with modular architecture implementation
+
 ## Project Structure
-The authentication system now integrates Firebase Authentication with Express backend services, featuring real-time auth state synchronization, Firebase ID token verification, and seamless user profile management. The frontend consumes Firebase authentication while the backend maintains user profiles with provider information.
+The authentication system now integrates Firebase Authentication with Express backend services, featuring real-time auth state synchronization, Firebase ID token verification, and seamless user profile management using the latest Firebase SDK v9+ modular architecture. The frontend consumes Firebase authentication with modern modular SDK patterns while the backend maintains user profiles with provider information.
 
 ```mermaid
 graph TB
@@ -95,8 +94,10 @@ FC --> LOG
 - Firebase Authentication controller: Implements Firebase ID token verification, user creation/updating, provider detection, and welcome email notifications.
 - Firebase Admin SDK: Provides secure token verification and user management capabilities.
 - User model with Firebase integration: Supports provider-based authentication (google, email) and firebaseUid linking.
-- Frontend Firebase Context: Manages real-time auth state, user synchronization, and seamless authentication flow.
+- Frontend Firebase Context: Manages real-time auth state, user synchronization, and seamless authentication flow using Firebase SDK v9+ modular architecture.
 - Axios interceptors: Automatically attach Firebase ID tokens to authenticated requests.
+
+**Updated** Enhanced with Firebase SDK v9+ modular architecture and modern API patterns
 
 Key implementation references:
 - Firebase login route: [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
@@ -104,7 +105,7 @@ Key implementation references:
 - Firebase Admin initialization: [firebase.js:1-12](file://backend/config/firebase.js#L1-L12)
 - User model with provider fields: [User.js:25-26](file://backend/models/User.js#L25-L26)
 - Auth context with Firebase integration: [AuthContext.jsx:12-29](file://frontend/src/context/AuthContext.jsx#L12-L29)
-- Frontend Firebase configuration: [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
+- Frontend Firebase configuration with modular SDK: [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
 - Axios interceptor with Firebase tokens: [axios.js:8-16](file://frontend/src/api/axios.js#L8-L16)
 
 **Section sources**
@@ -117,7 +118,7 @@ Key implementation references:
 - [axios.js:8-16](file://frontend/src/api/axios.js#L8-L16)
 
 ## Architecture Overview
-The Firebase Authentication flow integrates frontend Firebase SDK with backend Firebase Admin SDK for secure token verification and user synchronization. The system provides real-time auth state management, seamless user profile creation, and comprehensive error handling for authentication scenarios.
+The Firebase Authentication flow integrates frontend Firebase SDK with backend Firebase Admin SDK for secure token verification and user synchronization. The system provides real-time auth state management, seamless user profile creation, and comprehensive error handling for authentication scenarios using the latest Firebase SDK v9+ modular architecture.
 
 ```mermaid
 sequenceDiagram
@@ -159,7 +160,7 @@ AC-->>FE : "{ user with provider info }"
 ### POST /api/auth/firebase-login
 Purpose: Verifies Firebase ID tokens and synchronizes user profiles between Firebase Authentication and backend user database.
 
-**Updated** Complete migration from JWT to Firebase Authentication flow
+**Updated** Complete migration from JWT to Firebase Authentication flow with Firebase SDK v9+ modernization
 
 - Request body schema:
   - idToken: string, required, Firebase ID token obtained from frontend
@@ -245,14 +246,17 @@ The AuthContext manages real-time Firebase authentication state with seamless us
 - [AuthContext.jsx:31-48](file://frontend/src/context/AuthContext.jsx#L31-L48)
 - [AuthContext.jsx:12-29](file://frontend/src/context/AuthContext.jsx#L12-L29)
 
-### Frontend Firebase Configuration
-Frontend Firebase SDK provides comprehensive authentication capabilities with Google and email/password support.
+### Frontend Firebase Configuration with SDK v9+ Modernization
+Frontend Firebase SDK provides comprehensive authentication capabilities with Google and email/password support using the latest Firebase SDK v9+ modular architecture.
+
+**Updated** Complete Firebase SDK v9+ modernization with proper modular imports and API usage
 
 - Firebase initialization: Configured with production Firebase project credentials
 - Google authentication: Supports Google Sign-In with OAuth popup flow
 - Email/password authentication: Full email/password sign-up and sign-in functionality
-- Profile management: Updates user display name during registration
+- Profile management: Updates user display name during registration using modern updateProfile API
 - Error handling: Comprehensive error handling for authentication operations
+- Modular SDK imports: Proper import structure for Firebase SDK v9+ with individual function imports
 
 **Section sources**
 - [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
@@ -300,16 +304,18 @@ The email notification service continues to work with Firebase Authentication, s
 External libraries and environment dependencies for Firebase Authentication:
 
 - firebase-admin: Firebase Admin SDK for secure token verification and user management
-- firebase: Firebase client SDK for frontend authentication and real-time auth state
+- firebase: Firebase client SDK for frontend authentication and real-time auth state with SDK v9+ modular architecture
 - axios: HTTP client with request/response interceptors for automatic token management
 - mongoose: MongoDB ODM for user model with provider and firebaseUid fields
 - dotenv: Environment variable loading for Firebase configuration
+
+**Updated** Enhanced with Firebase SDK v9+ modular architecture dependencies
 
 ```mermaid
 graph LR
 P["package.json"]
 FA["firebase-admin"]
-FB["firebase"]
+FB["firebase (v9+)"]
 AX["axios"]
 M["mongoose"]
 D["dotenv"]
@@ -339,6 +345,7 @@ Environment configuration for Firebase:
 - Request optimization: Axios interceptors minimize token retrieval overhead
 - Database queries: Firebase UID indexing ensures fast user lookup and synchronization
 - Welcome email optimization: Conditional email sending prevents unnecessary operations
+- **Updated** Modular SDK efficiency: Firebase SDK v9+ modular architecture provides tree-shaking benefits and reduced bundle size
 
 ## Troubleshooting Guide
 Common issues and resolutions for Firebase Authentication:
@@ -361,6 +368,9 @@ Common issues and resolutions for Firebase Authentication:
 - Email notification failures:
   - Cause: Email service unavailability or misconfiguration
   - Resolution: Verify email service configuration and network connectivity
+- **Updated** Firebase SDK v9+ import errors:
+  - Cause: Incorrect modular SDK imports or missing function imports
+  - Resolution: Verify proper import statements and function imports from firebase/auth module
 
 **Section sources**
 - [authController.js:9-11](file://backend/controllers/authController.js#L9-L11)
@@ -368,4 +378,6 @@ Common issues and resolutions for Firebase Authentication:
 - [AuthContext.jsx:37-47](file://frontend/src/context/AuthContext.jsx#L37-L47)
 
 ## Conclusion
-The Firebase Authentication migration provides a modern, scalable, and secure authentication solution with seamless user experience. The system integrates Firebase Authentication for frontend user management while maintaining backend user profiles with provider information. Key benefits include real-time auth state synchronization, comprehensive error handling, provider-based authentication support, and efficient token management. The migration eliminates JWT complexity while providing enhanced security through Firebase Admin SDK verification. Frontend developers benefit from simplified authentication flows with Google and email/password support, while backend developers enjoy streamlined user management with provider tracking and seamless synchronization. Ensure proper Firebase configuration, including service account credentials and project settings, to maintain optimal performance and security.
+The Firebase Authentication migration provides a modern, scalable, and secure authentication solution with seamless user experience. The system integrates Firebase Authentication for frontend user management while maintaining backend user profiles with provider information. Key benefits include real-time auth state synchronization, comprehensive error handling, provider-based authentication support, and efficient token management. The migration eliminates JWT complexity while providing enhanced security through Firebase Admin SDK verification. Frontend developers benefit from simplified authentication flows with Google and email/password support using Firebase SDK v9+ modular architecture, while backend developers enjoy streamlined user management with provider tracking and seamless synchronization. Ensure proper Firebase configuration, including service account credentials and project settings, to maintain optimal performance and security.
+
+**Updated** The Firebase SDK v9+ modernization brings improved performance through tree-shaking, better developer experience with modular imports, and enhanced security with proper API usage patterns.

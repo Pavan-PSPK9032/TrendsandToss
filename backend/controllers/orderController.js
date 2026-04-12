@@ -143,10 +143,12 @@ export const createOrder = async (req, res) => {
 
     // Send order confirmation notifications (async - don't block response)
     if (populatedOrder) {
+      console.log('📧 Sending order confirmation notifications for order:', order._id);
+      
       // Send email
       sendOrderConfirmationEmail(populatedOrder).then(result => {
         if (result.success) {
-          console.log('✅ Order email sent successfully');
+          console.log('✅ Order email sent successfully:', result.messageId);
         } else {
           console.error('❌ Order email failed:', result.error);
         }
@@ -155,7 +157,7 @@ export const createOrder = async (req, res) => {
       // Send WhatsApp
       sendOrderConfirmationWhatsApp(populatedOrder).then(result => {
         if (result.success) {
-          console.log('✅ Order WhatsApp sent successfully');
+          console.log('✅ Order WhatsApp sent successfully:', result.messageId);
         } else {
           console.error('❌ Order WhatsApp failed:', result.error);
         }
