@@ -8,7 +8,7 @@ import {
   getAllOrders,
   updateOrderStatus
 } from '../controllers/orderController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, isAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ router.post('/razorpay/order', protect, createRazorpayOrder);
 router.post('/razorpay/verify', protect, verifyPayment);
 
 // Admin routes
-router.get('/', protect, admin, getAllOrders);
-router.put('/:id/status', protect, admin, updateOrderStatus);
+router.get('/', protect, isAdmin, getAllOrders);
+router.put('/:id/status', protect, isAdmin, updateOrderStatus);
 
 export default router;

@@ -31,9 +31,14 @@ export default function Login() {
     setLoading(true)
     try {
       await loginWithGoogle()
-      toast.success('Login successful with Google!')
+      toast.success('Login successful with Google! 🎉')
       navigate('/')
     } catch (err) {
+      // Don't show error if user just closed the popup
+      if (err.code === 'auth/popup-closed-by-user') {
+        console.log('User closed Google login popup')
+        return
+      }
       toast.error('Google login failed. Please try again.')
       console.error('Google login error:', err)
     } finally {

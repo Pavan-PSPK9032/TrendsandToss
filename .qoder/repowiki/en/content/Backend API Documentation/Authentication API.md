@@ -19,10 +19,12 @@
 
 ## Update Summary
 **Changes Made**
-- Enhanced user registration with phone number validation and dual validation checks (email and phone)
-- Integrated email and WhatsApp welcome notifications after successful registration
-- Updated login response to include phone number in user object
+- Enhanced validation logic with mandatory field validation and improved error handling
 - Added comprehensive phone number validation with Indian mobile number format
+- Implemented dual validation checks for email and phone uniqueness
+- Fixed Google authentication with proper phone number generation for new users
+- Added Google login endpoint with enhanced user management
+- Integrated email and WhatsApp welcome notifications after successful registration
 - Updated request/response schemas to reflect new fields and validation rules
 
 ## Table of Contents
@@ -37,10 +39,10 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
-This document provides comprehensive API documentation for the Authentication API endpoints. It covers the POST /api/auth/register and POST /api/auth/login endpoints, including enhanced request/response schemas with phone number validation, dual validation checks, JWT token generation and verification, authentication middleware, and error handling. The system now includes integrated email and WhatsApp welcome notifications for enhanced user experience.
+This document provides comprehensive API documentation for the Authentication API endpoints. It covers the POST /api/auth/register, POST /api/auth/login, and POST /api/auth/google-login endpoints, including enhanced request/response schemas with mandatory field validation, comprehensive phone number validation, dual validation checks, JWT token generation and verification, authentication middleware, and error handling. The system now includes integrated email and WhatsApp welcome notifications for enhanced user experience and improved Google authentication support.
 
 ## Project Structure
-The authentication system spans the backend server, routing, controller, model, middleware, and utility layers, with the frontend consuming these endpoints via a shared API client. The system now includes notification utilities for email and WhatsApp integration.
+The authentication system spans the backend server, routing, controller, model, middleware, and utility layers, with the frontend consuming these endpoints via a shared API client. The system now includes notification utilities for email and WhatsApp integration and supports Google authentication.
 
 ```mermaid
 graph TB
@@ -93,17 +95,18 @@ FAPI --> LOG
 - [Login.jsx:1-83](file://frontend/src/pages/Login.jsx#L1-L83)
 
 ## Core Components
-- Authentication routes: Define POST /api/auth/register and POST /api/auth/login.
-- Authentication controller: Implements registration and login logic, JWT signing, dual validation checks, and integrated notification sending.
+- Authentication routes: Define POST /api/auth/register, POST /api/auth/login, and POST /api/auth/google-login.
+- Authentication controller: Implements registration and login logic, JWT signing, dual validation checks, Google authentication fixes, and integrated notification sending.
 - Authentication middleware: Provides token extraction, verification, and user population for protected routes.
-- User model: Defines schema with phone number validation, password hashing with bcrypt, and password comparison method.
+- User model: Defines schema with comprehensive phone number validation, password hashing with bcrypt, and password comparison method.
 - Notification utilities: Email and WhatsApp services for welcome notifications.
 - Frontend API client: Adds Authorization header with Bearer token for authenticated requests.
 
 Key implementation references:
-- Routes definition: [authRoutes.js:6-7](file://backend/routes/authRoutes.js#L6-L7)
-- Registration handler: [authController.js:8-36](file://backend/controllers/authController.js#L8-L36)
-- Login handler: [authController.js:38-60](file://backend/controllers/authController.js#L38-L60)
+- Routes definition: [authRoutes.js:6-8](file://backend/routes/authRoutes.js#L6-L8)
+- Registration handler: [authController.js:11-58](file://backend/controllers/authController.js#L11-L58)
+- Login handler: [authController.js:61-91](file://backend/controllers/authController.js#L61-L91)
+- Google login handler: [authController.js:94-152](file://backend/controllers/authController.js#L94-L152)
 - Token verification middleware: [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
 - Phone number validation: [User.js:14-19](file://backend/models/User.js#L14-L19)
 - Email notification: [emailService.js:112-148](file://backend/utils/emailService.js#L112-L148)
@@ -111,16 +114,16 @@ Key implementation references:
 - Frontend interceptor: [api.js:3-7](file://frontend/src/services/api.js#L3-L7)
 
 **Section sources**
-- [authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
-- [authController.js:1-60](file://backend/controllers/authController.js#L1-L60)
+- [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
+- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
-- [User.js:1-35](file://backend/models/User.js#L1-L35)
+- [User.js:1-37](file://backend/models/User.js#L1-L37)
 - [emailService.js:1-149](file://backend/utils/emailService.js#L1-L149)
 - [whatsappService.js:1-127](file://backend/utils/whatsappService.js#L1-L127)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
 
 ## Architecture Overview
-The enhanced authentication flow integrates route handlers, controller logic, model persistence, middleware protection, and integrated notification services. The frontend communicates with the backend using a shared API client configured to attach Authorization headers.
+The enhanced authentication flow integrates route handlers, controller logic, model persistence, middleware protection, and integrated notification services. The frontend communicates with the backend using a shared API client configured to attach Authorization headers. The system now includes comprehensive validation, dual uniqueness checks, and Google authentication support.
 
 ```mermaid
 sequenceDiagram
@@ -135,6 +138,7 @@ participant JWT as "JWT"
 FE->>API : "POST /api/auth/register"
 API->>AuthR : "Route match"
 AuthR->>AuthC : "register(req,res)"
+AuthC->>AuthC : "Validate all fields required"
 AuthC->>UserM : "Check existing email"
 UserM-->>AuthC : "Exists?"
 AuthC->>UserM : "Check existing phone"
@@ -151,6 +155,7 @@ AuthC-->>FE : "{ token, user with phone }"
 FE->>API : "POST /api/auth/login"
 API->>AuthR : "Route match"
 AuthR->>AuthC : "login(req,res)"
+AuthC->>AuthC : "Validate email & password required"
 AuthC->>UserM : "Find user by email"
 UserM-->>AuthC : "User found"
 AuthC->>UserM : "matchPassword()"
@@ -158,12 +163,24 @@ UserM-->>AuthC : "Match result"
 AuthC->>JWT : "signToken(userId)"
 JWT-->>AuthC : "JWT token"
 AuthC-->>FE : "{ token, user with phone }"
+FE->>API : "POST /api/auth/google-login"
+API->>AuthR : "Route match"
+AuthR->>AuthC : "googleLogin(req,res)"
+AuthC->>AuthC : "Validate email required"
+AuthC->>UserM : "Find user by email"
+UserM-->>AuthC : "User found or null"
+AuthC->>AuthC : "Generate random phone if new user"
+AuthC->>UserM : "Create/update user"
+UserM-->>AuthC : "User saved"
+AuthC->>JWT : "signToken(userId)"
+JWT-->>AuthC : "JWT token"
+AuthC-->>FE : "{ token, user with phone/photo }"
 ```
 
 **Diagram sources**
 - [server.js:57-63](file://backend/server.js#L57-L63)
-- [authRoutes.js:6-7](file://backend/routes/authRoutes.js#L6-L7)
-- [authController.js:8-60](file://backend/controllers/authController.js#L8-L60)
+- [authRoutes.js:6-8](file://backend/routes/authRoutes.js#L6-L8)
+- [authController.js:11-152](file://backend/controllers/authController.js#L11-L152)
 - [User.js:14-19](file://backend/models/User.js#L14-L19)
 - [emailService.js:112-148](file://backend/utils/emailService.js#L112-L148)
 - [whatsappService.js:88-126](file://backend/utils/whatsappService.js#L88-L126)
@@ -171,9 +188,9 @@ AuthC-->>FE : "{ token, user with phone }"
 ## Detailed Component Analysis
 
 ### POST /api/auth/register
-Purpose: Registers a new user with name, email, phone number, and password, including dual validation checks and integrated notifications.
+Purpose: Registers a new user with name, email, phone number, and password, including comprehensive validation and dual uniqueness checks.
 
-**Updated** Enhanced with phone number validation and dual validation checks (email and phone)
+**Updated** Enhanced with mandatory field validation and comprehensive phone number validation
 
 - Request body schema:
   - name: string, required
@@ -181,6 +198,7 @@ Purpose: Registers a new user with name, email, phone number, and password, incl
   - phone: string, required, unique, validated as 10-digit Indian mobile number (6-9)
   - password: string, required
 - Validation rules:
+  - All fields are mandatory (name, email, phone, password) - returns 400 if any missing.
   - Email uniqueness enforced at controller level; returns 400 if duplicate.
   - Phone number uniqueness enforced at controller level; returns 400 if duplicate.
   - Phone number validation uses regex pattern /^[6-9]\d{9}$/ for Indian mobile numbers.
@@ -190,6 +208,7 @@ Purpose: Registers a new user with name, email, phone number, and password, incl
   - token: string (JWT)
   - user: object containing id, name, email, phone, role
 - Error responses:
+  - 400: "All fields are required" (mandatory field validation)
   - 400: "Email already registered"
   - 400: "Phone number already registered"
   - 500: Generic server error with error message
@@ -203,6 +222,7 @@ Practical example:
   - Body: { token: "<JWT>", user: { id: "<ObjectId>", name: "John Doe", email: "john@example.com", phone: "9876543210", role: "user" } }
 
 Common validation errors:
+- Missing fields: 400 "All fields are required"
 - Duplicate email: 400 "Email already registered"
 - Duplicate phone: 400 "Phone number already registered"
 - Invalid phone format: 400 "Please provide a valid 10-digit Indian phone number"
@@ -211,11 +231,11 @@ Common validation errors:
 Security considerations:
 - Password stored as bcrypt hash with salt rounds configured in model.
 - JWT secret used for signing tokens; ensure environment variable is set.
-- Phone number validation prevents invalid formats and duplicates.
+- Comprehensive phone number validation prevents invalid formats and duplicates.
 - Asynchronous notification sending prevents blocking the registration response.
 
 **Section sources**
-- [authController.js:8-36](file://backend/controllers/authController.js#L8-L36)
+- [authController.js:11-58](file://backend/controllers/authController.js#L11-L58)
 - [User.js:14-19](file://backend/models/User.js#L14-L19)
 - [emailService.js:112-148](file://backend/utils/emailService.js#L112-L148)
 - [whatsappService.js:88-126](file://backend/utils/whatsappService.js#L88-L126)
@@ -229,12 +249,14 @@ Purpose: Authenticates an existing user and returns a JWT token with enhanced us
   - email: string, required
   - password: string, required
 - Validation rules:
+  - Validates that both email and password are provided - returns 400 if missing.
   - Finds user by email; rejects if not found.
   - Compares password using bcrypt compare; rejects if mismatch.
 - Response format:
   - token: string (JWT)
   - user: object containing id, name, email, phone, role
 - Error responses:
+  - 400: "Email & password required" (missing credentials validation)
   - 401: "Invalid credentials"
   - 500: Generic server error with error message
 
@@ -244,6 +266,7 @@ Practical example:
   - Body: { token: "<JWT>", user: { id: "<ObjectId>", name: "John Doe", email: "john@example.com", phone: "9876543210", role: "user" } }
 
 Common validation errors:
+- Missing credentials: 400 "Email & password required"
 - Invalid credentials: 401 "Invalid credentials"
 
 Security considerations:
@@ -252,8 +275,51 @@ Security considerations:
 - Phone number included in response for frontend display purposes.
 
 **Section sources**
-- [authController.js:38-60](file://backend/controllers/authController.js#L38-L60)
+- [authController.js:61-91](file://backend/controllers/authController.js#L61-L91)
 - [User.js:31-33](file://backend/models/User.js#L31-L33)
+
+### POST /api/auth/google-login
+Purpose: Handles Google authentication with automatic user creation and phone number generation for new users.
+
+**New** Enhanced Google authentication with comprehensive validation and fixes
+
+- Request body schema:
+  - name: string, optional (defaults to email username if not provided)
+  - email: string, required
+  - photo: string, optional (profile picture URL)
+- Validation rules:
+  - Email is required for Google authentication.
+  - Creates new user with random 10-digit phone number if not exists.
+  - Fixes previous Google authentication bug with proper phone number generation.
+  - Updates user photo if provided and missing.
+- Response format:
+  - token: string (JWT)
+  - user: object containing id, name, email, phone, photo, role
+- Error responses:
+  - 400: "Email is required" (missing email validation)
+  - 500: Generic server error with error message
+- Enhanced features:
+  - Automatic phone number generation for new Google users.
+  - Random password generation with alphanumeric characters.
+  - Photo update capability for existing users.
+  - Welcome email notification for new Google users.
+
+Practical example:
+- Successful Google login response:
+  - Status: 200 OK
+  - Body: { token: "<JWT>", user: { id: "<ObjectId>", name: "John Doe", email: "john@gmail.com", phone: "9876543210", photo: "", role: "user" } }
+
+Common validation errors:
+- Missing email: 400 "Email is required"
+
+Security considerations:
+- Random password generation ensures secure authentication for new users.
+- Phone number validation maintained even for generated numbers.
+- Photo updates handled securely without exposing sensitive information.
+
+**Section sources**
+- [authController.js:94-152](file://backend/controllers/authController.js#L94-L152)
+- [User.js:14-19](file://backend/models/User.js#L14-L19)
 
 ### Authentication Middleware and Token Verification
 Middleware protects routes by extracting the Authorization header, verifying the JWT, and attaching the user object (without password) to the request.
@@ -300,11 +366,11 @@ Next --> End
   - On success, attaches user to request object.
 
 References:
-- Signing: [authController.js:6](file://backend/controllers/authController.js#L6)
+- Signing: [authController.js:7-8](file://backend/controllers/authController.js#L7-L8)
 - Verification: [authMiddleware.js:9](file://backend/middleware/authMiddleware.js#L9)
 
 **Section sources**
-- [authController.js:6](file://backend/controllers/authController.js#L6)
+- [authController.js:7-8](file://backend/controllers/authController.js#L7-L8)
 - [authMiddleware.js:9](file://backend/middleware/authMiddleware.js#L9)
 
 ### Password Hashing and Validation
@@ -315,20 +381,24 @@ References:
   - Password comparison performed using bcrypt compare during login.
 
 References:
-- Pre-save hashing: [User.js:26-29](file://backend/models/User.js#L26-L29)
-- Password comparison: [User.js:31-33](file://backend/models/User.js#L31-L33)
+- Pre-save hashing: [User.js:27-30](file://backend/models/User.js#L27-L30)
+- Password comparison: [User.js:32-34](file://backend/models/User.js#L32-L34)
 
 **Section sources**
-- [User.js:26-33](file://backend/models/User.js#L26-L33)
+- [User.js:27-34](file://backend/models/User.js#L27-L34)
 
 ### Phone Number Validation and Schema
-**New** Comprehensive phone number validation system
+**Enhanced** Comprehensive phone number validation system with dual uniqueness checks
 
 - Phone number schema validation:
   - Required field with unique constraint
   - Regex pattern /^[6-9]\d{9}$/ validates 10-digit Indian mobile numbers
   - Only digits 6-9 allowed as first digit (valid Indian mobile prefixes)
   - Ensures exactly 10 digits total
+- Controller-level validation:
+  - Dual uniqueness check for email and phone before user creation
+  - Returns specific error messages for duplicate entries
+  - Mandatory field validation for all registration fields
 - Frontend validation:
   - Client-side validation mirrors backend requirements
   - Real-time validation feedback for users
@@ -336,14 +406,16 @@ References:
 
 References:
 - Backend validation: [User.js:14-19](file://backend/models/User.js#L14-L19)
-- Frontend validation: [Register.jsx:17-21](file://frontend/src/pages/Register.jsx#L17-L21)
+- Controller validation: [authController.js:15-27](file://backend/controllers/authController.js#L15-L27)
+- Frontend validation: [Register.jsx:19-29](file://frontend/src/pages/Register.jsx#L19-L29)
 
 **Section sources**
 - [User.js:14-19](file://backend/models/User.js#L14-L19)
-- [Register.jsx:17-21](file://frontend/src/pages/Register.jsx#L17-L21)
+- [authController.js:15-27](file://backend/controllers/authController.js#L15-L27)
+- [Register.jsx:19-29](file://frontend/src/pages/Register.jsx#L19-L29)
 
 ### Email and WhatsApp Notification Services
-**New** Integrated notification system for user onboarding
+**Enhanced** Integrated notification system for user onboarding with improved error handling
 
 - Email Service:
   - Welcome email with special offer code (WELCOME10)
@@ -356,16 +428,22 @@ References:
   - Country code formatting (India +91)
   - Fallback text messaging capability
   - Asynchronous sending with error handling
+- Integration points:
+  - Triggered after successful registration
+  - Triggered after successful Google login for new users
+  - Error handling prevents blocking authentication flow
 
 References:
 - Email service: [emailService.js:112-148](file://backend/utils/emailService.js#L112-L148)
 - WhatsApp service: [whatsappService.js:88-126](file://backend/utils/whatsappService.js#L88-L126)
-- Registration controller integration: [authController.js:22-27](file://backend/controllers/authController.js#L22-L27)
+- Registration controller integration: [authController.js:34-43](file://backend/controllers/authController.js#L34-L43)
+- Google login controller integration: [authController.js:123-126](file://backend/controllers/authController.js#L123-L126)
 
 **Section sources**
 - [emailService.js:112-148](file://backend/utils/emailService.js#L112-L148)
 - [whatsappService.js:88-126](file://backend/utils/whatsappService.js#L88-L126)
-- [authController.js:22-27](file://backend/controllers/authController.js#L22-L27)
+- [authController.js:34-43](file://backend/controllers/authController.js#L34-L43)
+- [authController.js:123-126](file://backend/controllers/authController.js#L123-L126)
 
 ### Frontend Integration and Token Usage
 - API client:
@@ -377,18 +455,22 @@ References:
 - Login page:
   - Submits { email, password } to /api/auth/login.
   - Stores returned token and user (including phone) in localStorage.
+- Google authentication:
+  - Supports Google login with automatic user creation.
+  - Handles Google OAuth flow and local authentication.
 
-**Updated** Frontend now handles phone number in user object
+**Updated** Frontend now handles phone number in user object and Google authentication
 
 References:
 - Interceptor: [api.js:3-7](file://frontend/src/services/api.js#L3-L7)
-- Registration form submission: [Register.jsx:14-38](file://frontend/src/pages/Register.jsx#L14-L38)
-- Login form submission: [Login.jsx:11-30](file://frontend/src/pages/Login.jsx#L11-L30)
+- Registration form submission: [Register.jsx:16-41](file://frontend/src/pages/Register.jsx#L16-L41)
+- Login form submission: [Login.jsx:14-28](file://frontend/src/pages/Login.jsx#L14-L28)
+- Google authentication: [Register.jsx:43-55](file://frontend/src/pages/Register.jsx#L43-L55)
 
 **Section sources**
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [Register.jsx:1-113](file://frontend/src/pages/Register.jsx#L1-L113)
-- [Login.jsx:1-83](file://frontend/src/pages/Login.jsx#L1-L83)
+- [Register.jsx:1-164](file://frontend/src/pages/Register.jsx#L1-L164)
+- [Login.jsx:1-128](file://frontend/src/pages/Login.jsx#L1-L128)
 
 ## Dependency Analysis
 External libraries and environment dependencies:
@@ -452,9 +534,13 @@ References:
 - **Updated** Notification performance: Email and WhatsApp notifications are sent asynchronously to prevent blocking registration/login responses.
 - **Updated** Database queries: Dual validation (email and phone) adds minimal overhead but ensures data integrity.
 - **Updated** Phone number validation: Both client-side and server-side validation reduce invalid requests and improve user experience.
+- **Updated** Google authentication: Efficient user creation with random phone number generation for new users.
 
 ## Troubleshooting Guide
 Common issues and resolutions:
+- 400 "All fields are required" on registration:
+  - Cause: Missing required field (name, email, phone, or password).
+  - Resolution: Ensure all four fields are provided in the request body.
 - 400 "Email already registered" on registration:
   - Cause: Duplicate email address already exists in database.
   - Resolution: Use a unique email or reset password flow.
@@ -467,9 +553,15 @@ Common issues and resolutions:
 - 400 "Please provide a valid email address" on registration:
   - Cause: Email format doesn't match email regex pattern.
   - Resolution: Enter a valid email address format.
+- 400 "Email & password required" on login:
+  - Cause: Missing email or password in request body.
+  - Resolution: Provide both email and password fields.
 - 401 "Invalid credentials" on login:
   - Cause: Incorrect email or password.
   - Resolution: Verify credentials; ensure bcrypt-compatible hashing.
+- 400 "Email is required" on Google login:
+  - Cause: Missing email in Google login request.
+  - Resolution: Ensure Google OAuth provides email address.
 - 401 "Not authorized" or 401 "Invalid token":
   - Cause: Missing or malformed Authorization header; expired or invalid JWT.
   - Resolution: Ensure frontend sends Bearer token; verify JWT_SECRET correctness.
@@ -482,13 +574,17 @@ Common issues and resolutions:
 - **Updated** Notification failures:
   - Cause: Email or WhatsApp service unavailability or misconfiguration.
   - Resolution: Check email credentials and WhatsApp API settings; verify environment variables.
+- **Updated** Google authentication issues:
+  - Cause: Google OAuth failure or missing user data.
+  - Resolution: Verify Google OAuth configuration and ensure email is provided.
 
 **Section sources**
-- [authController.js:12-17](file://backend/controllers/authController.js#L12-L17)
-- [authController.js:42](file://backend/controllers/authController.js#L42)
+- [authController.js:16-18](file://backend/controllers/authController.js#L16-L18)
+- [authController.js:66](file://backend/controllers/authController.js#L66)
+- [authController.js:98](file://backend/controllers/authController.js#L98)
 - [authMiddleware.js:5-14](file://backend/middleware/authMiddleware.js#L5-L14)
 - [adminRoutes.js:17-19](file://backend/routes/adminRoutes.js#L17-L19)
 - [server.js:91-95](file://backend/server.js#L91-L95)
 
 ## Conclusion
-The enhanced Authentication API provides secure user registration and login with robust phone number validation, dual validation checks (email and phone), integrated email and WhatsApp welcome notifications, JWT-based session tokens, and middleware-driven protection. The system now offers improved user experience through comprehensive validation and immediate welcome notifications. The frontend integrates seamlessly by automatically attaching Authorization headers and handling the enhanced user object with phone number information. Ensure proper environment configuration, especially JWT_SECRET, MONGO_URI, email credentials, and WhatsApp API settings, to maintain security and reliability.
+The enhanced Authentication API provides secure user registration and login with robust validation, comprehensive phone number validation, dual validation checks (email and phone), integrated email and WhatsApp welcome notifications, JWT-based session tokens, middleware-driven protection, and enhanced Google authentication support. The system now offers improved user experience through comprehensive validation, immediate welcome notifications, and reliable Google authentication with proper phone number generation. The frontend integrates seamlessly by automatically attaching Authorization headers and handling the enhanced user object with phone number information. Ensure proper environment configuration, especially JWT_SECRET, MONGO_URI, email credentials, and WhatsApp API settings, to maintain security and reliability.

@@ -8,7 +8,7 @@ import {
   deleteCategory,
   getProductsByCategory
 } from '../controllers/categoryController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, isAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -17,10 +17,10 @@ router.get('/', getCategories);
 router.get('/slug/:slug/products', getProductsByCategory);
 
 // Protected admin routes
-router.get('/all', protect, admin, getAllCategories);
-router.get('/:id', protect, admin, getCategoryById);
-router.post('/', protect, admin, createCategory);
-router.put('/:id', protect, admin, updateCategory);
-router.delete('/:id', protect, admin, deleteCategory);
+router.get('/all', protect, isAdmin, getAllCategories);
+router.get('/:id', protect, isAdmin, getCategoryById);
+router.post('/', protect, isAdmin, createCategory);
+router.put('/:id', protect, isAdmin, updateCategory);
+router.delete('/:id', protect, isAdmin, deleteCategory);
 
 export default router;

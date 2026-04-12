@@ -21,14 +21,7 @@ const googleProvider = new GoogleAuthProvider();
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    return {
-      user: {
-        uid: result.user.uid,
-        name: result.user.displayName,
-        email: result.user.email,
-        photo: result.user.photoURL
-      }
-    };
+    return { user: result.user };
   } catch (error) {
     console.error('Google sign-in error:', error);
     throw error;
@@ -39,13 +32,7 @@ export const signInWithGoogle = async () => {
 export const signInWithEmail = async (email, password) => {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
-    return {
-      user: {
-        uid: result.user.uid,
-        email: result.user.email,
-        name: result.user.displayName || email.split('@')[0]
-      }
-    };
+    return { user: result.user };
   } catch (error) {
     console.error('Email sign-in error:', error);
     throw error;
@@ -58,13 +45,7 @@ export const signUpWithEmail = async (name, email, password) => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     // Update profile with name
     await result.user.updateProfile({ displayName: name });
-    return {
-      user: {
-        uid: result.user.uid,
-        email: result.user.email,
-        name: name
-      }
-    };
+    return { user: result.user };
   } catch (error) {
     console.error('Sign-up error:', error);
     throw error;

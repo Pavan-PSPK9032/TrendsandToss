@@ -23,10 +23,11 @@
 
 ## Update Summary
 **Changes Made**
-- Enhanced authentication system documentation with critical infrastructure improvements
-- Updated AuthProvider wrapper implementation to ensure proper context initialization
-- Fixed authentication context errors throughout the application by ensuring proper context provider setup
-- Improved dual authentication system with seamless JWT and Firebase Google authentication integration
+- Enhanced authentication system documentation with improved validation patterns and error handling
+- Updated Google authentication integration documentation with better user synchronization and photo handling
+- Added comprehensive validation coverage for registration and login endpoints
+- Documented improved error handling strategies and security considerations
+- Updated frontend authentication context implementation with proper AuthProvider wrapper
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -43,7 +44,7 @@
 ## Introduction
 This document explains the E-commerce App's authentication and authorization system. It covers JWT-based login and registration, token generation and validation, middleware protection, role-based access control (RBAC) for admin routes, session-like client-side state via local storage, and CORS configuration. The system now supports dual authentication methods: traditional email/password authentication and Firebase Google authentication, providing users with flexible login options while maintaining security and seamless user experience.
 
-**Updated** Enhanced with proper AuthProvider wrapper implementation ensuring authentication context initialization and resolution of authentication context errors throughout the application.
+**Updated** Enhanced with improved validation patterns, better error handling, and comprehensive Google authentication integration featuring automatic user synchronization and photo management.
 
 ## Project Structure
 The authentication system spans backend Express routes and controllers, MongoDB models with bcrypt hashing, and frontend React context and API interceptors. The system now includes Firebase integration for Google authentication alongside the existing JWT-based authentication flow.
@@ -89,7 +90,7 @@ MAIN --> CTX
 - [server.js:1-120](file://backend/server.js#L1-L120)
 - [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
 - [adminRoutes.js:1-19](file://backend/routes/adminRoutes.js#L1-L19)
-- [authController.js:1-111](file://backend/controllers/authController.js#L1-L111)
+- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
 - [adminController.js:1-86](file://backend/controllers/adminController.js#L1-L86)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [User.js:1-37](file://backend/models/User.js#L1-L37)
@@ -106,7 +107,7 @@ MAIN --> CTX
 - [server.js:1-120](file://backend/server.js#L1-L120)
 - [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
 - [adminRoutes.js:1-19](file://backend/routes/adminRoutes.js#L1-L19)
-- [authController.js:1-111](file://backend/controllers/authController.js#L1-L111)
+- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
 - [adminController.js:1-86](file://backend/controllers/adminController.js#L1-L86)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [User.js:1-37](file://backend/models/User.js#L1-L37)
@@ -122,22 +123,22 @@ MAIN --> CTX
 ## Core Components
 - Backend JWT and routes:
   - Token signing with a secret and 7-day expiry.
-  - Registration, login, and Google login endpoints.
+  - Registration, login, and Google login endpoints with comprehensive validation.
   - Protected routes with middleware chain: authentication verification followed by admin role check.
 - Backend model and password hashing:
   - Mongoose User schema with role enum, photo field for profile images, and bcrypt hashing on save.
-  - Password comparison helper method.
+  - Password comparison helper method with enhanced validation.
 - Frontend authentication state and HTTP:
   - React context provider managing user state and login/logout functions including Google authentication.
   - Axios interceptors attaching Authorization header and handling 401 responses.
   - Pages for login and registration with dual authentication options.
 - Firebase Integration:
   - Google OAuth authentication with Firebase.
-  - Seamless user synchronization between Firebase and backend JWT tokens.
-- **Updated** Proper AuthProvider wrapper ensures authentication context initialization and resolves context errors throughout the application.
+  - Seamless user synchronization between Firebase and backend JWT tokens with photo management.
+- **Updated** Enhanced validation patterns and improved error handling throughout the authentication system.
 
 **Section sources**
-- [authController.js:1-111](file://backend/controllers/authController.js#L1-L111)
+- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
 - [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
 - [adminRoutes.js:1-19](file://backend/routes/adminRoutes.js#L1-L19)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
@@ -151,7 +152,7 @@ MAIN --> CTX
 - [main.jsx:1-14](file://frontend/src/main.jsx#L1-L14)
 
 ## Architecture Overview
-End-to-end authentication flow from frontend to backend and middleware enforcement, including the new Google authentication integration.
+End-to-end authentication flow from frontend to backend and middleware enforcement, including the new Google authentication integration with enhanced validation and error handling.
 
 ```mermaid
 sequenceDiagram
@@ -182,13 +183,13 @@ FE-->>FE : "Redirect to home"
 - [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
 - [firebase.js:20-36](file://frontend/src/config/firebase.js#L20-L36)
 - [authRoutes.js:8](file://backend/routes/authRoutes.js#L8)
-- [authController.js:62-111](file://backend/controllers/authController.js#L62-L111)
+- [authController.js:93-152](file://backend/controllers/authController.js#L93-L152)
 - [User.js:21](file://backend/models/User.js#L21)
 
 ## Detailed Component Analysis
 
-### Dual Authentication System
-The system now supports two primary authentication methods: traditional JWT-based authentication and Firebase Google authentication, providing users with flexible login options while maintaining security and seamless user experience.
+### Enhanced Authentication System
+The system now supports two primary authentication methods: traditional JWT-based authentication and Firebase Google authentication, with comprehensive validation patterns and improved error handling throughout the authentication flow.
 
 #### JWT-Based Authentication Flow
 - Token generation:
@@ -196,8 +197,8 @@ The system now supports two primary authentication methods: traditional JWT-base
 - Token validation:
   - Middleware extracts Bearer token from Authorization header, verifies signature, loads user without password, and attaches to request.
 - Login and registration:
-  - Registration checks for existing email and creates user with hashed password.
-  - Login finds user, compares password, and returns token and user payload.
+  - Registration checks for existing email and phone, validates all required fields, and creates user with hashed password.
+  - Login finds user, compares password, and returns token and user payload with enhanced error handling.
 
 ```mermaid
 flowchart TD
@@ -222,11 +223,11 @@ Next --> End
   - Frontend initiates Google sign-in via Firebase.
   - Firebase handles OAuth flow and returns user data.
   - Frontend sends Firebase user data to backend `/auth/google-login` endpoint.
-  - Backend synchronizes user data and issues JWT token.
+  - Backend synchronizes user data and issues JWT token with enhanced validation.
 - User synchronization:
   - Creates new users with random passwords if they don't exist in database.
   - Updates existing users with Google profile photos.
-  - Maintains consistent user data across Firebase and backend systems.
+  - Maintains consistent user data across Firebase and backend systems with improved error handling.
 
 ```mermaid
 sequenceDiagram
@@ -252,16 +253,41 @@ FE-->>FE : "Redirect to home"
 **Diagram sources**
 - [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
 - [firebase.js:20-36](file://frontend/src/config/firebase.js#L20-L36)
-- [authController.js:62-111](file://backend/controllers/authController.js#L62-L111)
+- [authController.js:93-152](file://backend/controllers/authController.js#L93-L152)
 - [User.js:21](file://backend/models/User.js#L21)
 
 **Section sources**
-- [authController.js:62-111](file://backend/controllers/authController.js#L62-L111)
+- [authController.js:93-152](file://backend/controllers/authController.js#L93-L152)
 - [authRoutes.js:8](file://backend/routes/authRoutes.js#L8)
 - [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
 - [User.js:21](file://backend/models/User.js#L21)
 - [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
 - [firebase.js:20-36](file://frontend/src/config/firebase.js#L20-L36)
+
+### Enhanced Validation Patterns
+The authentication system now implements comprehensive validation patterns across all endpoints:
+
+#### Registration Validation
+- All fields (name, email, phone, password) are required
+- Email uniqueness validation with regex pattern matching
+- Phone number validation with Indian phone number format
+- Password strength validation during bcrypt hashing
+
+#### Login Validation
+- Email and password presence validation
+- User existence and password verification
+- Enhanced error messages for different failure scenarios
+
+#### Google Login Validation
+- Email requirement validation
+- Automatic user creation with fallback values
+- Photo URL handling and user profile synchronization
+
+**Section sources**
+- [authController.js:15-28](file://backend/controllers/authController.js#L15-L28)
+- [authController.js:65-74](file://backend/controllers/authController.js#L65-L74)
+- [authController.js:98-100](file://backend/controllers/authController.js#L98-L100)
+- [User.js:14-19](file://backend/models/User.js#L14-L19)
 
 ### Role-Based Access Control (RBAC)
 - Admin routes apply a middleware chain:
@@ -270,6 +296,7 @@ FE-->>FE : "Redirect to home"
 - Admin dashboard endpoints:
   - Dashboard aggregates counts and revenue.
   - Orders listing and status update.
+  - User management with enhanced validation and security checks.
 
 ```mermaid
 sequenceDiagram
@@ -305,6 +332,7 @@ AX-->>FE : "Render admin dashboard"
   - Initializes user from localStorage on mount.
   - Provides login, logout, and Google authentication functions that persist token and user.
   - Handles both traditional JWT login and Firebase Google login seamlessly.
+  - Enhanced error handling with proper error propagation.
 - Axios interceptors:
   - Automatically attach Authorization header for outgoing requests.
   - On 401, remove token from localStorage.
@@ -395,7 +423,7 @@ MAIN["main.jsx"] --> CTX["AuthContext.jsx"]
 - [package.json:8-27](file://frontend/package.json#L8-L27)
 - [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
 - [adminRoutes.js:1-19](file://backend/routes/adminRoutes.js#L1-L19)
-- [authController.js:1-111](file://backend/controllers/authController.js#L1-L111)
+- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [User.js:1-37](file://backend/models/User.js#L1-L37)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
@@ -412,7 +440,7 @@ MAIN["main.jsx"] --> CTX["AuthContext.jsx"]
 - Middleware overhead: Keep token verification lightweight; avoid heavy operations in middleware.
 - Frontend caching: Persist minimal user info in localStorage; fetch fresh data on demand.
 - Firebase authentication: Google OAuth adds minimal overhead as it's handled by Firebase services.
-- User synchronization: Database operations for Google login are optimized to minimize latency.
+- User synchronization: Database operations for Google login are optimized to minimize latency with improved validation.
 
 ## Security Considerations
 - CORS configuration:
@@ -430,6 +458,7 @@ MAIN["main.jsx"] --> CTX["AuthContext.jsx"]
 - Google authentication security:
   - Firebase handles OAuth security; ensure proper Firebase project configuration.
   - User data synchronization maintains privacy and security standards.
+- **Updated** Enhanced validation patterns prevent data leakage and improve security posture.
 
 **Section sources**
 - [server.js:25-64](file://backend/server.js#L25-L64)
@@ -448,6 +477,14 @@ MAIN["main.jsx"] --> CTX["AuthContext.jsx"]
   - Duplicate registration; prompt user to log in.
 - 401 Invalid credentials:
   - Incorrect email/password; prompt retry.
+- 400 All fields are required:
+  - Registration validation failure; ensure all required fields are provided.
+- 400 Email already registered:
+  - Email uniqueness constraint violation.
+- 400 Phone number already registered:
+  - Phone uniqueness constraint violation.
+- 400 Email is required:
+  - Google login validation failure; ensure email is provided.
 - CORS errors:
   - Origin not whitelisted; verify FRONTEND_URL and allowed origins.
 - Google login failures:
@@ -464,8 +501,9 @@ MAIN["main.jsx"] --> CTX["AuthContext.jsx"]
 
 **Section sources**
 - [authMiddleware.js:5-14](file://backend/middleware/authMiddleware.js#L5-L14)
-- [authController.js:9-10](file://backend/controllers/authController.js#L9-L10)
-- [authController.js:22](file://backend/controllers/authController.js#L22)
+- [authController.js:16-18](file://backend/controllers/authController.js#L16-L18)
+- [authController.js:21-27](file://backend/controllers/authController.js#L21-L27)
+- [authController.js:98-100](file://backend/controllers/authController.js#L98-L100)
 - [server.js:32-64](file://backend/server.js#L32-L64)
 - [AuthContext.jsx:42-45](file://frontend/src/context/AuthContext.jsx#L42-L45)
 - [firebase.js:32-35](file://frontend/src/config/firebase.js#L32-L35)
@@ -474,6 +512,6 @@ MAIN["main.jsx"] --> CTX["AuthContext.jsx"]
 ## Conclusion
 The system implements a comprehensive authentication solution with dual authentication methods: JWT-based authentication for traditional email/password login and Firebase Google authentication for social login. The system maintains clean JWT-based flows with bcrypt password hashing and RBAC for admin routes while seamlessly integrating Google OAuth through Firebase. The frontend integrates seamlessly with both authentication methods through a unified AuthContext provider.
 
-**Updated** The critical infrastructure improvement involves proper AuthProvider wrapper implementation that ensures authentication context initialization and resolves authentication context errors throughout the application. This enhancement guarantees reliable authentication state management across all application components.
+**Updated** The enhanced authentication system features improved validation patterns, better error handling, and comprehensive Google authentication integration with automatic user synchronization and photo management. The critical infrastructure improvement involves proper AuthProvider wrapper implementation that ensures authentication context initialization and resolves authentication context errors throughout the application. This enhancement guarantees reliable authentication state management across all application components with robust validation and security measures.
 
 For production, prioritize secure token storage (cookies), CSRF protection, strict secrets management, robust input validation, and proper Firebase configuration management.

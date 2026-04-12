@@ -16,12 +16,6 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // Validate phone number
-    if (!/^[6-9]\d{9}$/.test(phone)) {
-      toast.error('Please enter a valid 10-digit Indian phone number')
-      return
-    }
-    
     // Validate email
     if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
       toast.error('Please enter a valid email address')
@@ -30,7 +24,7 @@ export default function Register() {
     
     setLoading(true)
     try {
-      await register(name, email, phone, password)
+      await register(name, email, password)
       toast.success('Registration successful! Welcome to Trends & Toss! 🎉')
       navigate('/')
     } catch (err) {
@@ -47,6 +41,11 @@ export default function Register() {
       toast.success('Signed up with Google successfully! 🎉')
       navigate('/')
     } catch (err) {
+      // Don't show error if user just closed the popup
+      if (err.code === 'auth/popup-closed-by-user') {
+        console.log('User closed Google signup popup')
+        return
+      }
       toast.error('Google signup failed. Please try again.')
       console.error('Google signup error:', err)
     } finally {
@@ -115,7 +114,6 @@ export default function Register() {
             placeholder="10-digit mobile number"
             className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             maxLength={10}
-            required
           />
         </div>
         <div className="mb-6">

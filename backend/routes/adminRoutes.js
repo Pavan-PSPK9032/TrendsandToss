@@ -1,11 +1,11 @@
 import express from 'express';
 import { getDashboard, getOrders, updateOrderStatus, getAllUsers, createAdminUser, deleteAdminUser } from '../controllers/adminController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, isAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Apply protect + admin middleware to all admin routes
-router.use(protect, admin);
+router.use(protect, isAdmin);
 
 router.get('/dashboard', getDashboard);
 router.get('/orders', getOrders);

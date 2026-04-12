@@ -14,6 +14,7 @@ const checkAdmin = async () => {
     
     if (!admin) {
       console.log('❌ Admin user not found!');
+      console.log('Run: node createAdmin.js');
       process.exit(1);
     }
 
@@ -21,40 +22,18 @@ const checkAdmin = async () => {
     console.log('Name:', admin.name);
     console.log('Email:', admin.email);
     console.log('Role:', admin.role);
+    console.log('Provider:', admin.provider);
+    console.log('Firebase UID:', admin.firebaseUid || 'Not linked');
     console.log('Created at:', admin.createdAt);
-    console.log('Password (hashed):', admin.password.substring(0, 30) + '...');
 
-    // Test password match
-    const bcrypt = await import('bcryptjs');
-    const testPassword = 'Admin@2024Secure';
-    const isMatch = await bcrypt.default.compare(testPassword, admin.password);
-    
-    console.log('\n🔐 Password Test:');
-    console.log('Testing password:', testPassword);
-    console.log('Password matches:', isMatch ? '✅ YES' : '❌ NO');
-
-    if (!isMatch) {
-      console.log('\n⚠️  Password does not match! Creating new admin...');
-      
-      // Delete old admin
-      await User.deleteOne({ email: 'admin@trendsandtoss.com' });
-      console.log('✅ Deleted old admin user');
-
-      // Create new admin
-      const newAdmin = await User.create({
-        name: 'Trends & Toss Admin',
-        email: 'admin@trendsandtoss.com',
-        password: 'Admin@2024Secure',
-        role: 'admin'
-      });
-
-      console.log('\n✅ New admin user created!');
-      console.log('📧 Email: admin@trendsandtoss.com');
-      console.log('🔑 Password: Admin@2024Secure');
-
-      // Verify again
-      const verifyMatch = await bcrypt.default.compare('Admin@2024Secure', newAdmin.password);
-      console.log('✅ Verified - Password matches:', verifyMatch);
+    if (admin.role !== 'admin') {
+      console.log('\n⚠️  User exists but role is not admin!');
+      console.log('Updating role to admin...');
+      admin.role = 'admin';
+      await admin.save();
+      console.log('✅ Role updated to admin');
+    } else {
+      console.log('\n✅ Admin role confirmed');
     }
     
     process.exit(0);

@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -13,24 +12,18 @@ const userSchema = new mongoose.Schema({
   },
   phone: { 
     type: String, 
-    required: true,
+    required: false,
     unique: true,
+    sparse: true,
     match: [/^[6-9]\d{9}$/, 'Please provide a valid 10-digit Indian phone number']
   },
-  password: { type: String, required: true },
+  password: { type: String, required: false },
   photo: { type: String, default: '' },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   isEmailVerified: { type: Boolean, default: false },
-  isPhoneVerified: { type: Boolean, default: false }
+  isPhoneVerified: { type: Boolean, default: false },
+  provider: { type: String, enum: ['google', 'email'], required: true },
+  firebaseUid: { type: String, unique: true, sparse: true }
 }, { timestamps: true });
-
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-});
-
-userSchema.methods.matchPassword = async function(entered) {
-  return await bcrypt.compare(entered, this.password);
-};
 
 export default mongoose.model('User', userSchema);

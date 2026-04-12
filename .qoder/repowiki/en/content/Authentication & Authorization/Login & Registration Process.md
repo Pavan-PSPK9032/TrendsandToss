@@ -20,12 +20,13 @@
 
 ## Update Summary
 **Changes Made**
-- Enhanced authentication system now supports dual authentication methods (email/password and Google)
+- Enhanced authentication system with improved validation requirements and error responses
 - Added comprehensive Google authentication integration with Firebase
-- Implemented Google login flow with seamless JWT token generation
-- Added Google signup option alongside traditional email/password registration
-- Integrated Firebase authentication with backend JWT authentication
-- Enhanced user experience with dual authentication options
+- Implemented robust phone number validation with Indian mobile number format
+- Enhanced error handling with detailed error messages for better debugging
+- Improved Google authentication with better user data handling and photo management
+- Added toast notification system for consistent user feedback
+- Enhanced frontend form validation with real-time input formatting
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -41,10 +42,10 @@
 11. [Appendices](#appendices)
 
 ## Introduction
-This document explains the end-to-end user registration and login processes in the E-commerce App. The system now features a dual authentication approach supporting both traditional email/password authentication and Google authentication through Firebase. It covers backend flows (input validation, password hashing with bcrypt, duplicate email checks, JWT token generation), frontend form handling and authentication state management, and security considerations such as CORS, bearer token usage, and session persistence. The enhanced system provides improved user experience with multiple authentication options and seamless integration between Firebase and backend JWT authentication.
+This document explains the end-to-end user registration and login processes in the E-commerce App. The system now features a comprehensive dual authentication approach supporting both traditional email/password authentication and Google authentication through Firebase. It covers backend flows (input validation, password hashing with bcrypt, duplicate email/phone checks, JWT token generation), frontend form handling and authentication state management, and security considerations such as CORS, bearer token usage, and session persistence. The enhanced system provides improved user experience with multiple authentication options, robust validation, and seamless integration between Firebase and backend JWT authentication.
 
 ## Project Structure
-The authentication system spans the backend Express server and MongoDB via Mongoose, and the React frontend with Axios and local storage for tokens and user data. The frontend now includes comprehensive validation and notification systems with dual authentication capabilities.
+The authentication system spans the backend Express server and MongoDB via Mongoose, and the React frontend with Axios and local storage for tokens and user data. The frontend now includes comprehensive validation and notification systems with dual authentication capabilities and enhanced error handling.
 
 ```mermaid
 graph TB
@@ -78,9 +79,9 @@ REG --> TOAST
 ```
 
 **Diagram sources**
-- [server.js:1-102](file://backend/server.js#L1-L102)
-- [authRoutes.js:1-10](file://backend/routes/authRoutes.js#L1-L10)
-- [authController.js:1-117](file://backend/controllers/authController.js#L1-L117)
+- [server.js:1-120](file://backend/server.js#L1-L120)
+- [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
+- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
 - [User.js:1-37](file://backend/models/User.js#L1-L37)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
@@ -92,9 +93,9 @@ REG --> TOAST
 - [App.jsx:198](file://frontend/src/App.jsx#L198)
 
 **Section sources**
-- [server.js:1-102](file://backend/server.js#L1-L102)
-- [authRoutes.js:1-10](file://backend/routes/authRoutes.js#L1-L10)
-- [authController.js:1-117](file://backend/controllers/authController.js#L1-L117)
+- [server.js:1-120](file://backend/server.js#L1-L120)
+- [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
+- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
 - [User.js:1-37](file://backend/models/User.js#L1-L37)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
@@ -107,35 +108,36 @@ REG --> TOAST
 
 ## Core Components
 - Backend server initializes CORS, routes, and middleware; exposes authentication endpoints under /api/auth including new Google login endpoint.
-- Authentication controller handles registration, login, and Google login, including duplicate email checks and JWT signing.
-- User model enforces bcrypt hashing on save and provides password comparison.
-- Frontend pages manage form state, submit requests, persist tokens, and redirect on success.
+- Authentication controller handles registration, login, and Google login, including comprehensive validation and duplicate checks.
+- User model enforces bcrypt hashing on save and provides password comparison with enhanced validation patterns.
+- Frontend pages manage form state, submit requests, persist tokens, and redirect on success with improved validation.
 - Axios interceptors attach Authorization headers and handle 401 responses globally.
 - Auth context centralizes login/logout and user state hydration from localStorage.
 - **Enhanced**: Dual authentication system supporting both email/password and Google authentication.
 - **Enhanced**: Firebase integration for Google authentication with seamless JWT token generation.
-- **Enhanced**: Real-time phone number validation with Indian mobile number format (/^[6-9]\d{9}$/).
+- **Enhanced**: Robust phone number validation with Indian mobile number format (/^[6-9]\d{9}$/).
+- **Enhanced**: Comprehensive email validation with regex pattern.
 - **Enhanced**: Toast notification system using react-hot-toast for consistent user feedback.
-- **Enhanced**: Formatted input handling with automatic digit stripping and length limitations.
+- **Enhanced**: Real-time input formatting with automatic digit stripping and length limitations.
 
 **Section sources**
-- [server.js:22-49](file://backend/server.js#L22-L49)
+- [server.js:25-64](file://backend/server.js#L25-L64)
 - [authRoutes.js:6-8](file://backend/routes/authRoutes.js#L6-L8)
-- [authController.js:6-16](file://backend/controllers/authController.js#L6-L16)
-- [authController.js:18-27](file://backend/controllers/authController.js#L18-L27)
-- [authController.js:62-116](file://backend/controllers/authController.js#L62-L116)
-- [User.js:11-18](file://backend/models/User.js#L11-L18)
-- [Register.jsx:11-22](file://frontend/src/pages/Register.jsx#L11-L22)
-- [Login.jsx:10-21](file://frontend/src/pages/Login.jsx#L10-L21)
-- [AuthContext.jsx:16-28](file://frontend/src/context/AuthContext.jsx#L16-L28)
+- [authController.js:15-18](file://backend/controllers/authController.js#L15-L18)
+- [authController.js:65-68](file://backend/controllers/authController.js#L65-L68)
+- [authController.js:98-100](file://backend/controllers/authController.js#L98-L100)
+- [User.js:14-19](file://backend/models/User.js#L14-L19)
+- [Register.jsx:19-29](file://frontend/src/pages/Register.jsx#L19-L29)
+- [Login.jsx:14-28](file://frontend/src/pages/Login.jsx#L14-L28)
+- [AuthContext.jsx:17-24](file://frontend/src/context/AuthContext.jsx#L17-L24)
 - [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
-- [Register.jsx:17-27](file://frontend/src/pages/Register.jsx#L17-L27)
-- [Register.jsx:69](file://frontend/src/pages/Register.jsx#L69)
+- [Register.jsx:20-23](file://frontend/src/pages/Register.jsx#L20-L23)
+- [Register.jsx:25-29](file://frontend/src/pages/Register.jsx#L25-L29)
 
 ## Architecture Overview
 The authentication architecture follows a clean separation of concerns with enhanced frontend validation and notification systems, now supporting dual authentication methods:
 - Routes define HTTP endpoints for registration, login, and Google login.
-- Controllers encapsulate business logic and interact with the User model.
+- Controllers encapsulate business logic and interact with the User model with comprehensive validation.
 - Middleware protects downstream routes and verifies JWTs.
 - Frontend communicates via Axios with automatic bearer token injection, centralized error handling, and comprehensive form validation.
 - Toast notifications provide immediate feedback for user actions.
@@ -159,11 +161,11 @@ FE->>AX : "Submit form with validation"
 AX->>API : "Attach Authorization header if present"
 API->>SRV : "POST /api/auth/register or /api/auth/login or /api/auth/google-login"
 SRV->>RT : "Route to controller"
-RT->>CTRL : "Invoke handler"
+RT->>CTRL : "Invoke handler with validation"
 CTRL->>MDL : "Check duplicate / Create user / Compare passwords"
 MDL-->>CTRL : "Result"
-CTRL-->>SRV : "JSON response {token, user}"
-SRV-->>API : "HTTP 201/200"
+CTRL-->>SRV : "JSON response {token, user} with error messages"
+SRV-->>API : "HTTP 201/200/400/401"
 API-->>FE : "Data with toast feedback"
 FE->>FE : "Persist token/user, show toast, redirect"
 FE->>FIRE : "Google auth flow (if selected)"
@@ -172,24 +174,25 @@ FE->>AX : "POST /api/auth/google-login with Firebase data"
 ```
 
 **Diagram sources**
-- [Register.jsx:17-27](file://frontend/src/pages/Register.jsx#L17-L27)
-- [Register.jsx:29-38](file://frontend/src/pages/Register.jsx#L29-L38)
-- [Login.jsx:11-30](file://frontend/src/pages/Login.jsx#L11-L30)
+- [Register.jsx:19-29](file://frontend/src/pages/Register.jsx#L19-L29)
+- [Register.jsx:32-41](file://frontend/src/pages/Register.jsx#L32-L41)
+- [Login.jsx:14-28](file://frontend/src/pages/Login.jsx#L14-L28)
 - [axios.js:4-8](file://frontend/src/api/axios.js#L4-L8)
 - [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [server.js:57-63](file://backend/server.js#L57-L63)
+- [server.js:73-81](file://backend/server.js#L73-L81)
 - [authRoutes.js:6-8](file://backend/routes/authRoutes.js#L6-L8)
-- [authController.js:6-16](file://backend/controllers/authController.js#L6-L16)
-- [authController.js:18-27](file://backend/controllers/authController.js#L18-L27)
-- [authController.js:62-116](file://backend/controllers/authController.js#L62-L116)
-- [User.js:11-18](file://backend/models/User.js#L11-L18)
+- [authController.js:15-18](file://backend/controllers/authController.js#L15-L18)
+- [authController.js:65-68](file://backend/controllers/authController.js#L65-L68)
+- [authController.js:98-100](file://backend/controllers/authController.js#L98-L100)
+- [User.js:14-19](file://backend/models/User.js#L14-L19)
 - [firebase.js:21-36](file://frontend/src/config/firebase.js#L21-L36)
 
 ## Detailed Component Analysis
 
 ### Backend Registration Flow
 - Input extraction: name, email, phone, password from request body.
-- Duplicate email check: findOne by email; responds with error if found.
+- Comprehensive validation: All fields required with detailed error messages.
+- Duplicate email/phone check: findOne by email and phone; responds with specific error if found.
 - User creation: User.create persists with bcrypt-hashed password via pre-save hook.
 - Token generation: signToken creates a signed JWT with a 7-day expiry.
 - Response: returns token and sanitized user object (without password).
@@ -197,24 +200,31 @@ FE->>AX : "POST /api/auth/google-login with Firebase data"
 ```mermaid
 flowchart TD
 Start(["POST /api/auth/register"]) --> Extract["Extract name, email, phone, password"]
-Extract --> CheckDup["Find existing user by email"]
-CheckDup --> Exists{"Email exists?"}
-Exists --> |Yes| ErrDup["Return 400: Email exists"]
-Exists --> |No| CreateUser["Create user record"]
+Extract --> Validate["Validate all fields required"]
+Validate --> Valid{"All fields present?"}
+Valid --> |No| ErrFields["Return 400: All fields are required"]
+Valid --> |Yes| CheckDup["Find existing user by email & phone"]
+CheckDup --> ExistsEmail{"Email exists?"}
+ExistsEmail --> |Yes| ErrEmail["Return 400: Email already registered"]
+ExistsEmail --> |No| ExistsPhone{"Phone exists?"}
+ExistsPhone --> |Yes| ErrPhone["Return 400: Phone number already registered"]
+ExistsPhone --> |No| CreateUser["Create user record"]
 CreateUser --> Hash["bcrypt hash via pre-save hook"]
 Hash --> Sign["Sign JWT with secret"]
 Sign --> Respond["Return {token, user}"]
-ErrDup --> End(["Exit"])
+ErrFields --> End(["Exit"])
+ErrEmail --> End
+ErrPhone --> End
 Respond --> End
 ```
 
 **Diagram sources**
-- [authController.js:8-14](file://backend/controllers/authController.js#L8-L14)
-- [User.js:11-14](file://backend/models/User.js#L11-L14)
+- [authController.js:11-58](file://backend/controllers/authController.js#L11-L58)
+- [User.js:27-34](file://backend/models/User.js#L27-L34)
 
 **Section sources**
-- [authController.js:6-16](file://backend/controllers/authController.js#L6-L16)
-- [User.js:11-18](file://backend/models/User.js#L11-L18)
+- [authController.js:11-58](file://backend/controllers/authController.js#L11-L58)
+- [User.js:27-34](file://backend/models/User.js#L27-L34)
 
 ### Backend Login Flow
 - Credential lookup: findOne by email.
@@ -224,7 +234,11 @@ Respond --> End
 
 ```mermaid
 flowchart TD
-Start(["POST /api/auth/login"]) --> Lookup["Find user by email"]
+Start(["POST /api/auth/login"]) --> Extract["Extract email, password"]
+Extract --> Validate["Validate fields required"]
+Validate --> Valid{"Email & password provided?"}
+Valid --> |No| ErrFields["Return 400: Email & password required"]
+Valid --> |Yes| Lookup["Find user by email"]
 Lookup --> Found{"User found?"}
 Found --> |No| ErrCreds["Return 401: Invalid credentials"]
 Found --> |Yes| Verify["Compare password with bcrypt"]
@@ -232,23 +246,25 @@ Verify --> Match{"Password matches?"}
 Match --> |No| ErrCreds
 Match --> |Yes| Sign["Sign JWT with secret"]
 Sign --> Respond["Return {token, user}"]
-ErrCreds --> End(["Exit"])
+ErrFields --> End(["Exit"])
+ErrCreds --> End
 Respond --> End
 ```
 
 **Diagram sources**
-- [authController.js:18-26](file://backend/controllers/authController.js#L18-L26)
-- [User.js:16-18](file://backend/models/User.js#L16-L18)
+- [authController.js:61-91](file://backend/controllers/authController.js#L61-L91)
+- [User.js:32-34](file://backend/models/User.js#L32-L34)
 
 **Section sources**
-- [authController.js:18-27](file://backend/controllers/authController.js#L18-L27)
-- [User.js:16-18](file://backend/models/User.js#L16-L18)
+- [authController.js:61-91](file://backend/controllers/authController.js#L61-L91)
+- [User.js:32-34](file://backend/models/User.js#L32-L34)
 
 ### Enhanced Backend Google Login Flow
 - **New**: Google login endpoint (/api/auth/google-login) accepts Firebase user data.
 - Input extraction: name, email, photo from request body.
+- Email validation: Ensures email is provided before proceeding.
 - User lookup: findOne by email to check existing user.
-- User creation: Creates new user with random password and unique placeholder phone if not found.
+- User creation: Creates new user with random password and unique phone if not found.
 - Photo update: Updates user photo if user exists and has new photo.
 - Token generation: signToken creates a signed JWT with a 7-day expiry.
 - Response: returns token and sanitized user object with photo field.
@@ -256,11 +272,12 @@ Respond --> End
 ```mermaid
 flowchart TD
 Start(["POST /api/auth/google-login"]) --> Extract["Extract name, email, photo"]
-Extract --> CheckEmail{"Email provided?"}
-CheckEmail --> |No| ErrEmail["Return 400: Email required"]
-CheckEmail --> |Yes| FindUser["Find user by email"]
+Extract --> Validate["Validate email required"]
+Validate --> HasEmail{"Email provided?"}
+HasEmail --> |No| ErrEmail["Return 400: Email is required"]
+HasEmail --> |Yes| FindUser["Find user by email"]
 FindUser --> Found{"User exists?"}
-Found --> |No| CreateUser["Create new user with random password"]
+Found --> |No| CreateUser["Create new user with random password & phone"]
 CreateUser --> SendWelcome["Send welcome email"]
 SendWelcome --> GenToken["Generate JWT token"]
 Found --> |Yes| UpdatePhoto["Update photo if new"]
@@ -271,10 +288,10 @@ Respond --> End
 ```
 
 **Diagram sources**
-- [authController.js:62-116](file://backend/controllers/authController.js#L62-L116)
+- [authController.js:94-152](file://backend/controllers/authController.js#L94-L152)
 
 **Section sources**
-- [authController.js:62-116](file://backend/controllers/authController.js#L62-L116)
+- [authController.js:94-152](file://backend/controllers/authController.js#L94-L152)
 
 ### Enhanced Frontend Google Authentication Implementation
 - **New**: Google authentication integration with Firebase.
@@ -323,10 +340,10 @@ P->>P : "toast.success + navigate('/')"
 ```
 
 **Diagram sources**
-- [Register.jsx:17-27](file://frontend/src/pages/Register.jsx#L17-L27)
-- [Register.jsx:29-38](file://frontend/src/pages/Register.jsx#L29-L38)
+- [Register.jsx:19-29](file://frontend/src/pages/Register.jsx#L19-L29)
+- [Register.jsx:32-41](file://frontend/src/pages/Register.jsx#L32-L41)
 - [Register.jsx:43-55](file://frontend/src/pages/Register.jsx#L43-L55)
-- [Login.jsx:11-30](file://frontend/src/pages/Login.jsx#L11-L30)
+- [Login.jsx:14-28](file://frontend/src/pages/Login.jsx#L14-L28)
 - [Login.jsx:30-42](file://frontend/src/pages/Login.jsx#L30-L42)
 - [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
 - [firebase.js:21-36](file://frontend/src/config/firebase.js#L21-L36)
@@ -347,7 +364,7 @@ P->>P : "toast.success + navigate('/')"
 - **Enhanced**: Google login button with signInWithGoogle integration.
 - **Enhanced**: Toast notifications for consistent user feedback.
 - Persistence: stores token and user in localStorage.
-- **Note**: Currently uses alert dialogs for feedback instead of toast notifications.
+- **Enhanced**: Improved error handling with detailed error messages.
 
 ```mermaid
 sequenceDiagram
@@ -380,7 +397,7 @@ P->>P : "toast.success + navigate('/')"
 ```
 
 **Diagram sources**
-- [Login.jsx:11-30](file://frontend/src/pages/Login.jsx#L11-L30)
+- [Login.jsx:14-28](file://frontend/src/pages/Login.jsx#L14-L28)
 - [Login.jsx:30-42](file://frontend/src/pages/Login.jsx#L30-L42)
 - [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
 - [firebase.js:21-36](file://frontend/src/config/firebase.js#L21-L36)
@@ -425,8 +442,8 @@ Clear --> Done
 ```
 
 **Diagram sources**
-- [AuthContext.jsx:10-14](file://frontend/src/context/AuthContext.jsx#L10-L14)
-- [AuthContext.jsx:16-28](file://frontend/src/context/AuthContext.jsx#L16-L28)
+- [AuthContext.jsx:11-15](file://frontend/src/context/AuthContext.jsx#L11-L15)
+- [AuthContext.jsx:17-24](file://frontend/src/context/AuthContext.jsx#L17-L24)
 - [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
 - [firebase.js:21-36](file://frontend/src/config/firebase.js#L21-L36)
 
@@ -465,11 +482,12 @@ MW->>Client : "Next()"
 - **Input Restrictions**: Phone input has maxLength={10} and tel type for mobile optimization.
 - **Enhanced**: Google authentication with Firebase OAuth integration.
 - **Enhanced**: Dual authentication options with seamless user experience.
+- **Enhanced**: Comprehensive error handling with detailed error messages.
 
 **Section sources**
-- [Register.jsx:17-27](file://frontend/src/pages/Register.jsx#L17-L27)
-- [Register.jsx:69](file://frontend/src/pages/Register.jsx#L69)
-- [Register.jsx:4](file://frontend/src/pages/Register.jsx#L4)
+- [Register.jsx:19-29](file://frontend/src/pages/Register.jsx#L19-L29)
+- [Register.jsx:114](file://frontend/src/pages/Register.jsx#L114)
+- [Register.jsx:25-29](file://frontend/src/pages/Register.jsx#L25-L29)
 - [App.jsx:198](file://frontend/src/App.jsx#L198)
 
 ## Dependency Analysis
@@ -505,6 +523,7 @@ FE_PKG --> FIRE["firebase"]
 - **Enhanced**: Toast notifications are lightweight and don't block UI thread, improving perceived performance.
 - **Enhanced**: Real-time validation prevents unnecessary API calls by catching errors client-side.
 - **Enhanced**: Firebase authentication is handled client-side, reducing backend load for OAuth flows.
+- **Enhanced**: Comprehensive validation reduces server load by catching errors early.
 
 ## Security Measures
 - CORS configuration: Strict origins list with credentials support and allowed headers/methods; preflight caching reduces latency.
@@ -516,6 +535,7 @@ FE_PKG --> FIRE["firebase"]
 - **Enhanced**: Real-time validation: Client-side validation prevents malformed data from reaching the server.
 - **Enhanced**: Firebase OAuth security: Google authentication uses industry-standard OAuth flow.
 - **Enhanced**: Backend JWT security: Secure token generation and verification with environment-based secrets.
+- **Enhanced**: Comprehensive error handling: Detailed error messages for debugging without exposing sensitive information.
 
 ```mermaid
 flowchart TD
@@ -523,7 +543,8 @@ Req["HTTP Request"] --> CORS["CORS Validation"]
 CORS --> |Allowed| Parse["Parse JSON/URL-encoded"]
 CORS --> |Blocked| Deny["Reject with error"]
 Parse --> Route["Route to Handler"]
-Route --> JWT["Verify JWT in protect middleware"]
+Route --> Validate["Comprehensive Validation"]
+Validate --> JWT["Verify JWT in protect middleware"]
 JWT --> Attach["Attach user (no password)"]
 Attach --> Next["Proceed to handler"]
 Deny --> End(["Exit"])
@@ -531,35 +552,53 @@ Next --> End
 ```
 
 **Diagram sources**
-- [server.js:22-49](file://backend/server.js#L22-L49)
+- [server.js:25-64](file://backend/server.js#L25-L64)
 - [axios.js:4-8](file://frontend/src/api/axios.js#L4-L8)
 - [axios.js:10-16](file://frontend/src/api/axios.js#L10-L16)
 - [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
 
 **Section sources**
-- [server.js:22-49](file://backend/server.js#L22-L49)
+- [server.js:25-64](file://backend/server.js#L25-L64)
 - [axios.js:4-8](file://frontend/src/api/axios.js#L4-L8)
 - [axios.js:10-16](file://frontend/src/api/axios.js#L10-L16)
 - [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
 
 ## Troubleshooting Guide
-- Registration fails with "Email exists":
+- Registration fails with "All fields are required":
+  - Cause: Missing required fields in registration form.
+  - Action: Ensure name, email, phone, and password are all provided.
+  - Section sources
+    - [authController.js:16-18](file://backend/controllers/authController.js#L16-L18)
+
+- Registration fails with "Email already registered":
   - Cause: Duplicate email detected by the backend.
   - Action: Prompt user to use another email or log in instead.
   - Section sources
-    - [authController.js:9-11](file://backend/controllers/authController.js#L9-L11)
+    - [authController.js:22](file://backend/controllers/authController.js#L22)
+
+- Registration fails with "Phone number already registered":
+  - Cause: Duplicate phone number detected by the backend.
+  - Action: Prompt user to use another phone number or log in instead.
+  - Section sources
+    - [authController.js:26](file://backend/controllers/authController.js#L26)
+
+- Login fails with "Email & password required":
+  - Cause: Missing email or password in login form.
+  - Action: Ensure both email and password are provided.
+  - Section sources
+    - [authController.js:66-68](file://backend/controllers/authController.js#L66-L68)
 
 - Login fails with "Invalid credentials":
   - Cause: No user found or password mismatch.
   - Action: Prompt user to re-enter credentials; ensure caps lock is off and spelling is correct.
   - Section sources
-    - [authController.js:21-22](file://backend/controllers/authController.js#L21-L22)
+    - [authController.js:72-74](file://backend/controllers/authController.js#L72-L74)
 
 - **New**: Google login fails with "Email is required":
   - Cause: Firebase user data missing email.
   - Action: Ensure Firebase authentication is properly configured; check Google provider setup.
   - Section sources
-    - [authController.js:67-69](file://backend/controllers/authController.js#L67-L69)
+    - [authController.js:98-100](file://backend/controllers/authController.js#L98-L100)
 
 - **New**: Google authentication not working:
   - Cause: Firebase configuration issues or network problems.
@@ -568,12 +607,18 @@ Next --> End
     - [firebase.js:5-13](file://frontend/src/config/firebase.js#L5-L13)
     - [firebase.js:21-36](file://frontend/src/config/firebase.js#L21-L36)
 
-- **New**: Google login token not persisted:
-  - Cause: Backend Google login endpoint failing or network issues.
-  - Action: Check backend logs, verify /api/auth/google-login endpoint, ensure proper error handling.
+- **New**: Phone number validation fails:
+  - Cause: Phone number doesn't match Indian mobile pattern (6-9 followed by 9 digits).
+  - Action: Ensure phone number starts with 6, 7, 8, or 9 and is exactly 10 digits.
   - Section sources
-    - [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
-    - [authRoutes.js:8](file://backend/routes/authRoutes.js#L8)
+    - [Register.jsx:20-23](file://frontend/src/pages/Register.jsx#L20-L23)
+
+- **New**: Toast notifications not appearing:
+  - Cause: react-hot-toast not properly configured or imported.
+  - Action: Verify Toaster component is included in App.jsx and react-hot-toast is installed.
+  - Section sources
+    - [App.jsx:198](file://frontend/src/App.jsx#L198)
+    - [package.json:16](file://frontend/package.json#L16)
 
 - 401 Unauthorized after login:
   - Cause: Token missing or invalid; response interceptor clears token on 401.
@@ -585,7 +630,7 @@ Next --> End
   - Cause: Context not updated or localStorage not cleared.
   - Action: Ensure logout removes token and user; verify AuthContext state.
   - Section sources
-    - [AuthContext.jsx:24-28](file://frontend/src/context/AuthContext.jsx#L24-L28)
+    - [AuthContext.jsx:57-66](file://frontend/src/context/AuthContext.jsx#L57-L66)
 
 - Protected route returns "Not authorized":
   - Cause: Missing or malformed Authorization header.
@@ -594,48 +639,35 @@ Next --> End
     - [authMiddleware.js:5-6](file://backend/middleware/authMiddleware.js#L5-L6)
     - [authMiddleware.js:9](file://backend/middleware/authMiddleware.js#L9)
 
-- **Enhanced**: Phone number validation fails:
-  - Cause: Phone number doesn't match Indian mobile pattern (6-9 followed by 9 digits).
-  - Action: Ensure phone number starts with 6, 7, 8, or 9 and is exactly 10 digits.
-  - Section sources
-    - [Register.jsx:17-21](file://frontend/src/pages/Register.jsx#L17-L21)
-
-- **Enhanced**: Toast notifications not appearing:
-  - Cause: react-hot-toast not properly configured or imported.
-  - Action: Verify Toaster component is included in App.jsx and react-hot-toast is installed.
-  - Section sources
-    - [App.jsx:198](file://frontend/src/App.jsx#L198)
-    - [package.json:14](file://frontend/package.json#L14)
-
 ## Conclusion
-The authentication system integrates secure backend processing (bcrypt hashing, JWT signing, duplicate checks) with robust frontend state management (form handling, token persistence, global error handling). The system now features enhanced validation with phone number verification, real-time input formatting, and toast notifications replacing traditional alert dialogs for improved user experience. **Enhanced**: The system now supports dual authentication methods (email/password and Google) with seamless integration between Firebase OAuth and backend JWT authentication. The architecture supports protected routes and role-based access while maintaining a clean separation of concerns. For production hardening, consider adding input sanitization, rate limiting, CSRF protection, and password reset/account verification flows.
+The authentication system integrates secure backend processing (bcrypt hashing, JWT signing, comprehensive duplicate checks) with robust frontend state management (form handling, token persistence, global error handling). The system now features enhanced validation with phone number verification, real-time input formatting, and toast notifications replacing traditional alert dialogs for improved user experience. **Enhanced**: The system now supports dual authentication methods (email/password and Google) with seamless integration between Firebase OAuth and backend JWT authentication. The architecture supports protected routes and role-based access while maintaining a clean separation of concerns. For production hardening, consider adding input sanitization, rate limiting, CSRF protection, and password reset/account verification flows.
 
 ## Appendices
 
 ### API Endpoints Reference
 - POST /api/auth/register
   - Body: { name, email, phone, password }
-  - Response: { token, user: { id, name, email, role } }
-  - Status: 201 on success, 400 on duplicate email, 500 on server error
+  - Response: { token, user: { id, name, email, phone, role } }
+  - Status: 201 on success, 400 on validation errors/duplicate entries, 500 on server error
   - Section sources
     - [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
-    - [authController.js:6-16](file://backend/controllers/authController.js#L6-L16)
+    - [authController.js:11-58](file://backend/controllers/authController.js#L11-L58)
 
 - POST /api/auth/login
   - Body: { email, password }
-  - Response: { token, user: { id, name, email, role } }
-  - Status: 200 on success, 401 on invalid credentials, 500 on server error
+  - Response: { token, user: { id, name, email, phone, role } }
+  - Status: 200 on success, 400 on validation errors, 401 on invalid credentials, 500 on server error
   - Section sources
     - [authRoutes.js:7](file://backend/routes/authRoutes.js#L7)
-    - [authController.js:18-27](file://backend/controllers/authController.js#L18-L27)
+    - [authController.js:61-91](file://backend/controllers/authController.js#L61-L91)
 
 - **New**: POST /api/auth/google-login
   - Body: { name, email, photo }
   - Response: { token, user: { id, name, email, phone, photo, role } }
-  - Status: 200 on success, 400 on missing email, 500 on server error
+  - Status: 200 on success, 400 on validation errors, 500 on server error
   - Section sources
     - [authRoutes.js:8](file://backend/routes/authRoutes.js#L8)
-    - [authController.js:62-116](file://backend/controllers/authController.js#L62-L116)
+    - [authController.js:94-152](file://backend/controllers/authController.js#L94-L152)
 
 ### Frontend Integration Patterns
 - Axios configuration:
@@ -668,12 +700,12 @@ The authentication system integrates secure backend processing (bcrypt hashing, 
 - Registration form submission:
   - Collects name, email, phone, password with real-time validation; posts to /api/auth/register; stores token/user; shows toast notifications; navigates on success.
   - Section sources
-    - [Register.jsx:17-38](file://frontend/src/pages/Register.jsx#L17-L38)
+    - [Register.jsx:19-41](file://frontend/src/pages/Register.jsx#L19-L41)
 
 - Login form submission:
-  - Posts credentials to /api/auth/login; stores token/user; currently uses alert dialogs for feedback; navigates on success.
+  - Posts credentials to /api/auth/login; stores token/user; shows toast notifications; navigates on success.
   - Section sources
-    - [Login.jsx:11-30](file://frontend/src/pages/Login.jsx#L11-L30)
+    - [Login.jsx:14-28](file://frontend/src/pages/Login.jsx#L14-L28)
 
 - **New**: Google authentication flow:
   - signInWithGoogle from Firebase; posts to /api/auth/google-login; stores token/user; shows toast notifications; navigates on success.
@@ -693,14 +725,14 @@ The authentication system integrates secure backend processing (bcrypt hashing, 
   - Real-time formatting: Automatic digit stripping and length limitation
   - Input restrictions: Tel type and maxLength={10}
   - Section sources
-    - [Register.jsx:17-21](file://frontend/src/pages/Register.jsx#L17-L21)
-    - [Register.jsx:69](file://frontend/src/pages/Register.jsx#L69)
+    - [Register.jsx:20-23](file://frontend/src/pages/Register.jsx#L20-L23)
+    - [Register.jsx:114](file://frontend/src/pages/Register.jsx#L114)
 
 - **Email Validation**:
   - Pattern: `/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/` for comprehensive email format
   - Real-time validation feedback
   - Section sources
-    - [Register.jsx:23-27](file://frontend/src/pages/Register.jsx#L23-L27)
+    - [Register.jsx:25-29](file://frontend/src/pages/Register.jsx#L25-L29)
 
 - **Toast Notification System**:
   - Library: react-hot-toast
@@ -732,3 +764,6 @@ The authentication system integrates secure backend processing (bcrypt hashing, 
 - **Enhanced**: Enhanced Google authentication UX:
   - Add loading states and error handling for Google authentication flow.
   - Implement fallback mechanisms for Google authentication failures.
+- **Enhanced**: Enhanced error handling:
+  - Implement comprehensive error boundary components for frontend error handling.
+  - Add retry mechanisms for failed authentication attempts.

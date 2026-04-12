@@ -1,20 +1,32 @@
-import jwt from 'jsonwebtoken';
+import firebaseAdmin from '../config/firebase.js';
 import User from '../models/User.js';
 
 export const protect = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Not authorized' });
+  const token = req.headers.authorization?.startsWith('Bearer')
+    ? req.headers.authorization.split(' ')[1]
+    : null;
+
+  if (!token) {
+    return res.status(401).json({ error: 'Not authorized, no token' });
+  }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password');
+    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
+    req.user = await User.findOne({ firebaseUid: decoded.uid });
+    if (!req.user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
     next();
-  } catch {
-    res.status(401).json({ error: 'Invalid token' });
+  } catch (err) {
+    console.error('Token verification error:', err.message);
+    res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
 
-export const admin = (req, res, next) => {
-  if (req.user?.role === 'admin') next();
-  else res.status(403).json({ error: 'Access denied' });
+export const isAdmin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ error: 'Access denied. Admin only.' });
+  }
 };

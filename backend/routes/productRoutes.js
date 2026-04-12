@@ -6,7 +6,7 @@ import {
   updateProduct, 
   deleteProduct 
 } from '../controllers/productController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, isAdmin } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
@@ -16,8 +16,8 @@ router.get('/', getProducts);
 router.get('/:id', getProductById);
 
 // Protected admin routes
-router.post('/', protect, admin, upload.array('images', 3), createProduct);
-router.put('/:id', protect, admin, upload.array('images', 3), updateProduct);
-router.delete('/:id', protect, admin, deleteProduct);
+router.post('/', protect, isAdmin, upload.array('images', 3), createProduct);
+router.put('/:id', protect, isAdmin, upload.array('images', 3), updateProduct);
+router.delete('/:id', protect, isAdmin, deleteProduct);
 
 export default router;

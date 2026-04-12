@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { auth } from '../config/firebase';
 
 const CartContext = createContext();
 
@@ -8,20 +9,18 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState({ items: [], _id: null });
 
   useEffect(() => {
-    const fetch = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return setCart({ items: [], _id: null });
+    const fetchCart = async () => {
+      if (!auth.currentUser) return setCart({ items: [], _id: null });
       try {
         const { data } = await api.get('/cart');
         setCart(data);
       } catch {}
     };
-    fetch();
+    fetchCart();
   }, []);
 
   const updateCartUI = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!auth.currentUser) return;
     try {
       const { data } = await api.get('/cart');
       setCart(data);
@@ -29,7 +28,7 @@ export const CartProvider = ({ children }) => {
   };
 
   const addToCart = async (productId, qty = 1) => {
-    if (!localStorage.getItem('token')) { toast.error('Please login first'); return; }
+    if (!auth.currentUser) { toast.error('Please login first'); return; }
     try {
       await api.post('/cart/add', { productId, quantity: qty });
       toast.success('Added to cart');
