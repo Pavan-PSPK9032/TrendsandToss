@@ -5,27 +5,25 @@
 - [server.js](file://backend/server.js)
 - [authRoutes.js](file://backend/routes/authRoutes.js)
 - [authController.js](file://backend/controllers/authController.js)
-- [authMiddleware.js](file://backend/middleware/authMiddleware.js)
 - [User.js](file://backend/models/User.js)
-- [emailService.js](file://backend/utils/emailService.js)
-- [whatsappService.js](file://backend/utils/whatsappService.js)
-- [api.js](file://frontend/src/services/api.js)
+- [firebase.js](file://backend/config/firebase.js)
+- [AuthContext.jsx](file://frontend/src/context/AuthContext.jsx)
+- [firebase.js](file://frontend/src/config/firebase.js)
+- [axios.js](file://frontend/src/api/axios.js)
 - [Register.jsx](file://frontend/src/pages/Register.jsx)
 - [Login.jsx](file://frontend/src/pages/Login.jsx)
-- [adminRoutes.js](file://backend/routes/adminRoutes.js)
-- [db.js](file://backend/config/db.js)
-- [package.json](file://backend/package.json)
+- [emailService.js](file://backend/utils/emailService.js)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Enhanced validation logic with mandatory field validation and improved error handling
-- Added comprehensive phone number validation with Indian mobile number format
-- Implemented dual validation checks for email and phone uniqueness
-- Fixed Google authentication with proper phone number generation for new users
-- Added Google login endpoint with enhanced user management
-- Integrated email and WhatsApp welcome notifications after successful registration
-- Updated request/response schemas to reflect new fields and validation rules
+- Complete Firebase Authentication migration replacing JWT token endpoints
+- Replaced POST /api/auth/register, POST /api/auth/login, and POST /api/auth/google-login with POST /api/auth/firebase-login
+- Updated backend auth controller to use firebaseLogin with Firebase Admin SDK verification
+- Enhanced frontend authentication context with Firebase integration and real-time auth state synchronization
+- Removed JWT token generation and verification middleware
+- Updated user model to support Firebase authentication with provider and firebaseUid fields
+- Integrated Firebase ID token verification and user synchronization flow
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -39,10 +37,10 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
-This document provides comprehensive API documentation for the Authentication API endpoints. It covers the POST /api/auth/register, POST /api/auth/login, and POST /api/auth/google-login endpoints, including enhanced request/response schemas with mandatory field validation, comprehensive phone number validation, dual validation checks, JWT token generation and verification, authentication middleware, and error handling. The system now includes integrated email and WhatsApp welcome notifications for enhanced user experience and improved Google authentication support.
+This document provides comprehensive API documentation for the Authentication API endpoints following the Firebase Authentication migration. The system now uses Firebase Authentication for user management with seamless backend synchronization. It covers the POST /api/auth/firebase-login endpoint for Firebase ID token verification, user synchronization, and enhanced authentication flow. The system includes Firebase Admin SDK integration, real-time auth state synchronization, provider-based user management, and comprehensive error handling for Firebase authentication scenarios.
 
 ## Project Structure
-The authentication system spans the backend server, routing, controller, model, middleware, and utility layers, with the frontend consuming these endpoints via a shared API client. The system now includes notification utilities for email and WhatsApp integration and supports Google authentication.
+The authentication system now integrates Firebase Authentication with Express backend services, featuring real-time auth state synchronization, Firebase ID token verification, and seamless user profile management. The frontend consumes Firebase authentication while the backend maintains user profiles with provider information.
 
 ```mermaid
 graph TB
@@ -50,541 +48,324 @@ subgraph "Backend"
 S["server.js"]
 R["routes/authRoutes.js"]
 C["controllers/authController.js"]
-M["middleware/authMiddleware.js"]
+F["config/firebase.js"]
 U["models/User.js"]
 E["utils/emailService.js"]
-W["utils/whatsappService.js"]
 end
 subgraph "Frontend"
-FAPI["services/api.js"]
+FC["context/AuthContext.jsx"]
+FF["config/firebase.js"]
+AX["api/axios.js"]
 REG["pages/Register.jsx"]
 LOG["pages/Login.jsx"]
 end
 S --> R
 R --> C
+C --> F
 C --> U
 C --> E
-C --> W
-S --> M
-FAPI --> REG
-FAPI --> LOG
+FC --> FF
+FC --> AX
+FC --> REG
+FC --> LOG
 ```
 
 **Diagram sources**
-- [server.js:57-63](file://backend/server.js#L57-L63)
-- [authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
-- [authController.js:1-60](file://backend/controllers/authController.js#L1-L60)
-- [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
-- [User.js:1-35](file://backend/models/User.js#L1-L35)
-- [emailService.js:1-149](file://backend/utils/emailService.js#L1-L149)
-- [whatsappService.js:1-127](file://backend/utils/whatsappService.js#L1-L127)
-- [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [Register.jsx:1-113](file://frontend/src/pages/Register.jsx#L1-L113)
-- [Login.jsx:1-83](file://frontend/src/pages/Login.jsx#L1-L83)
+- [server.js:73](file://backend/server.js#L73)
+- [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
+- [authController.js:1-69](file://backend/controllers/authController.js#L1-L69)
+- [firebase.js:1-12](file://backend/config/firebase.js#L1-L12)
+- [User.js:1-30](file://backend/models/User.js#L1-L30)
+- [AuthContext.jsx:1-86](file://frontend/src/context/AuthContext.jsx#L1-L86)
+- [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
+- [axios.js:1-29](file://frontend/src/api/axios.js#L1-L29)
 
 **Section sources**
-- [server.js:57-63](file://backend/server.js#L57-L63)
-- [authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
-- [authController.js:1-60](file://backend/controllers/authController.js#L1-L60)
-- [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
-- [User.js:1-35](file://backend/models/User.js#L1-L35)
-- [emailService.js:1-149](file://backend/utils/emailService.js#L1-L149)
-- [whatsappService.js:1-127](file://backend/utils/whatsappService.js#L1-L127)
-- [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [Register.jsx:1-113](file://frontend/src/pages/Register.jsx#L1-L113)
-- [Login.jsx:1-83](file://frontend/src/pages/Login.jsx#L1-L83)
+- [server.js:73](file://backend/server.js#L73)
+- [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
+- [authController.js:1-69](file://backend/controllers/authController.js#L1-L69)
+- [firebase.js:1-12](file://backend/config/firebase.js#L1-L12)
+- [User.js:1-30](file://backend/models/User.js#L1-L30)
+- [AuthContext.jsx:1-86](file://frontend/src/context/AuthContext.jsx#L1-L86)
+- [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
+- [axios.js:1-29](file://frontend/src/api/axios.js#L1-L29)
 
 ## Core Components
-- Authentication routes: Define POST /api/auth/register, POST /api/auth/login, and POST /api/auth/google-login.
-- Authentication controller: Implements registration and login logic, JWT signing, dual validation checks, Google authentication fixes, and integrated notification sending.
-- Authentication middleware: Provides token extraction, verification, and user population for protected routes.
-- User model: Defines schema with comprehensive phone number validation, password hashing with bcrypt, and password comparison method.
-- Notification utilities: Email and WhatsApp services for welcome notifications.
-- Frontend API client: Adds Authorization header with Bearer token for authenticated requests.
+- Firebase Authentication routes: Define POST /api/auth/firebase-login for Firebase ID token verification and user synchronization.
+- Firebase Authentication controller: Implements Firebase ID token verification, user creation/updating, provider detection, and welcome email notifications.
+- Firebase Admin SDK: Provides secure token verification and user management capabilities.
+- User model with Firebase integration: Supports provider-based authentication (google, email) and firebaseUid linking.
+- Frontend Firebase Context: Manages real-time auth state, user synchronization, and seamless authentication flow.
+- Axios interceptors: Automatically attach Firebase ID tokens to authenticated requests.
 
 Key implementation references:
-- Routes definition: [authRoutes.js:6-8](file://backend/routes/authRoutes.js#L6-L8)
-- Registration handler: [authController.js:11-58](file://backend/controllers/authController.js#L11-L58)
-- Login handler: [authController.js:61-91](file://backend/controllers/authController.js#L61-L91)
-- Google login handler: [authController.js:94-152](file://backend/controllers/authController.js#L94-L152)
-- Token verification middleware: [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
-- Phone number validation: [User.js:14-19](file://backend/models/User.js#L14-L19)
-- Email notification: [emailService.js:112-148](file://backend/utils/emailService.js#L112-L148)
-- WhatsApp notification: [whatsappService.js:88-126](file://backend/utils/whatsappService.js#L88-L126)
-- Frontend interceptor: [api.js:3-7](file://frontend/src/services/api.js#L3-L7)
+- Firebase login route: [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
+- Firebase login handler: [authController.js:5-68](file://backend/controllers/authController.js#L5-L68)
+- Firebase Admin initialization: [firebase.js:1-12](file://backend/config/firebase.js#L1-L12)
+- User model with provider fields: [User.js:25-26](file://backend/models/User.js#L25-L26)
+- Auth context with Firebase integration: [AuthContext.jsx:12-29](file://frontend/src/context/AuthContext.jsx#L12-L29)
+- Frontend Firebase configuration: [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
+- Axios interceptor with Firebase tokens: [axios.js:8-16](file://frontend/src/api/axios.js#L8-L16)
 
 **Section sources**
-- [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
-- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
-- [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
-- [User.js:1-37](file://backend/models/User.js#L1-L37)
-- [emailService.js:1-149](file://backend/utils/emailService.js#L1-L149)
-- [whatsappService.js:1-127](file://backend/utils/whatsappService.js#L1-L127)
-- [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
+- [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
+- [authController.js:5-68](file://backend/controllers/authController.js#L5-L68)
+- [firebase.js:1-12](file://backend/config/firebase.js#L1-L12)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
+- [AuthContext.jsx:12-29](file://frontend/src/context/AuthContext.jsx#L12-L29)
+- [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
+- [axios.js:8-16](file://frontend/src/api/axios.js#L8-L16)
 
 ## Architecture Overview
-The enhanced authentication flow integrates route handlers, controller logic, model persistence, middleware protection, and integrated notification services. The frontend communicates with the backend using a shared API client configured to attach Authorization headers. The system now includes comprehensive validation, dual uniqueness checks, and Google authentication support.
+The Firebase Authentication flow integrates frontend Firebase SDK with backend Firebase Admin SDK for secure token verification and user synchronization. The system provides real-time auth state management, seamless user profile creation, and comprehensive error handling for authentication scenarios.
 
 ```mermaid
 sequenceDiagram
 participant FE as "Frontend"
+participant FC as "AuthContext.jsx"
+participant AX as "Axios Interceptor"
 participant API as "Express Server"
-participant AuthR as "authRoutes.js"
-participant AuthC as "authController.js"
-participant UserM as "User Model"
-participant Email as "Email Service"
-participant WhatsApp as "WhatsApp Service"
-participant JWT as "JWT"
-FE->>API : "POST /api/auth/register"
-API->>AuthR : "Route match"
-AuthR->>AuthC : "register(req,res)"
-AuthC->>AuthC : "Validate all fields required"
-AuthC->>UserM : "Check existing email"
-UserM-->>AuthC : "Exists?"
-AuthC->>UserM : "Check existing phone"
-UserM-->>AuthC : "Exists?"
-AuthC->>UserM : "Create user (bcrypt hashed)"
-UserM-->>AuthC : "User saved"
-AuthC->>JWT : "signToken(userId)"
-JWT-->>AuthC : "JWT token"
-AuthC->>Email : "sendWelcomeEmail(user)"
-Email-->>AuthC : "Email sent"
-AuthC->>WhatsApp : "sendWhatsAppTextMessage(phone, msg)"
-WhatsApp-->>AuthC : "WhatsApp sent"
-AuthC-->>FE : "{ token, user with phone }"
-FE->>API : "POST /api/auth/login"
-API->>AuthR : "Route match"
-AuthR->>AuthC : "login(req,res)"
-AuthC->>AuthC : "Validate email & password required"
-AuthC->>UserM : "Find user by email"
-UserM-->>AuthC : "User found"
-AuthC->>UserM : "matchPassword()"
-UserM-->>AuthC : "Match result"
-AuthC->>JWT : "signToken(userId)"
-JWT-->>AuthC : "JWT token"
-AuthC-->>FE : "{ token, user with phone }"
-FE->>API : "POST /api/auth/google-login"
-API->>AuthR : "Route match"
-AuthR->>AuthC : "googleLogin(req,res)"
-AuthC->>AuthC : "Validate email required"
-AuthC->>UserM : "Find user by email"
-UserM-->>AuthC : "User found or null"
-AuthC->>AuthC : "Generate random phone if new user"
-AuthC->>UserM : "Create/update user"
-UserM-->>AuthC : "User saved"
-AuthC->>JWT : "signToken(userId)"
-JWT-->>AuthC : "JWT token"
-AuthC-->>FE : "{ token, user with phone/photo }"
+participant FR as "authRoutes.js"
+participant AC as "authController.js"
+participant FA as "Firebase Admin"
+participant UM as "User Model"
+FE->>FC : "onAuthStateChanged"
+FC->>FC : "syncUser(firebaseUser)"
+FC->>AX : "getIdToken()"
+AX->>API : "POST /api/auth/firebase-login"
+API->>FR : "Route match"
+FR->>AC : "firebaseLogin(req,res)"
+AC->>FA : "verifyIdToken(idToken)"
+FA-->>AC : "decoded token data"
+AC->>UM : "Find user by firebaseUid"
+UM-->>AC : "User found or null"
+AC->>AC : "Create/update user with provider"
+AC->>UM : "Save user"
+UM-->>AC : "User saved"
+AC->>AC : "Send welcome email (if new user)"
+AC-->>FE : "{ user with provider info }"
 ```
 
 **Diagram sources**
-- [server.js:57-63](file://backend/server.js#L57-L63)
-- [authRoutes.js:6-8](file://backend/routes/authRoutes.js#L6-L8)
-- [authController.js:11-152](file://backend/controllers/authController.js#L11-L152)
-- [User.js:14-19](file://backend/models/User.js#L14-L19)
-- [emailService.js:112-148](file://backend/utils/emailService.js#L112-L148)
-- [whatsappService.js:88-126](file://backend/utils/whatsappService.js#L88-L126)
+- [AuthContext.jsx:31-48](file://frontend/src/context/AuthContext.jsx#L31-L48)
+- [axios.js:9-16](file://frontend/src/api/axios.js#L9-L16)
+- [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
+- [authController.js:13-44](file://backend/controllers/authController.js#L13-L44)
+- [firebase.js:1-12](file://backend/config/firebase.js#L1-L12)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
 
 ## Detailed Component Analysis
 
-### POST /api/auth/register
-Purpose: Registers a new user with name, email, phone number, and password, including comprehensive validation and dual uniqueness checks.
+### POST /api/auth/firebase-login
+Purpose: Verifies Firebase ID tokens and synchronizes user profiles between Firebase Authentication and backend user database.
 
-**Updated** Enhanced with mandatory field validation and comprehensive phone number validation
-
-- Request body schema:
-  - name: string, required
-  - email: string, required, unique, validated with email regex pattern
-  - phone: string, required, unique, validated as 10-digit Indian mobile number (6-9)
-  - password: string, required
-- Validation rules:
-  - All fields are mandatory (name, email, phone, password) - returns 400 if any missing.
-  - Email uniqueness enforced at controller level; returns 400 if duplicate.
-  - Phone number uniqueness enforced at controller level; returns 400 if duplicate.
-  - Phone number validation uses regex pattern /^[6-9]\d{9}$/ for Indian mobile numbers.
-  - Password is hashed using bcrypt before storage.
-  - Dual validation ensures both email and phone are unique before user creation.
-- Response format:
-  - token: string (JWT)
-  - user: object containing id, name, email, phone, role
-- Error responses:
-  - 400: "All fields are required" (mandatory field validation)
-  - 400: "Email already registered"
-  - 400: "Phone number already registered"
-  - 500: Generic server error with error message
-- Integrated notifications:
-  - Welcome email sent asynchronously after successful registration.
-  - WhatsApp welcome message sent asynchronously after successful registration.
-
-Practical example:
-- Successful registration response:
-  - Status: 201 Created
-  - Body: { token: "<JWT>", user: { id: "<ObjectId>", name: "John Doe", email: "john@example.com", phone: "9876543210", role: "user" } }
-
-Common validation errors:
-- Missing fields: 400 "All fields are required"
-- Duplicate email: 400 "Email already registered"
-- Duplicate phone: 400 "Phone number already registered"
-- Invalid phone format: 400 "Please provide a valid 10-digit Indian phone number"
-- Invalid email format: 400 "Please provide a valid email address"
-
-Security considerations:
-- Password stored as bcrypt hash with salt rounds configured in model.
-- JWT secret used for signing tokens; ensure environment variable is set.
-- Comprehensive phone number validation prevents invalid formats and duplicates.
-- Asynchronous notification sending prevents blocking the registration response.
-
-**Section sources**
-- [authController.js:11-58](file://backend/controllers/authController.js#L11-L58)
-- [User.js:14-19](file://backend/models/User.js#L14-L19)
-- [emailService.js:112-148](file://backend/utils/emailService.js#L112-L148)
-- [whatsappService.js:88-126](file://backend/utils/whatsappService.js#L88-L126)
-
-### POST /api/auth/login
-Purpose: Authenticates an existing user and returns a JWT token with enhanced user information.
-
-**Updated** Login response now includes phone number
+**Updated** Complete migration from JWT to Firebase Authentication flow
 
 - Request body schema:
-  - email: string, required
-  - password: string, required
-- Validation rules:
-  - Validates that both email and password are provided - returns 400 if missing.
-  - Finds user by email; rejects if not found.
-  - Compares password using bcrypt compare; rejects if mismatch.
+  - idToken: string, required, Firebase ID token obtained from frontend
+- Authentication flow:
+  - Verifies Firebase ID token using Firebase Admin SDK
+  - Extracts user information (uid, email, name, picture, provider)
+  - Determines authentication provider (google.com or email)
+  - Synchronizes with backend user database
+  - Creates new user if not exists, updates existing user if linked
+  - Sends welcome email for new users
 - Response format:
-  - token: string (JWT)
-  - user: object containing id, name, email, phone, role
+  - user: object containing id, name, email, phone, photo, role, provider
 - Error responses:
-  - 400: "Email & password required" (missing credentials validation)
-  - 401: "Invalid credentials"
-  - 500: Generic server error with error message
+  - 400: "ID token is required" (missing token validation)
+  - 500: Generic server error with Firebase error message
 
 Practical example:
-- Successful login response:
+- Successful Firebase login response:
   - Status: 200 OK
-  - Body: { token: "<JWT>", user: { id: "<ObjectId>", name: "John Doe", email: "john@example.com", phone: "9876543210", role: "user" } }
+  - Body: { user: { id: "<ObjectId>", name: "John Doe", email: "john@example.com", phone: "", photo: "", role: "user", provider: "google" } }
 
 Common validation errors:
-- Missing credentials: 400 "Email & password required"
-- Invalid credentials: 401 "Invalid credentials"
+- Missing ID token: 400 "ID token is required"
+- Invalid Firebase token: 500 "Firebase token verification failed"
 
 Security considerations:
-- Password comparison uses bcrypt.
-- JWT secret used for verification.
-- Phone number included in response for frontend display purposes.
+- Firebase Admin SDK provides secure token verification
+- Provider-based authentication prevents token manipulation
+- Seamless user synchronization maintains data consistency
+- Welcome email notifications only for new users
 
 **Section sources**
-- [authController.js:61-91](file://backend/controllers/authController.js#L61-L91)
-- [User.js:31-33](file://backend/models/User.js#L31-L33)
+- [authController.js:5-68](file://backend/controllers/authController.js#L5-L68)
+- [AuthContext.jsx:20-23](file://frontend/src/context/AuthContext.jsx#L20-L23)
 
-### POST /api/auth/google-login
-Purpose: Handles Google authentication with automatic user creation and phone number generation for new users.
+### Firebase Authentication Controller Implementation
+The firebaseLogin controller handles comprehensive Firebase Authentication integration with provider detection, user synchronization, and welcome email notifications.
 
-**New** Enhanced Google authentication with comprehensive validation and fixes
-
-- Request body schema:
-  - name: string, optional (defaults to email username if not provided)
-  - email: string, required
-  - photo: string, optional (profile picture URL)
-- Validation rules:
-  - Email is required for Google authentication.
-  - Creates new user with random 10-digit phone number if not exists.
-  - Fixes previous Google authentication bug with proper phone number generation.
-  - Updates user photo if provided and missing.
-- Response format:
-  - token: string (JWT)
-  - user: object containing id, name, email, phone, photo, role
-- Error responses:
-  - 400: "Email is required" (missing email validation)
-  - 500: Generic server error with error message
-- Enhanced features:
-  - Automatic phone number generation for new Google users.
-  - Random password generation with alphanumeric characters.
-  - Photo update capability for existing users.
-  - Welcome email notification for new Google users.
-
-Practical example:
-- Successful Google login response:
-  - Status: 200 OK
-  - Body: { token: "<JWT>", user: { id: "<ObjectId>", name: "John Doe", email: "john@gmail.com", phone: "9876543210", photo: "", role: "user" } }
-
-Common validation errors:
-- Missing email: 400 "Email is required"
-
-Security considerations:
-- Random password generation ensures secure authentication for new users.
-- Phone number validation maintained even for generated numbers.
-- Photo updates handled securely without exposing sensitive information.
+- Token verification: Uses Firebase Admin SDK to verify ID tokens
+- Provider detection: Identifies authentication source (google vs email)
+- User synchronization: Links Firebase UID to existing users or creates new profiles
+- Welcome notifications: Sends welcome emails only for new user registrations
+- Error handling: Comprehensive error catching with detailed logging
 
 **Section sources**
-- [authController.js:94-152](file://backend/controllers/authController.js#L94-L152)
-- [User.js:14-19](file://backend/models/User.js#L14-L19)
+- [authController.js:13-44](file://backend/controllers/authController.js#L13-L44)
+- [authController.js:46-51](file://backend/controllers/authController.js#L46-L51)
 
-### Authentication Middleware and Token Verification
-Middleware protects routes by extracting the Authorization header, verifying the JWT, and attaching the user object (without password) to the request.
+### Firebase Admin SDK Configuration
+Backend Firebase Admin SDK provides secure token verification and user management capabilities.
 
-- Behavior:
-  - Extracts token from Authorization: Bearer <token>.
-  - Verifies token using JWT secret.
-  - Populates req.user with user document excluding password.
-  - Supports admin role gating via separate admin middleware.
-- Error responses:
-  - 401: "Not authorized" (no token)
-  - 401: "Invalid token" (verification fails)
-  - 403: "Access denied" (admin route, non-admin user)
-
-```mermaid
-flowchart TD
-Start(["Incoming Request"]) --> CheckAuth["Check Authorization Header"]
-CheckAuth --> HasToken{"Has Bearer token?"}
-HasToken --> |No| NotAuthorized["401 Not authorized"]
-HasToken --> |Yes| Verify["Verify JWT with secret"]
-Verify --> Verified{"Verification success?"}
-Verified --> |No| InvalidToken["401 Invalid token"]
-Verified --> |Yes| LoadUser["Load user (exclude password)"]
-LoadUser --> Next["Call next()"]
-NotAuthorized --> End(["End"])
-InvalidToken --> End
-Next --> End
-```
-
-**Diagram sources**
-- [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
+- Initialization: Configured with Firebase project credentials from environment variables
+- Credential management: Uses service account private key with proper newline replacement
+- Token verification: Secure ID token validation with Firebase Admin SDK
+- User management: Integration with backend user database for profile synchronization
 
 **Section sources**
-- [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
-- [adminRoutes.js:7-8](file://backend/routes/adminRoutes.js#L7-L8)
+- [firebase.js:1-12](file://backend/config/firebase.js#L1-L12)
 
-### JWT Payload and Signing
-- Token signing:
-  - Payload: { id: userId }
-  - Secret: process.env.JWT_SECRET
-  - Expiration: 7 days
-- Token verification:
-  - Uses the same secret to verify signature.
-  - On success, attaches user to request object.
+### Enhanced User Model with Firebase Integration
+The User model now supports Firebase Authentication with provider-based authentication and Firebase UID linking.
 
-References:
-- Signing: [authController.js:7-8](file://backend/controllers/authController.js#L7-L8)
-- Verification: [authMiddleware.js:9](file://backend/middleware/authMiddleware.js#L9)
+- Provider field: Enumerated values (google, email) for authentication source tracking
+- Firebase UID: Unique identifier linking to Firebase Authentication user
+- Sparse indexes: Allows optional fields for users created without Firebase
+- Email verification: Maintains email verification status for email-authenticated users
+- Role management: Preserves role-based access control
 
 **Section sources**
-- [authController.js:7-8](file://backend/controllers/authController.js#L7-L8)
-- [authMiddleware.js:9](file://backend/middleware/authMiddleware.js#L9)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
+- [User.js:3-27](file://backend/models/User.js#L3-L27)
 
-### Password Hashing and Validation
-- Hashing:
-  - Occurs before saving user via mongoose pre-save hook.
-  - Uses bcrypt with salt rounds configured in model.
-- Validation:
-  - Password comparison performed using bcrypt compare during login.
+### Frontend Firebase Authentication Context
+The AuthContext manages real-time Firebase authentication state with seamless user synchronization and comprehensive error handling.
 
-References:
-- Pre-save hashing: [User.js:27-30](file://backend/models/User.js#L27-L30)
-- Password comparison: [User.js:32-34](file://backend/models/User.js#L32-L34)
+- Real-time auth state: Listens for Firebase auth state changes using onAuthStateChanged
+- User synchronization: Automatically syncs Firebase user with backend user profile
+- Token management: Retrieves fresh Firebase ID tokens for authenticated requests
+- Provider integration: Supports Google and email/password authentication flows
+- Error handling: Graceful handling of authentication errors and user cancellation
 
 **Section sources**
-- [User.js:27-34](file://backend/models/User.js#L27-L34)
+- [AuthContext.jsx:31-48](file://frontend/src/context/AuthContext.jsx#L31-L48)
+- [AuthContext.jsx:12-29](file://frontend/src/context/AuthContext.jsx#L12-L29)
 
-### Phone Number Validation and Schema
-**Enhanced** Comprehensive phone number validation system with dual uniqueness checks
+### Frontend Firebase Configuration
+Frontend Firebase SDK provides comprehensive authentication capabilities with Google and email/password support.
 
-- Phone number schema validation:
-  - Required field with unique constraint
-  - Regex pattern /^[6-9]\d{9}$/ validates 10-digit Indian mobile numbers
-  - Only digits 6-9 allowed as first digit (valid Indian mobile prefixes)
-  - Ensures exactly 10 digits total
-- Controller-level validation:
-  - Dual uniqueness check for email and phone before user creation
-  - Returns specific error messages for duplicate entries
-  - Mandatory field validation for all registration fields
-- Frontend validation:
-  - Client-side validation mirrors backend requirements
-  - Real-time validation feedback for users
-  - Automatic formatting for phone input
-
-References:
-- Backend validation: [User.js:14-19](file://backend/models/User.js#L14-L19)
-- Controller validation: [authController.js:15-27](file://backend/controllers/authController.js#L15-L27)
-- Frontend validation: [Register.jsx:19-29](file://frontend/src/pages/Register.jsx#L19-L29)
+- Firebase initialization: Configured with production Firebase project credentials
+- Google authentication: Supports Google Sign-In with OAuth popup flow
+- Email/password authentication: Full email/password sign-up and sign-in functionality
+- Profile management: Updates user display name during registration
+- Error handling: Comprehensive error handling for authentication operations
 
 **Section sources**
-- [User.js:14-19](file://backend/models/User.js#L14-L19)
-- [authController.js:15-27](file://backend/controllers/authController.js#L15-L27)
-- [Register.jsx:19-29](file://frontend/src/pages/Register.jsx#L19-L29)
+- [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
 
-### Email and WhatsApp Notification Services
-**Enhanced** Integrated notification system for user onboarding with improved error handling
+### Axios Interceptors with Firebase Tokens
+The frontend Axios configuration automatically manages Firebase authentication tokens for all authenticated requests.
 
-- Email Service:
-  - Welcome email with special offer code (WELCOME10)
-  - Professional HTML formatting with brand styling
-  - Asynchronous sending to prevent blocking responses
-  - Error handling with fallback logging
-- WhatsApp Service:
-  - Welcome message with personalized content
-  - Template-based messaging with dynamic parameters
-  - Country code formatting (India +91)
-  - Fallback text messaging capability
-  - Asynchronous sending with error handling
-- Integration points:
-  - Triggered after successful registration
-  - Triggered after successful Google login for new users
-  - Error handling prevents blocking authentication flow
-
-References:
-- Email service: [emailService.js:112-148](file://backend/utils/emailService.js#L112-L148)
-- WhatsApp service: [whatsappService.js:88-126](file://backend/utils/whatsappService.js#L88-L126)
-- Registration controller integration: [authController.js:34-43](file://backend/controllers/authController.js#L34-L43)
-- Google login controller integration: [authController.js:123-126](file://backend/controllers/authController.js#L123-L126)
+- Request interceptor: Automatically attaches Firebase ID tokens to Authorization headers
+- Response interceptor: Handles 401 errors by removing cached user data
+- Token refresh: Retrieves fresh tokens for each request to ensure validity
+- Error handling: Graceful handling of authentication failures
 
 **Section sources**
+- [axios.js:8-16](file://frontend/src/api/axios.js#L8-L16)
+- [axios.js:18-27](file://frontend/src/api/axios.js#L18-L27)
+
+### Frontend Pages Integration
+The Login and Register pages integrate seamlessly with Firebase Authentication while maintaining the same user interface and experience.
+
+- Login page: Supports both Google login and email/password authentication
+- Register page: Provides email/password registration with client-side validation
+- Google integration: Unified Google authentication across both pages
+- Error handling: User-friendly error messages for authentication failures
+- Navigation: Automatic redirection after successful authentication
+
+**Section sources**
+- [Login.jsx:14-28](file://frontend/src/pages/Login.jsx#L14-L28)
+- [Register.jsx:16-35](file://frontend/src/pages/Register.jsx#L16-L35)
+- [Login.jsx:30-47](file://frontend/src/pages/Login.jsx#L30-L47)
+- [Register.jsx:37-54](file://frontend/src/pages/Register.jsx#L37-L54)
+
+### Email Notification Service Integration
+The email notification service continues to work with Firebase Authentication, sending welcome emails only for new user registrations.
+
+- Conditional email sending: Only triggers for new users created through Firebase authentication
+- User data integration: Uses synchronized user data from backend for personalized emails
+- Error handling: Graceful error handling for email service failures
+- Asynchronous processing: Prevents blocking authentication responses
+
+**Section sources**
+- [authController.js:46-51](file://backend/controllers/authController.js#L46-L51)
 - [emailService.js:112-148](file://backend/utils/emailService.js#L112-L148)
-- [whatsappService.js:88-126](file://backend/utils/whatsappService.js#L88-L126)
-- [authController.js:34-43](file://backend/controllers/authController.js#L34-L43)
-- [authController.js:123-126](file://backend/controllers/authController.js#L123-L126)
-
-### Frontend Integration and Token Usage
-- API client:
-  - Automatically attaches Authorization: Bearer <token> header for all requests.
-- Registration page:
-  - Submits { name, email, phone, password } to /api/auth/register.
-  - Stores returned token and user (including phone) in localStorage.
-  - Includes comprehensive client-side validation for phone and email.
-- Login page:
-  - Submits { email, password } to /api/auth/login.
-  - Stores returned token and user (including phone) in localStorage.
-- Google authentication:
-  - Supports Google login with automatic user creation.
-  - Handles Google OAuth flow and local authentication.
-
-**Updated** Frontend now handles phone number in user object and Google authentication
-
-References:
-- Interceptor: [api.js:3-7](file://frontend/src/services/api.js#L3-L7)
-- Registration form submission: [Register.jsx:16-41](file://frontend/src/pages/Register.jsx#L16-L41)
-- Login form submission: [Login.jsx:14-28](file://frontend/src/pages/Login.jsx#L14-L28)
-- Google authentication: [Register.jsx:43-55](file://frontend/src/pages/Register.jsx#L43-L55)
-
-**Section sources**
-- [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [Register.jsx:1-164](file://frontend/src/pages/Register.jsx#L1-L164)
-- [Login.jsx:1-128](file://frontend/src/pages/Login.jsx#L1-L128)
 
 ## Dependency Analysis
-External libraries and environment dependencies:
-- jsonwebtoken: JWT signing and verification.
-- bcryptjs: Password hashing and comparison.
-- dotenv: Loads environment variables (JWT_SECRET, MONGO_URI, FRONTEND_URL, EMAIL_USER, EMAIL_PASSWORD, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN).
-- mongoose: MongoDB ODM for User model with custom validation.
-- express: Web framework for routes and middleware.
-- nodemailer: Email service for welcome emails.
-- fetch: Built-in browser fetch API for WhatsApp Business Cloud API integration.
+External libraries and environment dependencies for Firebase Authentication:
+
+- firebase-admin: Firebase Admin SDK for secure token verification and user management
+- firebase: Firebase client SDK for frontend authentication and real-time auth state
+- axios: HTTP client with request/response interceptors for automatic token management
+- mongoose: MongoDB ODM for user model with provider and firebaseUid fields
+- dotenv: Environment variable loading for Firebase configuration
 
 ```mermaid
 graph LR
 P["package.json"]
-J["jsonwebtoken"]
-B["bcryptjs"]
-D["dotenv"]
+FA["firebase-admin"]
+FB["firebase"]
+AX["axios"]
 M["mongoose"]
-N["nodemailer"]
-F["fetch (built-in)"]
-P --> J
-P --> B
-P --> D
+D["dotenv"]
+P --> FA
+P --> FB
+P --> AX
 P --> M
-P --> N
-P --> F
+P --> D
 ```
 
 **Diagram sources**
 - [package.json:8-22](file://backend/package.json#L8-L22)
 
-Environment configuration:
-- JWT_SECRET: Required for signing/verifying tokens.
-- MONGO_URI: Required for database connection.
-- FRONTEND_URL: Optional override for CORS origins.
-- EMAIL_USER: Gmail address for email service.
-- EMAIL_PASSWORD: Gmail App Password for email authentication.
-- WHATSAPP_PHONE_NUMBER_ID: WhatsApp Business Cloud API phone number ID.
-- WHATSAPP_ACCESS_TOKEN: WhatsApp Business Cloud API access token.
-
-**Updated** Added email and WhatsApp service environment variables
-
-References:
-- Dependencies: [package.json:8-22](file://backend/package.json#L8-L22)
-- Environment loading: [db.js:2-3](file://backend/config/db.js#L2-L3)
-- Server CORS configuration: [server.js:22-49](file://backend/server.js#L22-L49)
-- Email service environment: [emailService.js:7-15](file://backend/utils/emailService.js#L7-L15)
-- WhatsApp service environment: [whatsappService.js:5](file://backend/utils/whatsappService.js#L5)
+Environment configuration for Firebase:
+- FIREBASE_PROJECT_ID: Firebase project identifier
+- FIREBASE_CLIENT_EMAIL: Service account client email
+- FIREBASE_PRIVATE_KEY: Service account private key with newline replacement
+- VITE_API_URL: Frontend API base URL for development
 
 **Section sources**
 - [package.json:1-27](file://backend/package.json#L1-L27)
-- [db.js:1-14](file://backend/config/db.js#L1-L14)
-- [server.js:22-49](file://backend/server.js#L22-L49)
-- [emailService.js:7-15](file://backend/utils/emailService.js#L7-L15)
-- [whatsappService.js:5](file://backend/utils/whatsappService.js#L5)
+- [firebase.js:4-8](file://backend/config/firebase.js#L4-L8)
 
 ## Performance Considerations
-- Token expiration: 7-day expiry reduces long-term risk but may increase refresh frequency.
-- Password hashing cost: bcrypt salt rounds are configured in the model; adjust based on hardware capacity.
-- Middleware overhead: JWT verification occurs on protected routes; ensure efficient secret management and avoid unnecessary re-hashing.
-- **Updated** Notification performance: Email and WhatsApp notifications are sent asynchronously to prevent blocking registration/login responses.
-- **Updated** Database queries: Dual validation (email and phone) adds minimal overhead but ensures data integrity.
-- **Updated** Phone number validation: Both client-side and server-side validation reduce invalid requests and improve user experience.
-- **Updated** Google authentication: Efficient user creation with random phone number generation for new users.
+- Token verification: Firebase Admin SDK provides efficient token verification with caching
+- Real-time synchronization: onAuthStateChanged provides instant auth state updates
+- Request optimization: Axios interceptors minimize token retrieval overhead
+- Database queries: Firebase UID indexing ensures fast user lookup and synchronization
+- Welcome email optimization: Conditional email sending prevents unnecessary operations
 
 ## Troubleshooting Guide
-Common issues and resolutions:
-- 400 "All fields are required" on registration:
-  - Cause: Missing required field (name, email, phone, or password).
-  - Resolution: Ensure all four fields are provided in the request body.
-- 400 "Email already registered" on registration:
-  - Cause: Duplicate email address already exists in database.
-  - Resolution: Use a unique email or reset password flow.
-- 400 "Phone number already registered" on registration:
-  - Cause: Duplicate phone number already exists in database.
-  - Resolution: Use a unique phone number or contact support.
-- 400 "Please provide a valid 10-digit Indian phone number" on registration:
-  - Cause: Phone number format doesn't match /^[6-9]\d{9}$/ pattern.
-  - Resolution: Enter exactly 10 digits starting with 6, 7, 8, or 9.
-- 400 "Please provide a valid email address" on registration:
-  - Cause: Email format doesn't match email regex pattern.
-  - Resolution: Enter a valid email address format.
-- 400 "Email & password required" on login:
-  - Cause: Missing email or password in request body.
-  - Resolution: Provide both email and password fields.
-- 401 "Invalid credentials" on login:
-  - Cause: Incorrect email or password.
-  - Resolution: Verify credentials; ensure bcrypt-compatible hashing.
-- 400 "Email is required" on Google login:
-  - Cause: Missing email in Google login request.
-  - Resolution: Ensure Google OAuth provides email address.
-- 401 "Not authorized" or 401 "Invalid token":
-  - Cause: Missing or malformed Authorization header; expired or invalid JWT.
-  - Resolution: Ensure frontend sends Bearer token; verify JWT_SECRET correctness.
-- 403 "Access denied":
-  - Cause: Non-admin user attempting admin route.
-  - Resolution: Authenticate as admin or remove admin middleware.
-- 500 server errors:
-  - Cause: Internal exceptions in controller or model.
-  - Resolution: Check server logs; validate environment variables and database connectivity.
-- **Updated** Notification failures:
-  - Cause: Email or WhatsApp service unavailability or misconfiguration.
-  - Resolution: Check email credentials and WhatsApp API settings; verify environment variables.
-- **Updated** Google authentication issues:
-  - Cause: Google OAuth failure or missing user data.
-  - Resolution: Verify Google OAuth configuration and ensure email is provided.
+Common issues and resolutions for Firebase Authentication:
+
+- 400 "ID token is required" on firebase-login:
+  - Cause: Missing idToken in request body
+  - Resolution: Ensure frontend retrieves and sends Firebase ID token
+- Firebase token verification failures:
+  - Cause: Expired or invalid Firebase ID token
+  - Resolution: Refresh token using getIdToken() method
+- User synchronization errors:
+  - Cause: Firebase UID conflicts or database connection issues
+  - Resolution: Check Firebase Admin SDK configuration and database connectivity
+- Frontend authentication state issues:
+  - Cause: onAuthStateChanged listener not firing or token retrieval failures
+  - Resolution: Verify Firebase SDK initialization and network connectivity
+- Google authentication failures:
+  - Cause: Google OAuth configuration issues or popup blockers
+  - Resolution: Check Google OAuth settings and browser permissions
+- Email notification failures:
+  - Cause: Email service unavailability or misconfiguration
+  - Resolution: Verify email service configuration and network connectivity
 
 **Section sources**
-- [authController.js:16-18](file://backend/controllers/authController.js#L16-L18)
-- [authController.js:66](file://backend/controllers/authController.js#L66)
-- [authController.js:98](file://backend/controllers/authController.js#L98)
-- [authMiddleware.js:5-14](file://backend/middleware/authMiddleware.js#L5-L14)
-- [adminRoutes.js:17-19](file://backend/routes/adminRoutes.js#L17-L19)
-- [server.js:91-95](file://backend/server.js#L91-L95)
+- [authController.js:9-11](file://backend/controllers/authController.js#L9-L11)
+- [AuthContext.jsx:24-28](file://frontend/src/context/AuthContext.jsx#L24-L28)
+- [AuthContext.jsx:37-47](file://frontend/src/context/AuthContext.jsx#L37-L47)
 
 ## Conclusion
-The enhanced Authentication API provides secure user registration and login with robust validation, comprehensive phone number validation, dual validation checks (email and phone), integrated email and WhatsApp welcome notifications, JWT-based session tokens, middleware-driven protection, and enhanced Google authentication support. The system now offers improved user experience through comprehensive validation, immediate welcome notifications, and reliable Google authentication with proper phone number generation. The frontend integrates seamlessly by automatically attaching Authorization headers and handling the enhanced user object with phone number information. Ensure proper environment configuration, especially JWT_SECRET, MONGO_URI, email credentials, and WhatsApp API settings, to maintain security and reliability.
+The Firebase Authentication migration provides a modern, scalable, and secure authentication solution with seamless user experience. The system integrates Firebase Authentication for frontend user management while maintaining backend user profiles with provider information. Key benefits include real-time auth state synchronization, comprehensive error handling, provider-based authentication support, and efficient token management. The migration eliminates JWT complexity while providing enhanced security through Firebase Admin SDK verification. Frontend developers benefit from simplified authentication flows with Google and email/password support, while backend developers enjoy streamlined user management with provider tracking and seamless synchronization. Ensure proper Firebase configuration, including service account credentials and project settings, to maintain optimal performance and security.

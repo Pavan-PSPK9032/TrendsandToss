@@ -12,16 +12,20 @@
 - [whatsappService.js](file://backend/utils/whatsappService.js)
 - [db.js](file://backend/config/db.js)
 - [server.js](file://backend/server.js)
+- [firebase.js](file://backend/config/firebase.js)
+- [AuthContext.jsx](file://frontend/src/context/AuthContext.jsx)
+- [firebase.js](file://frontend/src/config/firebase.js)
 - [package.json](file://backend/package.json)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Updated User model schema to include phone number validation with Indian mobile format
-- Enhanced email validation with comprehensive regex patterns
-- Added verification status fields (isEmailVerified, isPhoneVerified) with default false values
-- Updated authentication flow to handle phone number validation during registration
-- Enhanced user creation process to support phone-based communication services
+- Updated User model schema to reflect Firebase Authentication migration: removed password requirements and bcrypt hashing, added Firebase-specific fields including provider type and firebaseUid
+- Removed bcryptjs dependency and password hashing mechanism
+- Updated authentication flow to use Firebase ID tokens instead of JWT
+- Refined phone number validation for Indian mobile numbers with sparse unique constraint
+- Added provider tracking for different authentication methods (google, email)
+- Updated frontend authentication context to integrate with Firebase SDK
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -35,21 +39,23 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
-This document provides comprehensive data model documentation for the User model used in the authentication and authorization subsystem. It covers the schema definition, validation rules, password hashing with bcryptjs, authentication flow, role-based access control (RBAC), and security considerations. The model now includes enhanced phone number validation for Indian mobile numbers, comprehensive email validation patterns, and verification status tracking for both email and phone numbers.
+This document provides comprehensive data model documentation for the User model used in the Firebase Authentication-based authentication and authorization subsystem. It covers the schema definition, validation rules, Firebase token-based authentication, provider tracking for different authentication methods, role-based access control (RBAC), and security considerations. The model now includes Firebase-specific fields for provider identification and user linking, enhanced phone number validation for Indian mobile numbers, comprehensive email validation patterns, and verification status tracking for both email and phone numbers.
 
 ## Project Structure
-The User model and related authentication components are organized as follows:
-- Model: defines the Mongoose schema, validation, hashing, and helper methods
-- Controllers: handle registration and login requests, issue JWT tokens, and manage user sessions
-- Middleware: enforce protected routes and admin-only access
-- Routes: expose endpoints for authentication
-- Config: initialize database connection and environment variables
+The User model and related Firebase authentication components are organized as follows:
+- Model: defines the Mongoose schema, validation, and Firebase-specific fields
+- Controllers: handle Firebase authentication requests and user synchronization
+- Middleware: enforce protected routes using Firebase authentication
+- Routes: expose endpoints for Firebase authentication
+- Config: initialize Firebase Admin SDK and database connection
 - Server: configure Express app, CORS, routes, and error handling
-- Utilities: email and WhatsApp services for user notifications
+- Frontend: React context for Firebase authentication integration
+- Utilities: email services for user notifications
 
 ```mermaid
 graph TB
 subgraph "Config"
+FirebaseConfig["firebase.js"]
 DB["db.js"]
 end
 subgraph "Models"
@@ -66,6 +72,10 @@ subgraph "Routes"
 AuthRoutes["authRoutes.js"]
 AdminRoutes["adminRoutes.js"]
 end
+subgraph "Frontend"
+AuthContext["AuthContext.jsx"]
+FirebaseSDK["firebase.js"]
+end
 subgraph "Utilities"
 EmailSvc["emailService.js"]
 WhatsAppSvc["whatsappService.js"]
@@ -73,12 +83,15 @@ end
 subgraph "Server"
 Server["server.js"]
 end
+FirebaseConfig --> AuthCtrl
 DB --> UserModel
 UserModel --> AuthCtrl
 AuthCtrl --> AuthMW
 AuthMW --> AdminRoutes
 AdminRoutes --> AdminCtrl
 AuthRoutes --> AuthCtrl
+AuthContext --> FirebaseSDK
+AuthContext --> AuthCtrl
 EmailSvc --> AuthCtrl
 WhatsAppSvc --> AuthCtrl
 Server --> DB
@@ -87,13 +100,16 @@ Server --> AdminRoutes
 ```
 
 **Diagram sources**
+- [firebase.js:1-13](file://backend/config/firebase.js#L1-L13)
 - [db.js:1-14](file://backend/config/db.js#L1-L14)
-- [User.js:1-35](file://backend/models/User.js#L1-L35)
-- [authController.js:1-60](file://backend/controllers/authController.js#L1-L60)
-- [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
+- [User.js:1-30](file://backend/models/User.js#L1-L30)
+- [authController.js:1-69](file://backend/controllers/authController.js#L1-L69)
+- [authMiddleware.js:1-33](file://backend/middleware/authMiddleware.js#L1-L33)
 - [authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
 - [adminRoutes.js:1-19](file://backend/routes/adminRoutes.js#L1-L19)
 - [adminController.js:1-86](file://backend/controllers/adminController.js#L1-L86)
+- [AuthContext.jsx:1-86](file://frontend/src/context/AuthContext.jsx#L1-L86)
+- [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
 - [emailService.js:1-149](file://backend/utils/emailService.js#L1-L149)
 - [whatsappService.js:1-127](file://backend/utils/whatsappService.js#L1-L127)
 - [server.js:1-102](file://backend/server.js#L1-L102)
@@ -103,117 +119,159 @@ Server --> AdminRoutes
 - [db.js:5-13](file://backend/config/db.js#L5-L13)
 
 ## Core Components
-- User model schema with fields: name, email, phone, password, role, isEmailVerified, isPhoneVerified
-- Enhanced validation rules: required fields, unique email and phone, comprehensive regex patterns, enum role values
-- Phone number validation for Indian mobile numbers (10 digits, starting with 6-9)
+- User model schema with Firebase-specific fields: name, email, phone, photo, role, isEmailVerified, isPhoneVerified, provider, firebaseUid
+- Enhanced validation rules: required fields, unique email and phone, comprehensive regex patterns, enum role values, sparse unique constraints for optional fields
+- Phone number validation for Indian mobile numbers (10 digits, starting with 6-9) with sparse unique constraint
 - Comprehensive email validation with regex pattern
-- Password hashing via bcryptjs in a pre-save hook
-- Authentication helper method to compare passwords
+- Provider tracking system supporting 'google' and 'email' authentication methods
+- Firebase UID linking for user account consolidation
 - Verification status tracking for email and phone
 - Timestamps enabled on the model
-- JWT-based authentication and RBAC enforcement
+- Firebase-based authentication and RBAC enforcement
 
 Key implementation references:
-- Schema and validations: [User.js:4-24](file://backend/models/User.js#L4-L24)
-- Pre-save password hashing: [User.js:26-29](file://backend/models/User.js#L26-L29)
-- Password comparison method: [User.js:31-33](file://backend/models/User.js#L31-L33)
-- Timestamps: [User.js:24](file://backend/models/User.js#L24)
+- Schema and validations: [User.js:3-27](file://backend/models/User.js#L3-L27)
+- Firebase authentication controller: [authController.js:5-68](file://backend/controllers/authController.js#L5-L68)
+- Firebase token verification middleware: [authMiddleware.js:4-24](file://backend/middleware/authMiddleware.js#L4-L24)
+- Frontend Firebase integration: [AuthContext.jsx:12-29](file://frontend/src/context/AuthContext.jsx#L12-L29)
 
 **Section sources**
-- [User.js:4-33](file://backend/models/User.js#L4-L33)
+- [User.js:3-27](file://backend/models/User.js#L3-L27)
+- [authController.js:5-68](file://backend/controllers/authController.js#L5-L68)
+- [authMiddleware.js:4-24](file://backend/middleware/authMiddleware.js#L4-L24)
+- [AuthContext.jsx:12-29](file://frontend/src/context/AuthContext.jsx#L12-L29)
 
 ## Architecture Overview
-The authentication flow spans the route handlers, controller logic, model hooks, and middleware. The following sequence diagram maps the end-to-end user registration and login process, including the new phone number validation and verification status tracking.
+The authentication flow now uses Firebase Authentication for token-based verification and user synchronization. The following sequence diagram maps the end-to-end Firebase user registration and login process, including provider detection and user linking.
 
 ```mermaid
 sequenceDiagram
 participant Client as "Client"
+participant FirebaseSDK as "frontend/src/config/firebase.js"
+participant AuthContext as "AuthContext.jsx"
 participant Router as "authRoutes.js"
 participant Ctrl as "authController.js"
+participant FirebaseAdmin as "firebase.js"
 participant Model as "User.js"
 participant EmailSvc as "emailService.js"
-participant WhatsAppSvc as "whatsappService.js"
-participant JWT as "jsonwebtoken"
-participant MW as "authMiddleware.js"
-Client->>Router : POST /api/auth/register
-Router->>Ctrl : register(req,res)
-Ctrl->>Model : findOne({email})
+Client->>FirebaseSDK : Firebase Auth Operations
+FirebaseSDK->>AuthContext : onAuthStateChanged
+AuthContext->>AuthContext : getIdToken()
+AuthContext->>Router : POST /api/auth/firebase-login
+Router->>Ctrl : firebaseLogin(req,res)
+Ctrl->>FirebaseAdmin : verifyIdToken(idToken)
+FirebaseAdmin-->>Ctrl : decoded token with uid, email, name
+Ctrl->>Model : findOne({firebaseUid : uid})
 Model-->>Ctrl : existing user or null
-Ctrl->>Model : findOne({phone})
-Model-->>Ctrl : existing phone or null
-Ctrl->>Model : create({name,email,phone,password})
-Model->>Model : pre('save') : hash password
-Model-->>Ctrl : saved user
-Ctrl->>EmailSvc : sendWelcomeEmail(user)
-Ctrl->>WhatsAppSvc : sendWhatsAppTextMessage(phone, welcomeMsg)
-Ctrl->>JWT : sign({id}, secret, {expiresIn : '7d'})
-JWT-->>Ctrl : token
-Ctrl-->>Client : {token, user}
-Client->>Router : POST /api/auth/login
-Router->>Ctrl : login(req,res)
-Ctrl->>Model : findOne({email})
-Model-->>Ctrl : user
-Ctrl->>Model : matchPassword(input)
-Model-->>Ctrl : boolean
-Ctrl->>JWT : sign({id}, secret, {expiresIn : '7d'})
-JWT-->>Ctrl : token
-Ctrl-->>Client : {token, user}
-Client->>ProtectedRoute : GET /api/admin/dashboard
-Router->>MW : protect(req,res,next)
-MW->>JWT : verify(token, secret)
-JWT-->>MW : {id}
-MW->>Model : findById(id).select('-password')
-Model-->>MW : user
-MW->>MW : admin(req,res,next)
-MW-->>Client : 200 OK or 403
+Ctrl->>Model : findOne({email : email})
+Model-->>Ctrl : existing user or null
+Ctrl->>Model : create({firebaseUid, name, email, photo, provider})
+Ctrl->>EmailSvc : sendWelcomeEmail(user) (for new users)
+Ctrl-->>Client : {user : {id, name, email, phone, photo, role, provider}}
 ```
 
 **Diagram sources**
-- [authRoutes.js:6-7](file://backend/routes/authRoutes.js#L6-L7)
-- [authController.js:8-36](file://backend/controllers/authController.js#L8-L36)
-- [User.js:26-33](file://backend/models/User.js#L26-L33)
-- [emailService.js:111-148](file://backend/utils/emailService.js#L111-L148)
-- [whatsappService.js:87-126](file://backend/utils/whatsappService.js#L87-L126)
-- [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
-- [adminRoutes.js:10](file://backend/routes/adminRoutes.js#L10)
+- [AuthContext.jsx:20-21](file://frontend/src/context/AuthContext.jsx#L20-L21)
+- [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
+- [authController.js:13-18](file://backend/controllers/authController.js#L13-L18)
+- [authController.js:20-44](file://backend/controllers/authController.js#L20-L44)
+- [firebase.js:14](file://backend/config/firebase.js#L14)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
 
 ## Detailed Component Analysis
 
-### User Model Schema and Enhanced Validation
+### User Model Schema and Firebase Authentication Integration
 - Fields and types:
   - name: String, required
   - email: String, required, unique, lowercase, trimmed, validated with comprehensive regex pattern
-  - phone: String, required, unique, validated with Indian mobile number format (10 digits, 6-9)
-  - password: String, required
-  - role: String, enum ['user','admin'], default 'user'
-  - isEmailVerified: Boolean, default false
-  - isPhoneVerified: Boolean, default false
+  - phone: String, required: false, unique, sparse, validated with Indian mobile number format (10 digits, 6-9)
+  - password: String, required: false (removed bcrypt hashing requirement)
+  - photo: String, default: ''
+  - role: String, enum: ['user','admin'], default: 'user'
+  - isEmailVerified: Boolean, default: false
+  - isPhoneVerified: Boolean, default: false
+  - provider: String, enum: ['google','email'], required: true (tracks authentication method)
+  - firebaseUid: String, unique, sparse (Firebase user identifier)
 - Enhanced validation constraints:
   - Required fields enforced at schema level
   - Unique constraint on email and phone to prevent duplicates
+  - Sparse unique constraint on phone and firebaseUid allows null values
   - Comprehensive regex pattern ensures valid email format
   - Indian mobile number validation ensures proper 10-digit format
-  - Enum constraint ensures role is either 'user' or 'admin'
+  - Enum constraint ensures provider is either 'google' or 'email'
   - Default verification status set to false for new users
+  - No password hashing requirement (Firebase handles authentication)
 - Timestamps:
   - Automatic createdAt and updatedAt fields managed by Mongoose
 
 Security and correctness considerations:
 - Unique email and phone prevent account takeover via duplicate accounts
+- Sparse constraints allow flexible user profiles (some users may not have phones)
 - Comprehensive email validation reduces spam and invalid addresses
 - Indian mobile number validation ensures proper phone format for SMS/WA notifications
 - Default verification status requires explicit verification steps
-- Enum role restricts unauthorized elevation
-- Pre-save hook ensures plaintext passwords are never persisted
+- Enum provider restricts unauthorized authentication method spoofing
+- Firebase UID linking enables seamless user account consolidation across providers
 
 **Section sources**
-- [User.js:4-24](file://backend/models/User.js#L4-L24)
+- [User.js:3-27](file://backend/models/User.js#L3-L27)
+
+### Firebase Authentication Controller Implementation
+- Token verification: Uses Firebase Admin SDK to verify ID tokens
+- Provider detection: Determines authentication method from Firebase token claims
+- User synchronization: Creates or updates user records based on Firebase UID
+- Account linking: Links Firebase UID to existing users with matching emails
+- New user detection: Identifies first-time Firebase users for welcome email
+- Profile population: Extracts user data (uid, email, name, picture) from Firebase token
+
+Operational flow:
+```mermaid
+flowchart TD
+Start(["Firebase Login Request"]) --> TokenCheck["Verify ID token exists"]
+TokenCheck --> VerifyToken["Firebase Admin verifyIdToken()"]
+VerifyToken --> FindUserByUID["Find user by firebaseUid"]
+FindUserByUID --> Found{"User exists?"}
+Found --> |Yes| ReturnUser["Return existing user"]
+Found --> |No| FindByEmail["Find user by email"]
+FindByEmail --> FoundByEmail{"User exists?"}
+FoundByEmail --> |Yes| LinkUID["Link firebaseUid to existing user"]
+FoundByEmail --> |No| CreateUser["Create new user with firebaseUid"]
+LinkUID --> ReturnUser
+CreateUser --> SendWelcome["Send welcome email (new users)"]
+ReturnUser --> End(["Return user data"])
+```
+
+**Diagram sources**
+- [authController.js:5-68](file://backend/controllers/authController.js#L5-L68)
+- [firebase.js:14](file://backend/config/firebase.js#L14)
+
+**Section sources**
+- [authController.js:5-68](file://backend/controllers/authController.js#L5-L68)
+- [firebase.js:14](file://backend/config/firebase.js#L14)
+
+### Frontend Firebase Authentication Integration
+- Real-time auth state monitoring: Listens for Firebase auth state changes
+- Token synchronization: Retrieves Firebase ID tokens for backend verification
+- User profile sync: Calls backend endpoint to synchronize user data
+- Provider flexibility: Supports both email/password and Google authentication
+- Local caching: Persists user data in localStorage for session continuity
+- Error handling: Comprehensive error handling for authentication failures
+
+Integration pattern:
+- onAuthStateChanged triggers user synchronization
+- getIdToken retrieves Firebase ID token
+- Backend verifies token and returns user profile
+- Frontend caches user data locally
+
+**Section sources**
+- [AuthContext.jsx:12-29](file://frontend/src/context/AuthContext.jsx#L12-L29)
+- [AuthContext.jsx:50-66](file://frontend/src/context/AuthContext.jsx#L50-L66)
 
 ### Phone Number Validation for Indian Mobile Numbers
 - Validation pattern: `/^[6-9]\d{9}$/`
 - Ensures exactly 10 digits
 - First digit must be 6, 7, 8, or 9 (valid Indian mobile prefixes)
-- Unique constraint prevents duplicate phone numbers
+- Sparse unique constraint prevents duplicate phone numbers while allowing null values
 - Used for WhatsApp notifications and order confirmations
 
 Operational flow:
@@ -222,19 +280,17 @@ flowchart TD
 Start(["Register User"]) --> PhoneCheck["Validate phone format"]
 PhoneCheck --> Valid{"Valid Indian mobile?"}
 Valid --> |No| Error["Return validation error"]
-Valid --> |Yes| UniqueCheck["Check phone uniqueness"]
+Valid --> |Yes| UniqueCheck["Check phone uniqueness (sparse)"]
 UniqueCheck --> PhoneUnique{"Phone available?"}
 PhoneUnique --> |No| PhoneError["Return phone exists error"]
-PhoneUnique --> |Yes| Create["Create user with verified=false"]
+PhoneUnique --> |Yes| Create["Create user with optional phone"]
 ```
 
 **Diagram sources**
-- [User.js:14-19](file://backend/models/User.js#L14-L19)
-- [authController.js:12-17](file://backend/controllers/authController.js#L12-L17)
+- [User.js:13-19](file://backend/models/User.js#L13-L19)
 
 **Section sources**
-- [User.js:14-19](file://backend/models/User.js#L14-L19)
-- [authController.js:12-17](file://backend/controllers/authController.js#L12-L17)
+- [User.js:13-19](file://backend/models/User.js#L13-L19)
 
 ### Enhanced Email Validation with Comprehensive Regex Patterns
 - Validation pattern: `/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g`
@@ -251,7 +307,7 @@ Validation coverage includes:
 - Proper separation with @ symbol
 
 **Section sources**
-- [User.js:6-13](file://backend/models/User.js#L6-L13)
+- [User.js:5-12](file://backend/models/User.js#L5-L12)
 
 ### Verification Status Tracking System
 - isEmailVerified: Boolean flag indicating email verification status
@@ -261,39 +317,34 @@ Validation coverage includes:
 - Supports progressive feature enablement based on verification levels
 
 **Section sources**
-- [User.js:22-23](file://backend/models/User.js#L22-L23)
+- [User.js:23-24](file://backend/models/User.js#L23-L24)
 
-### Password Hashing with bcryptjs
-- Pre-save middleware:
-  - Triggers only when the password field is modified
-  - Hashes the password with a salt round of 10
-  - Replaces the plaintext password with the hashed value
-- Authentication helper:
-  - Compares an entered password against the stored hash
-  - Returns a boolean indicating match
-
-Operational flow:
-```mermaid
-flowchart TD
-Start(["Save User"]) --> Modified{"Is 'password' modified?"}
-Modified --> |No| Next["Call next()"]
-Modified --> |Yes| Hash["bcrypt.hash(password, 10)"]
-Hash --> Replace["Replace password with hash"]
-Replace --> Next
-```
-
-**Diagram sources**
-- [User.js:26-29](file://backend/models/User.js#L26-L29)
+### Provider Tracking System
+- provider: Enum field tracking authentication method ('google' or 'email')
+- Required: true to ensure all users have a provider
+- Enables authentication method differentiation
+- Supports user migration between authentication providers
+- Facilitates analytics on authentication preferences
 
 **Section sources**
-- [User.js:26-33](file://backend/models/User.js#L26-L33)
+- [User.js:25](file://backend/models/User.js#L25)
+
+### Firebase UID Management
+- firebaseUid: String field for Firebase user identifier
+- Unique: true with sparse: true to allow null values
+- Enables seamless user account linking across providers
+- Supports user consolidation when switching authentication methods
+- Required for Firebase authentication integration
+
+**Section sources**
+- [User.js:26](file://backend/models/User.js#L26)
 
 ### Role-Based Access Control (RBAC)
 - Roles:
   - user: default role for regular users
   - admin: administrative role for privileged access
 - Middleware enforcement:
-  - protect: verifies JWT and attaches user (without password) to request
+  - protect: verifies Firebase ID token and attaches user to request
   - admin: checks that the attached user has role 'admin'
 
 Usage pattern:
@@ -301,33 +352,28 @@ Usage pattern:
 - Access control occurs in middleware, not route handlers
 
 **Section sources**
-- [User.js:21](file://backend/models/User.js#L21)
-- [authMiddleware.js:17-20](file://backend/middleware/authMiddleware.js#L17-L20)
+- [User.js:22](file://backend/models/User.js#L22)
+- [authMiddleware.js:26-32](file://backend/middleware/authMiddleware.js#L26-L32)
 - [adminRoutes.js:10](file://backend/routes/adminRoutes.js#L10)
 
 ### Authentication Flow and Token Management
-- Registration:
-  - Validates absence of existing email and phone
-  - Creates user record with default verification status false
-  - Issues JWT with expiration of seven days
-  - Sends welcome email and WhatsApp notification
-- Login:
-  - Finds user by email
-  - Verifies password using matchPassword
-  - Issues JWT upon successful authentication
+- Firebase Login:
+  - Frontend obtains Firebase ID token via onAuthStateChanged
+  - Calls backend /api/auth/firebase-login with ID token
+  - Backend verifies token with Firebase Admin SDK
+  - Synchronizes user data and returns profile
 - Token verification:
   - Authorization header expected as Bearer token
-  - Decodes JWT and loads user excluding password
+  - Decodes Firebase ID token and loads user by firebaseUid
   - Enforces admin-only access when required
 
 Endpoints:
-- POST /api/auth/register
-- POST /api/auth/login
+- POST /api/auth/firebase-login
 
 **Section sources**
-- [authController.js:8-36](file://backend/controllers/authController.js#L8-L36)
-- [authRoutes.js:6-7](file://backend/routes/authRoutes.js#L6-L7)
-- [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
+- [authController.js:5-68](file://backend/controllers/authController.js#L5-L68)
+- [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
+- [authMiddleware.js:4-24](file://backend/middleware/authMiddleware.js#L4-L24)
 
 ### Timestamp Functionality
 - Enabled via Mongoose timestamps option
@@ -335,26 +381,24 @@ Endpoints:
 - Useful for audit trails, sorting, and user activity tracking
 
 **Section sources**
-- [User.js:24](file://backend/models/User.js#L24)
+- [User.js:27](file://backend/models/User.js#L27)
 
 ### Practical Examples
 
-- User creation (registration):
-  - Endpoint: POST /api/auth/register
-  - Request body includes name, email, phone, password
-  - Response includes token and user profile (excluding sensitive fields)
-  - Reference: [authController.js:8-36](file://backend/controllers/authController.js#L8-L36), [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
+- Firebase user synchronization:
+  - Frontend: onAuthStateChanged triggers user sync
+  - Backend: verify Firebase ID token and synchronize user
+  - Reference: [AuthContext.jsx:12-29](file://frontend/src/context/AuthContext.jsx#L12-L29), [authController.js:5-68](file://backend/controllers/authController.js#L5-L68)
 
-- Authentication (login):
-  - Endpoint: POST /api/auth/login
-  - Request body includes email and password
-  - Response includes token and user profile
-  - Reference: [authController.js:38-60](file://backend/controllers/authController.js#L38-L60), [authRoutes.js:7](file://backend/routes/authRoutes.js#L7)
+- Authentication (Firebase login):
+  - Frontend: signInWithEmail or signInWithGoogle
+  - Backend: verify ID token and return user profile
+  - Reference: [AuthContext.jsx:50-66](file://frontend/src/context/AuthContext.jsx#L50-L66), [authController.js:5-68](file://backend/controllers/authController.js#L5-L68)
 
 - Role checking:
   - Admin-only routes are protected by protect and admin middleware
   - Example: GET /api/admin/dashboard
-  - Reference: [adminRoutes.js:10](file://backend/routes/adminRoutes.js#L10), [authMiddleware.js:17-20](file://backend/middleware/authMiddleware.js#L17-L20)
+  - Reference: [adminRoutes.js:10](file://backend/routes/adminRoutes.js#L10), [authMiddleware.js:26-32](file://backend/middleware/authMiddleware.js#L26-L32)
 
 - Admin dashboard data:
   - Aggregates counts and revenue for admin metrics
@@ -362,43 +406,44 @@ Endpoints:
 
 - Phone-based notifications:
   - Welcome WhatsApp messages sent to Indian mobile numbers
-  - Reference: [authController.js:22-27](file://backend/controllers/authController.js#L22-L27), [whatsappService.js:87-126](file://backend/utils/whatsappService.js#L87-L126)
+  - Reference: [authController.js:46-51](file://backend/controllers/authController.js#L46-L51), [whatsappService.js:87-126](file://backend/utils/whatsappService.js#L87-L126)
 
 ## Dependency Analysis
 External libraries and their roles:
-- bcryptjs: password hashing and comparison
-- jsonwebtoken: JWT signing and verification
-- mongoose: ODM schema, middleware, and timestamps
-- dotenv: environment configuration loading
+- firebase-admin: Firebase Authentication token verification and user management
+- firebase: Frontend Firebase SDK for authentication operations
+- mongoose: ODM schema, validation, and timestamps
+- dotenv: environment configuration loading for Firebase credentials
 - nodemailer: email service for user notifications
 - WhatsApp Business Cloud API: phone-based communication
 
 ```mermaid
 graph LR
-UserJS["User.js"] --> Bcrypt["bcryptjs"]
-UserJS --> Mongoose["mongoose"]
-AuthCtrl["authController.js"] --> JWT["jsonwebtoken"]
+UserJS["User.js"] --> Mongoose["mongoose"]
+AuthCtrl["authController.js"] --> FirebaseAdmin["firebase-admin"]
 AuthCtrl --> UserJS
 AuthCtrl --> EmailSvc["emailService.js"]
-AuthCtrl --> WhatsAppSvc["whatsappService.js"]
-AuthMW["authMiddleware.js"] --> JWT
+AuthMW["authMiddleware.js"] --> FirebaseAdmin
 AuthMW --> UserJS
+AuthContext["AuthContext.jsx"] --> FirebaseSDK["firebase"]
+AuthContext --> AuthCtrl
 AdminRoutes["adminRoutes.js"] --> AuthMW
 AdminCtrl["adminController.js"] --> UserJS
 Server["server.js"] --> DB["db.js"]
 Server --> AuthRoutes["authRoutes.js"]
 Server --> AdminRoutes
 EmailSvc --> Nodemailer["nodemailer"]
-WhatsAppSvc --> Fetch["fetch API"]
+WhatsAppSvc["whatsappService.js"] --> Fetch["fetch API"]
 ```
 
 **Diagram sources**
-- [User.js:1-2](file://backend/models/User.js#L1-L2)
-- [authController.js:1-5](file://backend/controllers/authController.js#L1-L5)
+- [User.js:1](file://backend/models/User.js#L1)
+- [authController.js:1](file://backend/controllers/authController.js#L1)
 - [authMiddleware.js:1](file://backend/middleware/authMiddleware.js#L1)
-- [adminRoutes.js:3](file://backend/routes/adminRoutes.js#L3)
+- [AuthContext.jsx:2](file://frontend/src/context/AuthContext.jsx#L2)
+- [adminRoutes.js:1](file://backend/routes/adminRoutes.js#L1)
 - [adminController.js:1](file://backend/controllers/adminController.js#L1)
-- [server.js:6](file://backend/server.js#L6)
+- [server.js:1](file://backend/server.js#L1)
 - [db.js:1](file://backend/config/db.js#L1)
 - [emailService.js:1](file://backend/utils/emailService.js#L1)
 - [whatsappService.js:1](file://backend/utils/whatsappService.js#L1)
@@ -407,49 +452,60 @@ WhatsAppSvc --> Fetch["fetch API"]
 - [package.json:8-22](file://backend/package.json#L8-L22)
 
 ## Performance Considerations
-- Password hashing cost: bcryptjs uses a fixed salt round of 10 in the current implementation. Adjusting rounds increases security but also CPU usage during registration/login.
-- Phone number validation: Regex validation adds minimal overhead but ensures data quality for SMS/WhatsApp notifications.
-- Email validation: Comprehensive regex pattern provides good validation with minimal performance impact.
-- Middleware overhead: JWT verification and user lookup occur on every protected route; ensure efficient database indexing on email, phone, and ID fields.
-- Token expiration: Shorter-lived tokens reduce risk but increase re-authentication frequency.
-- Verification status tracking: Additional boolean fields add negligible storage overhead but enable powerful feature gating capabilities.
+- Firebase token verification: Server-side Firebase Admin SDK verification adds minimal overhead but ensures secure authentication
+- Phone number validation: Regex validation adds minimal overhead but ensures data quality for SMS/WhatsApp notifications
+- Email validation: Comprehensive regex pattern provides good validation with minimal performance impact
+- Middleware overhead: Firebase token verification and user lookup occur on every protected route; ensure efficient database indexing on email, firebaseUid, and ID fields
+- Provider tracking: Additional enum field adds negligible storage overhead but enables powerful authentication method differentiation
+- Verification status tracking: Additional boolean fields add negligible storage overhead but enable sophisticated feature gating capabilities
+- Frontend caching: Local storage persistence reduces repeated authentication flows and improves user experience
 
 ## Troubleshooting Guide
 Common issues and resolutions:
+- Firebase ID token required during login:
+  - Cause: Missing idToken in request body
+  - Resolution: Ensure frontend obtains and sends Firebase ID token
+  - Reference: [authController.js:9-11](file://backend/controllers/authController.js#L9-L11)
+
+- Invalid or expired Firebase ID token:
+  - Cause: Token verification fails with Firebase Admin SDK
+  - Resolution: Re-authenticate user and obtain new ID token
+  - Reference: [authController.js:64-67](file://backend/controllers/authController.js#L64-L67), [authMiddleware.js:20-23](file://backend/middleware/authMiddleware.js#L20-L23)
+
+- User not found during token verification:
+  - Cause: User record not found by firebaseUid
+  - Resolution: Ensure user synchronization completed successfully
+  - Reference: [authMiddleware.js:16-18](file://backend/middleware/authMiddleware.js#L16-L18)
+
 - Email already exists during registration:
   - Cause: Duplicate email detected by unique constraint
   - Resolution: Use a different email address
-  - Reference: [authController.js:12-14](file://backend/controllers/authController.js#L12-L14)
+  - Reference: [authController.js:25-27](file://backend/controllers/authController.js#L25-L27)
 
 - Phone number already exists during registration:
   - Cause: Duplicate phone number detected by unique constraint
-  - Resolution: Use a different phone number
-  - Reference: [authController.js:15-17](file://backend/controllers/authController.js#L15-L17)
+  - Resolution: Use a different phone number or leave phone field empty
+  - Reference: [User.js:16-18](file://backend/models/User.js#L16-L18)
 
 - Invalid phone number format:
   - Cause: Phone number doesn't match Indian mobile pattern (10 digits, starts with 6-9)
-  - Resolution: Enter a valid 10-digit Indian mobile number
-  - Reference: [User.js:14-19](file://backend/models/User.js#L14-L19)
+  - Resolution: Enter a valid 10-digit Indian mobile number or leave empty
+  - Reference: [User.js:17-18](file://backend/models/User.js#L17-L18)
 
 - Invalid email format:
   - Cause: Email doesn't match comprehensive regex pattern
   - Resolution: Enter a valid email address format
-  - Reference: [User.js:6-13](file://backend/models/User.js#L6-L13)
-
-- Invalid credentials on login:
-  - Cause: Email not found or password mismatch
-  - Resolution: Verify email and password; ensure bcrypt hashing is functioning
-  - Reference: [authController.js:40-44](file://backend/controllers/authController.js#L40-L44), [User.js:31-33](file://backend/models/User.js#L31-L33)
-
-- Not authorized (missing or invalid token):
-  - Cause: Missing Authorization header or invalid/expired token
-  - Resolution: Include a valid Bearer token; ensure JWT_SECRET is configured
-  - Reference: [authMiddleware.js:5-6](file://backend/middleware/authMiddleware.js#L5-L6), [authMiddleware.js:12-14](file://backend/middleware/authMiddleware.js#L12-L14)
+  - Reference: [User.js:11](file://backend/models/User.js#L11)
 
 - Access denied (not admin):
   - Cause: Non-admin user attempts admin-only endpoint
   - Resolution: Authenticate as an admin user or adjust permissions
-  - Reference: [authMiddleware.js:17-20](file://backend/middleware/authMiddleware.js#L17-L20)
+  - Reference: [authMiddleware.js:26-32](file://backend/middleware/authMiddleware.js#L26-L32)
+
+- Firebase configuration errors:
+  - Cause: Missing or invalid Firebase environment variables
+  - Resolution: Verify FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
+  - Reference: [firebase.js:4-10](file://backend/config/firebase.js#L4-L10)
 
 - Database connection errors:
   - Cause: MONGO_URI misconfiguration or unreachable database
@@ -467,4 +523,4 @@ Common issues and resolutions:
   - Reference: [whatsappService.js:14-15](file://backend/utils/whatsappService.js#L14-L15)
 
 ## Conclusion
-The User model now enforces comprehensive validation and security through enhanced phone number validation for Indian mobile numbers, comprehensive email validation patterns, unique constraints on both email and phone, enum-based roles, bcryptjs hashing, and JWT-based authentication. The addition of verification status tracking enables sophisticated feature gating and progressive user engagement. The pre-save middleware guarantees secure password storage, while middleware layers provide robust RBAC for protected routes. The integration with email and WhatsApp services enhances user experience through timely notifications. Following the documented examples and best practices ensures reliable user management, secure access control, and proper validation across the application.
+The User model now reflects a complete Firebase Authentication migration with comprehensive validation and security through Firebase token-based authentication, provider tracking for different authentication methods, enhanced phone number validation for Indian mobile numbers, comprehensive email validation patterns, unique constraints on both email and phone, enum-based roles, and Firebase UID linking for user account consolidation. The removal of bcryptjs dependency and password hashing requirement simplifies the authentication flow while leveraging Firebase's secure token system. The addition of provider tracking enables sophisticated user management across multiple authentication providers, while middleware layers provide robust RBAC for protected routes. The integration with email and WhatsApp services enhances user experience through timely notifications. Following the documented examples and best practices ensures reliable user management, secure access control, proper validation across the application, and seamless Firebase authentication integration.

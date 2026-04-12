@@ -5,8 +5,10 @@ import toast from 'react-hot-toast';
 import AdminOrders from '../components/admin/AdminOrders';
 import CategoryManagement from '../components/admin/CategoryManagement';
 import { getImageUrl } from '../utils/imageHelper';
+import { useAuth } from '../context/AuthContext';
 
 export default function AdminDashboard() {
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('products');
   const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -56,35 +58,25 @@ export default function AdminDashboard() {
   }, [activeTab]);
 
   const checkAdmin = () => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const adminSession = localStorage.getItem('adminSession');
-    
-    // Check if admin session exists and is still valid
-    if (!adminSession || !user || user.role !== 'admin') {
+    // Check if user exists and is admin
+    if (!user || user.role !== 'admin') {
       toast.error('Admin access required. Please login again.');
       navigate('/login');
-      return false;
-    }
-    
-    // Check if session has expired
-    const sessionTime = parseInt(adminSession);
-    const now = Date.now();
-    if (now - sessionTime > SESSION_TIMEOUT) {
-      toast.error('Session expired. Please login again.');
-      handleLogout();
       return false;
     }
     
     return true;
   };
 
-  const handleLogout = () => {
-    // Clear admin session
-    localStorage.removeItem('adminSession');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    toast.success('Logged out successfully');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Logged out successfully');
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+      navigate('/');
+    }
   };
 
   const fetchProducts = async () => {

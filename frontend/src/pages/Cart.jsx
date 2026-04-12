@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/axios'
 import ImageCarousel from '../components/ImageCarousel'
+import { useCart } from '../context/CartContext'
+import toast from 'react-hot-toast'
 
 export default function Cart() {
+  const { removeFromCart, updateCartUI } = useCart()
   const [cart, setCart] = useState({ items: [] })
   const [loading, setLoading] = useState(true)
   const [pincode, setPincode] = useState('')
@@ -93,6 +96,22 @@ export default function Cart() {
     setCouponInfo(null)
   }
 
+  const handleRemoveItem = async (productId) => {
+    try {
+      await removeFromCart(productId)
+      await updateCartUI()
+      // Update local cart state
+      setCart(prev => ({
+        ...prev,
+        items: prev.items.filter(item => item.productId?._id !== productId)
+      }))
+      toast.success('Item removed from cart')
+    } catch (err) {
+      console.error('Error removing item:', err)
+      toast.error('Failed to remove item')
+    }
+  }
+
   if (loading) return <div className="text-center mt-20 text-slate-500">Loading cart...</div>
 
   return (
@@ -117,7 +136,15 @@ export default function Cart() {
                     <h3 className="font-medium text-slate-900">{item.productId?.name}</h3>
                     <p className="text-slate-500 text-sm mt-1">Qty: {item.quantity}</p>
                   </div>
-                  <p className="font-semibold text-slate-900">₹{(item.productId?.price * item.quantity).toFixed(2)}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold text-slate-900">₹{(item.productId?.price * item.quantity).toFixed(2)}</p>
+                    <button 
+                      onClick={() => handleRemoveItem(item.productId?._id)}
+                      className="text-red-500 hover:text-red-700 text-sm font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

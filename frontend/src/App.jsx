@@ -12,8 +12,8 @@ import Register from './pages/Register'
 import AdminDashboard from './pages/AdminDashboard'
 import Footer from './components/Footer'
 import SplashScreen from './components/SplashScreen'
-import { CartProvider } from './context/CartContext'
-import { useCart } from './context/CartContext'
+import { CartProvider, useCart } from './context/CartContext'
+import { useAuth } from './context/AuthContext'
 
 const SHOP_CONFIG = {
   name: "Trends&Toss",
@@ -24,11 +24,11 @@ const SHOP_CONFIG = {
 // Glassmorphism Navigation Component
 function GlassNav() {
   const { cart } = useCart()
+  const { user, logout } = useAuth()
   const [scrolled, setScrolled] = useState(false)
   const [cartAnimating, setCartAnimating] = useState(false)
   const [prevCartCount, setPrevCartCount] = useState(0)
   
-  const user = JSON.parse(localStorage.getItem('user'))
   const cartCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
   
   useEffect(() => {
@@ -111,9 +111,8 @@ function GlassNav() {
                     </Link>
                   )}
                   <button 
-                    onClick={() => { 
-                      localStorage.removeItem('token'); 
-                      localStorage.removeItem('user'); 
+                    onClick={async () => { 
+                      await logout();
                       window.location.href = '/'; 
                     }} 
                     className="px-5 py-2 rounded-full text-sm font-medium text-red-400/90 hover:text-red-300 hover:bg-red-500/10 transition-all"
@@ -181,12 +180,12 @@ function GlassNav() {
                   <span className="text-[10px] font-medium">Admin</span>
                 </Link>
               ) : (
-                <Link to="/" onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('user'); }} className="flex flex-col items-center gap-1 p-2 text-white/70 hover:text-red-400 transition-colors">
+                <button onClick={async () => { await logout(); window.location.href = '/'; }} className="flex flex-col items-center gap-1 p-2 text-white/70 hover:text-red-400 transition-colors">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                   <span className="text-[10px] font-medium">Logout</span>
-                </Link>
+                </button>
               )
             ) : (
               <Link to="/login" className="flex flex-col items-center gap-1 p-2 text-white/70 hover:text-amber-400 transition-colors">
