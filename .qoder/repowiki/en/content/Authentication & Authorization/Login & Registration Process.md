@@ -6,13 +6,13 @@
 - [authRoutes.js](file://backend/routes/authRoutes.js)
 - [authController.js](file://backend/controllers/authController.js)
 - [User.js](file://backend/models/User.js)
-- [authMiddleware.js](file://backend/middleware/authMiddleware.js)
-- [axios.js](file://frontend/src/api/axios.js)
+- [firebase.js](file://backend/config/firebase.js)
 - [AuthContext.jsx](file://frontend/src/context/AuthContext.jsx)
 - [Register.jsx](file://frontend/src/pages/Register.jsx)
 - [Login.jsx](file://frontend/src/pages/Login.jsx)
 - [App.jsx](file://frontend/src/App.jsx)
 - [firebase.js](file://frontend/src/config/firebase.js)
+- [axios.js](file://frontend/src/api/axios.js)
 - [package.json](file://backend/package.json)
 - [package.json](file://frontend/package.json)
 </cite>
@@ -20,12 +20,12 @@
 ## Update Summary
 **Changes Made**
 - Complete migration to Firebase Authentication system with Firebase ID token verification
-- Removed phone number validation requirements from registration form
-- Enhanced error handling for popup-closed-by-user scenarios in Google authentication
-- Simplified frontend registration form to focus on essential fields (name, email, password)
-- Updated backend authentication flow to work with Firebase user management
-- Integrated Firebase AuthStateListener for automatic session synchronization
 - Removed JWT token generation in favor of Firebase-based authentication
+- Simplified registration form focusing on essential fields (name, email, password)
+- Enhanced error handling for popup-closed-by-user scenarios in Google authentication
+- Integrated Firebase AuthStateListener for automatic session synchronization
+- Updated backend authentication flow to work with Firebase user management
+- Removed phone number validation requirements from registration form
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -53,7 +53,6 @@ S["Express Server<br/>server.js"]
 R["Auth Routes<br/>authRoutes.js"]
 C["Auth Controller<br/>authController.js"]
 M["User Model<br/>User.js"]
-MW["Auth Middleware<br/>authMiddleware.js"]
 FBC["Firebase Admin<br/>firebase.js"]
 end
 subgraph "Frontend"
@@ -66,7 +65,6 @@ APP["App Root<br/>App.jsx"]
 TOAST["Toast Notifications<br/>react-hot-toast"]
 end
 S --> R --> C --> M
-S --> MW
 S --> FBC
 REG --> AX --> R
 LOG --> AX --> R
@@ -82,7 +80,7 @@ REG --> TOAST
 - [authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
 - [authController.js:1-69](file://backend/controllers/authController.js#L1-L69)
 - [User.js:1-30](file://backend/models/User.js#L1-L30)
-- [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
+- [firebase.js:1-13](file://backend/config/firebase.js#L1-L13)
 - [axios.js:1-29](file://frontend/src/api/axios.js#L1-L29)
 - [Register.jsx:1-162](file://frontend/src/pages/Register.jsx#L1-L162)
 - [Login.jsx:1-133](file://frontend/src/pages/Login.jsx#L1-L133)
@@ -95,7 +93,7 @@ REG --> TOAST
 - [authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
 - [authController.js:1-69](file://backend/controllers/authController.js#L1-L69)
 - [User.js:1-30](file://backend/models/User.js#L1-L30)
-- [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
+- [firebase.js:1-13](file://backend/config/firebase.js#L1-L13)
 - [axios.js:1-29](file://frontend/src/api/axios.js#L1-L29)
 - [Register.jsx:1-162](file://frontend/src/pages/Register.jsx#L1-L162)
 - [Login.jsx:1-133](file://frontend/src/pages/Login.jsx#L1-L133)
@@ -284,7 +282,7 @@ SetCtx --> Done
 - [Login.jsx:37-41](file://frontend/src/pages/Login.jsx#L37-L41)
 
 ## Dependency Analysis
-- **Backend Dependencies**: Firebase Admin SDK for ID token verification, MongoDB/Mongoose for user storage, bcryptjs for password hashing (when applicable).
+- **Backend Dependencies**: Firebase Admin SDK for ID token verification, MongoDB/Mongoose for user storage.
 - **Frontend Dependencies**: Firebase SDK for authentication, axios for HTTP requests, react-router-dom for navigation, react-hot-toast for notifications.
 - **Enhanced**: Firebase Admin SDK integration for backend ID token verification.
 - **Enhanced**: AuthStateListener integration for automatic session management.

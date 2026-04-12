@@ -11,23 +11,22 @@
 - [User.js](file://backend/models/User.js)
 - [AuthContext.jsx](file://frontend/src/context/AuthContext.jsx)
 - [axios.js](file://frontend/src/api/axios.js)
-- [api.js](file://frontend/src/services/api.js)
+- [firebase.js](file://frontend/src/config/firebase.js)
 - [Login.jsx](file://frontend/src/pages/Login.jsx)
-- [Register.jsx](file://frontend/src/pages/Register.jsx)
 - [App.jsx](file://frontend/src/App.jsx)
 - [main.jsx](file://frontend/src/main.jsx)
-- [firebase.js](file://frontend/src/config/firebase.js)
 - [package.json](file://backend/package.json)
 - [package.json](file://frontend/package.json)
 </cite>
 
 ## Update Summary
 **Changes Made**
-- Enhanced authentication system documentation with improved validation patterns and error handling
-- Updated Google authentication integration documentation with better user synchronization and photo handling
-- Added comprehensive validation coverage for registration and login endpoints
-- Documented improved error handling strategies and security considerations
-- Updated frontend authentication context implementation with proper AuthProvider wrapper
+- Complete migration to Firebase-only authentication system
+- Elimination of JWT-based authentication flows and middleware
+- Removal of bcrypt password hashing and traditional authentication routes
+- Firebase Authentication with provider-based user management
+- Updated frontend authentication context to work exclusively with Firebase
+- Simplified backend authentication flow using Firebase ID tokens
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -42,12 +41,12 @@
 10. [Conclusion](#conclusion)
 
 ## Introduction
-This document explains the E-commerce App's authentication and authorization system. It covers JWT-based login and registration, token generation and validation, middleware protection, role-based access control (RBAC) for admin routes, session-like client-side state via local storage, and CORS configuration. The system now supports dual authentication methods: traditional email/password authentication and Firebase Google authentication, providing users with flexible login options while maintaining security and seamless user experience.
+This document explains the E-commerce App's authentication and authorization system with Firebase-only authentication. The system has been completely migrated from JWT-based authentication to Firebase Authentication, eliminating bcrypt password hashing, JWT middleware, and traditional authentication routes. The new system focuses solely on Firebase Authentication with provider-based user management, supporting both email/password and Google authentication methods through Firebase services.
 
-**Updated** Enhanced with improved validation patterns, better error handling, and comprehensive Google authentication integration featuring automatic user synchronization and photo management.
+**Updated** Complete migration to Firebase-only authentication system with simplified architecture and enhanced security through Firebase's built-in authentication mechanisms.
 
 ## Project Structure
-The authentication system spans backend Express routes and controllers, MongoDB models with bcrypt hashing, and frontend React context and API interceptors. The system now includes Firebase integration for Google authentication alongside the existing JWT-based authentication flow.
+The authentication system now consists entirely of Firebase-based components spanning backend Express routes and controllers, MongoDB models with provider tracking, and frontend React context and Firebase integration. The system eliminates all JWT dependencies and focuses on seamless Firebase Authentication integration.
 
 ```mermaid
 graph TB
@@ -59,13 +58,12 @@ AC["controllers/authController.js"]
 ADMC["controllers/adminController.js"]
 AMW["middleware/authMiddleware.js"]
 UM["models/User.js"]
+FB["config/firebase.js"]
 end
 subgraph "Frontend"
 AX["api/axios.js"]
-SVC["services/api.js"]
 CTX["context/AuthContext.jsx"]
 LG["pages/Login.jsx"]
-RG["pages/Register.jsx"]
 APP["App.jsx"]
 FC["config/firebase.js"]
 MAIN["main.jsx"]
@@ -76,227 +74,229 @@ ADMR --> AMW
 AC --> UM
 AMW --> UM
 AX --> AC
-SVC --> AC
 CTX --> AX
 CTX --> FC
 LG --> AX
 LG --> FC
-RG --> AX
 APP --> CTX
 MAIN --> CTX
 ```
 
 **Diagram sources**
 - [server.js:1-120](file://backend/server.js#L1-L120)
-- [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
+- [authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
 - [adminRoutes.js:1-19](file://backend/routes/adminRoutes.js#L1-L19)
-- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
+- [authController.js:1-69](file://backend/controllers/authController.js#L1-L69)
 - [adminController.js:1-86](file://backend/controllers/adminController.js#L1-L86)
-- [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
-- [User.js:1-37](file://backend/models/User.js#L1-L37)
-- [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
-- [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [AuthContext.jsx:1-72](file://frontend/src/context/AuthContext.jsx#L1-L72)
-- [Login.jsx:1-128](file://frontend/src/pages/Login.jsx#L1-L128)
-- [Register.jsx:1-113](file://frontend/src/pages/Register.jsx#L1-L113)
-- [App.jsx:1-249](file://frontend/src/App.jsx#L1-L249)
+- [authMiddleware.js:1-33](file://backend/middleware/authMiddleware.js#L1-L33)
+- [User.js:1-30](file://backend/models/User.js#L1-L30)
+- [AuthContext.jsx:1-86](file://frontend/src/context/AuthContext.jsx#L1-L86)
+- [axios.js:1-29](file://frontend/src/api/axios.js#L1-L29)
+- [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
+- [Login.jsx:1-133](file://frontend/src/pages/Login.jsx#L1-L133)
+- [App.jsx:1-248](file://frontend/src/App.jsx#L1-L248)
 - [main.jsx:1-14](file://frontend/src/main.jsx#L1-L14)
-- [firebase.js:1-86](file://frontend/src/config/firebase.js#L1-L86)
 
 **Section sources**
 - [server.js:1-120](file://backend/server.js#L1-L120)
-- [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
+- [authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
 - [adminRoutes.js:1-19](file://backend/routes/adminRoutes.js#L1-L19)
-- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
+- [authController.js:1-69](file://backend/controllers/authController.js#L1-L69)
 - [adminController.js:1-86](file://backend/controllers/adminController.js#L1-L86)
-- [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
-- [User.js:1-37](file://backend/models/User.js#L1-L37)
-- [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
-- [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [AuthContext.jsx:1-72](file://frontend/src/context/AuthContext.jsx#L1-L72)
-- [Login.jsx:1-128](file://frontend/src/pages/Login.jsx#L1-L128)
-- [Register.jsx:1-113](file://frontend/src/pages/Register.jsx#L1-L113)
-- [App.jsx:1-249](file://frontend/src/App.jsx#L1-L249)
+- [authMiddleware.js:1-33](file://backend/middleware/authMiddleware.js#L1-L33)
+- [User.js:1-30](file://backend/models/User.js#L1-L30)
+- [AuthContext.jsx:1-86](file://frontend/src/context/AuthContext.jsx#L1-L86)
+- [axios.js:1-29](file://frontend/src/api/axios.js#L1-L29)
+- [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
+- [Login.jsx:1-133](file://frontend/src/pages/Login.jsx#L1-L133)
+- [App.jsx:1-248](file://frontend/src/App.jsx#L1-L248)
 - [main.jsx:1-14](file://frontend/src/main.jsx#L1-L14)
-- [firebase.js:1-86](file://frontend/src/config/firebase.js#L1-L86)
 
 ## Core Components
-- Backend JWT and routes:
-  - Token signing with a secret and 7-day expiry.
-  - Registration, login, and Google login endpoints with comprehensive validation.
-  - Protected routes with middleware chain: authentication verification followed by admin role check.
-- Backend model and password hashing:
-  - Mongoose User schema with role enum, photo field for profile images, and bcrypt hashing on save.
-  - Password comparison helper method with enhanced validation.
-- Frontend authentication state and HTTP:
-  - React context provider managing user state and login/logout functions including Google authentication.
-  - Axios interceptors attaching Authorization header and handling 401 responses.
-  - Pages for login and registration with dual authentication options.
-- Firebase Integration:
-  - Google OAuth authentication with Firebase.
-  - Seamless user synchronization between Firebase and backend JWT tokens with photo management.
-- **Updated** Enhanced validation patterns and improved error handling throughout the authentication system.
+- **Firebase Authentication Backend**:
+  - Single `/api/auth/firebase-login` endpoint for Firebase ID token verification
+  - User synchronization between Firebase and MongoDB using `firebaseUid`
+  - Provider tracking (google/email) and automatic user creation
+  - No JWT token generation or validation in backend
+- **Firebase Authentication Frontend**:
+  - React context provider managing Firebase authentication state
+  - Seamless integration with Firebase Auth for Google and email/password login
+  - Automatic backend user synchronization on Firebase auth state changes
+  - Request interceptor automatically attaches Firebase ID tokens to outgoing requests
+- **Role-Based Access Control**:
+  - Admin routes protected by Firebase-based middleware chain
+  - Admin role enforcement using Firebase-decoded user data
+  - Simplified middleware using Firebase authentication instead of JWT verification
+- **Enhanced User Model**:
+  - Provider field tracks authentication method (google/email)
+  - Firebase UID field for seamless Firebase-MongoDB integration
+  - Password field optional for Firebase-managed accounts
 
 **Section sources**
-- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
-- [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
-- [adminRoutes.js:1-19](file://backend/routes/adminRoutes.js#L1-L19)
-- [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
-- [User.js:1-37](file://backend/models/User.js#L1-L37)
-- [AuthContext.jsx:1-72](file://frontend/src/context/AuthContext.jsx#L1-L72)
-- [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
-- [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [Login.jsx:1-128](file://frontend/src/pages/Login.jsx#L1-L128)
-- [Register.jsx:1-113](file://frontend/src/pages/Register.jsx#L1-L113)
-- [firebase.js:1-86](file://frontend/src/config/firebase.js#L1-L86)
-- [main.jsx:1-14](file://frontend/src/main.jsx#L1-L14)
+- [authController.js:5-69](file://backend/controllers/authController.js#L5-L69)
+- [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
+- [authMiddleware.js:4-33](file://backend/middleware/authMiddleware.js#L4-L33)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
+- [AuthContext.jsx:8-86](file://frontend/src/context/AuthContext.jsx#L8-L86)
+- [axios.js:8-29](file://frontend/src/api/axios.js#L8-L29)
+- [firebase.js:21-63](file://frontend/src/config/firebase.js#L21-L63)
 
 ## Architecture Overview
-End-to-end authentication flow from frontend to backend and middleware enforcement, including the new Google authentication integration with enhanced validation and error handling.
+End-to-end Firebase-only authentication flow from frontend to backend, eliminating all JWT dependencies and leveraging Firebase's built-in authentication mechanisms.
 
 ```mermaid
 sequenceDiagram
 participant FE as "Frontend App"
-participant AX as "Axios Client"
 participant FB as "Firebase Auth"
+participant AX as "Axios Client"
 participant BE as "Express Server"
-participant AR as "Auth Routes"
 participant AC as "Auth Controller"
 participant UM as "User Model"
-participant AMW as "Auth Middleware"
-FE->>FB : "Google Sign In"
-FB-->>FE : "Firebase user data"
-FE->>AX : "POST /api/auth/google-login {name,email,photo}"
-AX->>BE : "Dispatch to controller"
-BE->>AR : "Dispatch to controller"
-AR->>AC : "googleLogin()"
-AC->>UM : "Find or create user"
-UM-->>AC : "User found/created"
-AC-->>AR : "Issue JWT token"
-AR-->>AX : "{token,user with photo}"
-AX-->>FE : "Store token in localStorage"
+FE->>FB : "Firebase sign in (Google/email)"
+FB-->>FE : "Firebase user with ID token"
+FE->>AX : "POST /api/auth/firebase-login {idToken}"
+AX->>BE : "Dispatch to firebaseLogin()"
+BE->>AC : "firebaseLogin()"
+AC->>FB : "verifyIdToken(idToken)"
+FB-->>AC : "Decoded Firebase user data"
+AC->>UM : "Find/Create user by firebaseUid"
+UM-->>AC : "User object"
+AC-->>BE : "Return user data"
+BE-->>AX : "User data (no JWT token)"
+AX-->>FE : "Store user in localStorage"
 FE-->>FE : "Redirect to home"
 ```
 
 **Diagram sources**
-- [Login.jsx:30-42](file://frontend/src/pages/Login.jsx#L30-L42)
-- [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
-- [firebase.js:20-36](file://frontend/src/config/firebase.js#L20-L36)
-- [authRoutes.js:8](file://backend/routes/authRoutes.js#L8)
-- [authController.js:93-152](file://backend/controllers/authController.js#L93-L152)
+- [AuthContext.jsx:13-29](file://frontend/src/context/AuthContext.jsx#L13-L29)
+- [firebase.js:21-63](file://frontend/src/config/firebase.js#L21-L63)
+- [authController.js:5-69](file://backend/controllers/authController.js#L5-L69)
 - [User.js:21](file://backend/models/User.js#L21)
 
 ## Detailed Component Analysis
 
-### Enhanced Authentication System
-The system now supports two primary authentication methods: traditional JWT-based authentication and Firebase Google authentication, with comprehensive validation patterns and improved error handling throughout the authentication flow.
+### Firebase-Only Authentication System
+The system now operates entirely on Firebase Authentication with no JWT dependencies. Users authenticate through Firebase services and are synchronized with the backend MongoDB user collection.
 
-#### JWT-Based Authentication Flow
-- Token generation:
-  - Controller signs a JWT with a server secret and 7-day expiry.
-- Token validation:
-  - Middleware extracts Bearer token from Authorization header, verifies signature, loads user without password, and attaches to request.
-- Login and registration:
-  - Registration checks for existing email and phone, validates all required fields, and creates user with hashed password.
-  - Login finds user, compares password, and returns token and user payload with enhanced error handling.
+#### Firebase Authentication Flow
+- **Frontend Authentication**:
+  - Firebase handles all authentication flows (Google OAuth, email/password)
+  - Frontend listens for Firebase auth state changes using `onAuthStateChanged`
+  - Automatic user synchronization when Firebase auth state changes
+- **Backend Synchronization**:
+  - Single endpoint `/api/auth/firebase-login` receives Firebase ID token
+  - Backend verifies token with Firebase Admin SDK
+  - User lookup/creation based on `firebaseUid` field
+  - Provider detection (google vs email) for user management
 
 ```mermaid
 flowchart TD
-Start(["JWT Authentication Request"]) --> CheckAuth["Extract Authorization Header"]
-CheckAuth --> HasToken{"Has Bearer Token?"}
-HasToken --> |No| Unauthorized["401 Not Authorized"]
-HasToken --> |Yes| Verify["Verify JWT Signature"]
-Verify --> Valid{"Valid?"}
-Valid --> |No| InvalidToken["401 Invalid Token"]
-Valid --> |Yes| LoadUser["Load User (exclude password)"]
-LoadUser --> Next["Call next() to protected route"]
-Unauthorized --> End(["Exit"])
-InvalidToken --> End
-Next --> End
+Start(["Firebase Authentication Request"]) --> CheckToken["Receive Firebase ID Token"]
+CheckToken --> VerifyToken["Verify with Firebase Admin"]
+VerifyToken --> DecodeUser["Decode Firebase User Data"]
+DecodeUser --> FindUser["Find user by firebaseUid"]
+FindUser --> UserExists{"User exists?"}
+UserExists --> |Yes| ReturnUser["Return existing user"]
+UserExists --> |No| CreateUser["Create new user with provider"]
+CreateUser --> ReturnUser
+ReturnUser --> End(["Complete Authentication"])
 ```
 
 **Diagram sources**
-- [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
+- [authController.js:13-44](file://backend/controllers/authController.js#L13-L44)
 
-#### Firebase Google Authentication Flow
-- Google OAuth integration:
-  - Frontend initiates Google sign-in via Firebase.
-  - Firebase handles OAuth flow and returns user data.
-  - Frontend sends Firebase user data to backend `/auth/google-login` endpoint.
-  - Backend synchronizes user data and issues JWT token with enhanced validation.
-- User synchronization:
-  - Creates new users with random passwords if they don't exist in database.
-  - Updates existing users with Google profile photos.
-  - Maintains consistent user data across Firebase and backend systems with improved error handling.
+#### Firebase-Based Middleware Protection
+- **Protected Route Flow**:
+  - Frontend automatically attaches Firebase ID tokens to all requests
+  - Backend middleware extracts Bearer token from Authorization header
+  - Firebase Admin SDK verifies token and decodes user data
+  - User lookup by `firebaseUid` and role validation
+- **Admin Access Control**:
+  - Dual middleware chain: `protect` then `isAdmin`
+  - Role-based access control using MongoDB user roles
+  - Firebase token verification replaces JWT signature verification
 
 ```mermaid
 sequenceDiagram
 participant FE as "Frontend"
-participant FB as "Firebase Auth"
 participant AX as "Axios Client"
-participant BE as "Backend Server"
-participant AC as "Auth Controller"
+participant AMW as "Auth Middleware"
+participant FB as "Firebase Admin"
 participant UM as "User Model"
-FE->>FB : "signInWithGoogle()"
-FB-->>FE : "Firebase user data"
-FE->>AX : "POST /auth/google-login"
-AX->>BE : "Dispatch to googleLogin()"
-BE->>AC : "googleLogin()"
-AC->>UM : "Find or create user"
-UM-->>AC : "User object"
-AC-->>BE : "Issue JWT token"
-BE-->>AX : "JWT token + user data"
-AX-->>FE : "Store token in localStorage"
-FE-->>FE : "Redirect to home"
+FE->>AX : "Request with Bearer token"
+AX->>AMW : "protect()"
+AMW->>FB : "verifyIdToken(token)"
+FB-->>AMW : "Decoded user data"
+AMW->>UM : "Find user by firebaseUid"
+UM-->>AMW : "User object"
+AMW->>AMW : "isAdmin() check"
+AMW-->>AX : "Allow or deny"
+AX-->>FE : "Response"
 ```
 
 **Diagram sources**
-- [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
-- [firebase.js:20-36](file://frontend/src/config/firebase.js#L20-L36)
-- [authController.js:93-152](file://backend/controllers/authController.js#L93-L152)
-- [User.js:21](file://backend/models/User.js#L21)
+- [authMiddleware.js:13-32](file://backend/middleware/authMiddleware.js#L13-L32)
 
 **Section sources**
-- [authController.js:93-152](file://backend/controllers/authController.js#L93-L152)
-- [authRoutes.js:8](file://backend/routes/authRoutes.js#L8)
-- [authMiddleware.js:4-15](file://backend/middleware/authMiddleware.js#L4-L15)
-- [User.js:21](file://backend/models/User.js#L21)
-- [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
-- [firebase.js:20-36](file://frontend/src/config/firebase.js#L20-L36)
+- [authController.js:5-69](file://backend/controllers/authController.js#L5-L69)
+- [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
+- [authMiddleware.js:4-33](file://backend/middleware/authMiddleware.js#L4-L33)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
+- [AuthContext.jsx:13-29](file://frontend/src/context/AuthContext.jsx#L13-L29)
+- [axios.js:8-16](file://frontend/src/api/axios.js#L8-L16)
 
-### Enhanced Validation Patterns
-The authentication system now implements comprehensive validation patterns across all endpoints:
+### Enhanced Frontend Authentication Handling
+- **Firebase-First Context Provider**:
+  - Initializes from Firebase auth state instead of localStorage
+  - Automatic user synchronization on Firebase auth changes
+  - Supports both Google and email/password authentication seamlessly
+  - Simplified login/logout functions using Firebase services
+- **Request Interceptor**:
+  - Automatically obtains fresh Firebase ID tokens before each request
+  - Handles 401 responses by clearing user state
+  - Eliminates manual token management and JWT handling
+- **Authentication Pages**:
+  - Login page supports both Google and email/password login
+  - Registration uses Firebase email/password signup
+  - Google login uses Firebase popup authentication
 
-#### Registration Validation
-- All fields (name, email, phone, password) are required
-- Email uniqueness validation with regex pattern matching
-- Phone number validation with Indian phone number format
-- Password strength validation during bcrypt hashing
+```mermaid
+sequenceDiagram
+participant Page as "Login/Register Page"
+participant Ctx as "AuthContext"
+participant FB as "Firebase Auth"
+participant AX as "Axios Client"
+Page->>Ctx : "loginWithGoogle()"
+Ctx->>FB : "signInWithGoogle()"
+FB-->>Ctx : "Firebase user"
+Ctx->>FB : "getIdToken()"
+FB-->>Ctx : "Firebase ID token"
+Ctx->>AX : "POST /auth/firebase-login"
+AX-->>Ctx : "User data"
+Ctx-->>Page : "Set user state"
+```
 
-#### Login Validation
-- Email and password presence validation
-- User existence and password verification
-- Enhanced error messages for different failure scenarios
-
-#### Google Login Validation
-- Email requirement validation
-- Automatic user creation with fallback values
-- Photo URL handling and user profile synchronization
+**Diagram sources**
+- [AuthContext.jsx:63-66](file://frontend/src/context/AuthContext.jsx#L63-L66)
+- [firebase.js:21-29](file://frontend/src/config/firebase.js#L21-L29)
+- [axios.js:9-16](file://frontend/src/api/axios.js#L9-L16)
 
 **Section sources**
-- [authController.js:15-28](file://backend/controllers/authController.js#L15-L28)
-- [authController.js:65-74](file://backend/controllers/authController.js#L65-L74)
-- [authController.js:98-100](file://backend/controllers/authController.js#L98-L100)
-- [User.js:14-19](file://backend/models/User.js#L14-L19)
+- [AuthContext.jsx:8-86](file://frontend/src/context/AuthContext.jsx#L8-L86)
+- [axios.js:1-29](file://frontend/src/api/axios.js#L1-L29)
+- [firebase.js:21-63](file://frontend/src/config/firebase.js#L21-L63)
+- [Login.jsx:30-47](file://frontend/src/pages/Login.jsx#L30-L47)
 
 ### Role-Based Access Control (RBAC)
-- Admin routes apply a middleware chain:
-  - First, authentication middleware ensures a valid token and sets user.
-  - Second, admin middleware enforces role == 'admin'.
-- Admin dashboard endpoints:
-  - Dashboard aggregates counts and revenue.
-  - Orders listing and status update.
-  - User management with enhanced validation and security checks.
+- **Firebase-Based Admin Protection**:
+  - Admin routes apply middleware chain: `protect` then `isAdmin`
+  - `protect` middleware verifies Firebase ID token and loads user by `firebaseUid`
+  - `isAdmin` middleware checks user role in MongoDB
+  - Simplified admin logic using Firebase-decoded user data
+- **Admin Dashboard Endpoints**:
+  - Dashboard aggregation using Firebase-authenticated admin context
+  - User management with Firebase-based authentication
+  - Order management with admin role validation
 
 ```mermaid
 sequenceDiagram
@@ -308,8 +308,11 @@ participant ADMC as "Admin Controller"
 FE->>AX : "GET /api/admin/dashboard"
 AX->>ADMR : "Request"
 ADMR->>AMW : "protect()"
-AMW-->>ADMR : "Attach req.user"
-ADMR->>AMW : "admin()"
+AMW->>FB : "verifyIdToken(token)"
+FB-->>AMW : "Decoded user data"
+AMW->>UM : "Find user by firebaseUid"
+UM-->>AMW : "User object"
+AMW->>AMW : "isAdmin()"
 AMW-->>ADMR : "Allow if role=admin"
 ADMR->>ADMC : "getDashboard()"
 ADMC-->>ADMR : "JSON response"
@@ -318,93 +321,67 @@ AX-->>FE : "Render admin dashboard"
 ```
 
 **Diagram sources**
-- [adminRoutes.js:7-8](file://backend/routes/adminRoutes.js#L7-L8)
-- [authMiddleware.js:17-20](file://backend/middleware/authMiddleware.js#L17-L20)
+- [adminRoutes.js:8](file://backend/routes/adminRoutes.js#L8)
+- [authMiddleware.js:26-32](file://backend/middleware/authMiddleware.js#L26-L32)
 - [adminController.js:5-14](file://backend/controllers/adminController.js#L5-L14)
 
 **Section sources**
 - [adminRoutes.js:1-19](file://backend/routes/adminRoutes.js#L1-L19)
-- [authMiddleware.js:17-20](file://backend/middleware/authMiddleware.js#L17-L20)
+- [authMiddleware.js:26-32](file://backend/middleware/authMiddleware.js#L26-L32)
 - [adminController.js:1-86](file://backend/controllers/adminController.js#L1-L86)
 
-### Frontend Authentication Handling
-- Context provider:
-  - Initializes user from localStorage on mount.
-  - Provides login, logout, and Google authentication functions that persist token and user.
-  - Handles both traditional JWT login and Firebase Google login seamlessly.
-  - Enhanced error handling with proper error propagation.
-- Axios interceptors:
-  - Automatically attach Authorization header for outgoing requests.
-  - On 401, remove token from localStorage.
-- Pages:
-  - Login and Register submit credentials and persist tokens on success.
-  - Login page redesigned with Google button for social authentication.
-
-```mermaid
-sequenceDiagram
-participant Page as "Login/Register Page"
-participant Ctx as "AuthContext"
-participant AX as "Axios Client"
-participant LS as "localStorage"
-Page->>Ctx : "loginWithGoogle()"
-Ctx->>FB : "signInWithGoogle()"
-FB-->>Ctx : "Firebase user data"
-Ctx->>AX : "POST /auth/google-login"
-AX-->>Ctx : "{token,user with photo}"
-Ctx->>LS : "setItem('token', token)"
-Ctx->>LS : "setItem('user', user)"
-Ctx-->>Page : "Set user state"
-```
-
-**Diagram sources**
-- [Login.jsx:30-42](file://frontend/src/pages/Login.jsx#L30-L42)
-- [AuthContext.jsx:26-46](file://frontend/src/context/AuthContext.jsx#L26-L46)
-- [firebase.js:20-36](file://frontend/src/config/firebase.js#L20-L36)
-- [axios.js:4-8](file://frontend/src/api/axios.js#L4-L8)
-
-**Section sources**
-- [AuthContext.jsx:1-72](file://frontend/src/context/AuthContext.jsx#L1-L72)
-- [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
-- [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
-- [Login.jsx:1-128](file://frontend/src/pages/Login.jsx#L1-L128)
-- [Register.jsx:1-113](file://frontend/src/pages/Register.jsx#L1-L113)
-
 ### Protected Route Implementation
-- Admin routes are guarded by a middleware chain applied globally on the router.
-- Any route under /api/admin requires both a valid JWT and admin role.
-- Both JWT and Google-authenticated users can access protected routes after successful authentication.
+- **Firebase-Based Protection**:
+  - Admin routes protected by Firebase middleware chain
+  - Token verification using Firebase Admin SDK instead of JWT
+  - User loading by `firebaseUid` instead of JWT-subject lookup
+  - Both Google and email-authenticated users can access protected routes
+- **Simplified Token Management**:
+  - Frontend automatically manages Firebase ID tokens
+  - Backend verifies tokens with Firebase Admin SDK
+  - No manual token refresh or expiration handling required
 
 **Section sources**
-- [adminRoutes.js:7-8](file://backend/routes/adminRoutes.js#L7-L8)
+- [adminRoutes.js:8](file://backend/routes/adminRoutes.js#L8)
 
 ### Context Provider State Management
-- The AuthContext initializes state from localStorage and exposes login/logout functions.
-- Enhanced with Google authentication support for seamless user experience.
-- The App renders routes including admin and auth pages with dual authentication support.
-- **Updated** Proper AuthProvider wrapper in main.jsx ensures authentication context initialization and resolves context errors throughout the application.
+- **Firebase-First Initialization**:
+  - Context restores user from localStorage cache immediately
+  - Listens for Firebase auth state changes using `onAuthStateChanged`
+  - Automatic user synchronization when Firebase auth state changes
+  - Supports both Google and email/password authentication methods
+- **Enhanced Error Handling**:
+  - Firebase authentication errors handled gracefully
+  - User state cleared on Firebase auth state changes
+  - Proper cleanup of Firebase listeners on component unmount
 
 **Section sources**
-- [AuthContext.jsx:6-72](file://frontend/src/context/AuthContext.jsx#L6-L72)
-- [App.jsx:48-57](file://frontend/src/App.jsx#L48-L57)
-- [main.jsx:7-12](file://frontend/src/main.jsx#L7-L12)
+- [AuthContext.jsx:31-48](file://frontend/src/context/AuthContext.jsx#L31-L48)
+- [App.jsx:16](file://frontend/src/App.jsx#L16)
+- [main.jsx:5-13](file://frontend/src/main.jsx#L5-L13)
 
 ## Dependency Analysis
-- Backend runtime dependencies include Express, jsonwebtoken, bcryptjs, mongoose, and cors.
-- Frontend depends on axios, react-router-dom, and firebase for Google authentication.
-- Inter-module dependencies:
-  - Routes depend on controllers.
-  - Controllers depend on the User model.
-  - Admin routes depend on auth middleware.
-  - Frontend axios interceptors depend on localStorage token.
-  - Frontend AuthContext depends on Firebase configuration for Google authentication.
+- **Backend Dependencies**:
+  - Express, cors, dotenv, mongoose (unchanged)
+  - **New**: Firebase Admin SDK for authentication verification
+  - **Removed**: jsonwebtoken, bcryptjs (no longer needed)
+- **Frontend Dependencies**:
+  - axios, react-router-dom (unchanged)
+  - **New**: Firebase SDK for authentication
+  - **Removed**: jwt-decode, bcrypt (no longer needed)
+- **Inter-Module Dependencies**:
+  - Routes depend on Firebase-based auth controller
+  - Controllers depend on Firebase Admin SDK and User model
+  - Admin routes depend on Firebase-based auth middleware
+  - Frontend axios interceptors depend on Firebase auth state
+  - Frontend AuthContext depends on Firebase configuration
 
 ```mermaid
 graph LR
 PkgB["backend/package.json"] --> EXP["express"]
-PkgB --> JWT["jsonwebtoken"]
-PkgB --> BC["bcryptjs"]
-PkgB --> MNG["mongoose"]
 PkgB --> CRS["cors"]
+PkgB --> MNG["mongoose"]
+PkgB --> FBADM["firebase-admin"]
 PkgF["frontend/package.json"] --> AX["axios"]
 PkgF --> RRD["react-router-dom"]
 PkgF --> FB["firebase"]
@@ -413,7 +390,6 @@ ADMR["adminRoutes.js"] --> AMW["authMiddleware.js"]
 AC --> UM["User.js"]
 AMW --> UM
 AXI["api/axios.js"] --> AC
-AXI --> UM
 FC["config/firebase.js"] --> AC
 MAIN["main.jsx"] --> CTX["AuthContext.jsx"]
 ```
@@ -421,13 +397,13 @@ MAIN["main.jsx"] --> CTX["AuthContext.jsx"]
 **Diagram sources**
 - [package.json:8-28](file://backend/package.json#L8-L28)
 - [package.json:8-27](file://frontend/package.json#L8-L27)
-- [authRoutes.js:1-11](file://backend/routes/authRoutes.js#L1-L11)
+- [authRoutes.js:1-9](file://backend/routes/authRoutes.js#L1-L9)
 - [adminRoutes.js:1-19](file://backend/routes/adminRoutes.js#L1-L19)
-- [authController.js:1-152](file://backend/controllers/authController.js#L1-L152)
-- [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
-- [User.js:1-37](file://backend/models/User.js#L1-L37)
-- [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
-- [firebase.js:1-86](file://frontend/src/config/firebase.js#L1-L86)
+- [authController.js:1-69](file://backend/controllers/authController.js#L1-L69)
+- [authMiddleware.js:1-33](file://backend/middleware/authMiddleware.js#L1-L33)
+- [User.js:1-30](file://backend/models/User.js#L1-L30)
+- [axios.js:1-29](file://frontend/src/api/axios.js#L1-L29)
+- [firebase.js:1-67](file://frontend/src/config/firebase.js#L1-L67)
 - [main.jsx:5](file://frontend/src/main.jsx#L5)
 
 **Section sources**
@@ -435,83 +411,83 @@ MAIN["main.jsx"] --> CTX["AuthContext.jsx"]
 - [package.json:8-27](file://frontend/package.json#L8-L27)
 
 ## Performance Considerations
-- Token lifetime: 7-day expiry balances convenience and risk; consider short-lived access tokens with a separate refresh mechanism for higher security.
-- Password hashing cost: bcrypt cost of 10 is reasonable; monitor CPU usage and adjust as needed.
-- Middleware overhead: Keep token verification lightweight; avoid heavy operations in middleware.
-- Frontend caching: Persist minimal user info in localStorage; fetch fresh data on demand.
-- Firebase authentication: Google OAuth adds minimal overhead as it's handled by Firebase services.
-- User synchronization: Database operations for Google login are optimized to minimize latency with improved validation.
+- **Firebase Authentication Benefits**:
+  - Reduced server-side processing (no JWT signing/verification)
+  - Automatic token refresh handled by Firebase SDK
+  - Built-in rate limiting and security features
+- **Database Operations**:
+  - User lookup by `firebaseUid` is efficient with proper indexing
+  - Provider field optimization for authentication method tracking
+  - Minimal database round trips for authentication operations
+- **Frontend Performance**:
+  - Firebase SDK handles token management automatically
+  - Request interceptor adds minimal overhead
+  - Real-time auth state synchronization reduces redundant API calls
+- **Migration Performance**:
+  - Existing users automatically linked by email if Firebase UID not found
+  - Provider field enables smooth transition from legacy system
 
 ## Security Considerations
-- CORS configuration:
-  - Origins are whitelisted with credentials support and preflight caching.
-  - Ensure FRONTEND_URL matches deployed frontend origin.
-- Token storage:
-  - Store JWT in httpOnly cookies for production to mitigate XSS; current localStorage approach is acceptable for development but risky in production.
-- CSRF protection:
-  - Not currently implemented; consider SameSite cookies, anti-CSRF tokens, or CSRF middleware for production.
-- Secrets and environment:
-  - JWT_SECRET must be strong and rotated periodically.
-  - Firebase configuration is included in the frontend bundle; consider environment-specific configurations.
-- Error handling:
-  - Avoid leaking sensitive data; return generic messages and log internally.
-- Google authentication security:
-  - Firebase handles OAuth security; ensure proper Firebase project configuration.
-  - User data synchronization maintains privacy and security standards.
-- **Updated** Enhanced validation patterns prevent data leakage and improve security posture.
+- **Firebase Authentication Security**:
+  - Built-in OAuth providers with Google's security standards
+  - Firebase Admin SDK provides secure token verification
+  - Automatic token validation and expiration handling
+- **CORS Configuration**:
+  - Production-ready CORS setup with Firebase-compatible origins
+  - Credentials support for Firebase authentication
+  - Vercel preview deployment support
+- **Token Storage**:
+  - Firebase ID tokens managed automatically by Firebase SDK
+  - No custom token storage or JWT management required
+  - Secure token handling through Firebase Auth
+- **Error Handling**:
+  - Firebase authentication errors handled gracefully
+  - Backend token verification errors return appropriate HTTP status codes
+  - User state cleared on authentication failures
+- **Provider-Based Security**:
+  - Provider field enables tracking of authentication method
+  - Google authentication leverages Google's security infrastructure
+  - Email/password authentication handled through Firebase Auth
 
 **Section sources**
 - [server.js:25-64](file://backend/server.js#L25-L64)
-- [AuthContext.jsx:18-27](file://frontend/src/context/AuthContext.jsx#L18-L27)
-- [axios.js:13-15](file://frontend/src/api/axios.js#L13-L15)
+- [authController.js:64-67](file://backend/controllers/authController.js#L64-L67)
+- [AuthContext.jsx:24-28](file://frontend/src/context/AuthContext.jsx#L24-L28)
+- [axios.js:22-26](file://frontend/src/api/axios.js#L22-L26)
 - [firebase.js:4-13](file://frontend/src/config/firebase.js#L4-L13)
 
 ## Troubleshooting Guide
-- 401 Not Authorized:
-  - Missing or malformed Authorization header; ensure frontend sends Bearer token.
-- 401 Invalid token:
-  - Expired or tampered token; re-authenticate.
-- 403 Access denied:
-  - Non-admin user attempting admin route; verify role.
-- 400 Email exists:
-  - Duplicate registration; prompt user to log in.
-- 401 Invalid credentials:
-  - Incorrect email/password; prompt retry.
-- 400 All fields are required:
-  - Registration validation failure; ensure all required fields are provided.
-- 400 Email already registered:
-  - Email uniqueness constraint violation.
-- 400 Phone number already registered:
-  - Phone uniqueness constraint violation.
-- 400 Email is required:
-  - Google login validation failure; ensure email is provided.
-- CORS errors:
-  - Origin not whitelisted; verify FRONTEND_URL and allowed origins.
-- Google login failures:
-  - Firebase authentication errors; check Firebase configuration and network connectivity.
-  - Google OAuth popup blocked; ensure popup blockers are disabled.
-  - User synchronization issues; verify database connection and user creation logic.
-- User photo not updating:
-  - Photo URL not provided by Google; user profile may not have a photo.
-  - Database update errors; check MongoDB connection and user model validation.
-- **Updated** Authentication context errors:
-  - Ensure AuthProvider wrapper is properly implemented in main.jsx.
-  - Verify AuthContext initialization from localStorage on component mount.
-  - Check that all components requiring authentication are wrapped within AuthProvider.
+- **Firebase Authentication Issues**:
+  - Firebase ID token verification failures: Check Firebase Admin SDK configuration
+  - User not found errors: Verify `firebaseUid` field synchronization
+  - Authentication state not persisting: Check `onAuthStateChanged` listener setup
+- **Frontend Authentication Problems**:
+  - Google login popup blocked: Ensure popup blockers are disabled
+  - Email/password authentication failing: Verify Firebase Auth configuration
+  - Token not attaching to requests: Check Firebase auth state and axios interceptor
+- **Backend Authentication Errors**:
+  - 401 Not authorized: Verify Firebase ID token validity
+  - 401 Invalid token: Check Firebase Admin SDK setup and token expiration
+  - User synchronization failures: Verify `firebaseUid` field and user creation logic
+- **CORS and Deployment Issues**:
+  - Origin not whitelisted: Verify Firebase auth domain configuration
+  - Vercel deployment CORS errors: Check preview deployment URL configuration
+  - Production Firebase configuration: Ensure proper environment variables
+- **Migration Issues**:
+  - Existing users not found: Check email-based user linking logic
+  - Provider field not set: Verify provider detection and user update logic
+  - Authentication context errors: Ensure proper AuthProvider wrapper implementation
 
 **Section sources**
-- [authMiddleware.js:5-14](file://backend/middleware/authMiddleware.js#L5-L14)
-- [authController.js:16-18](file://backend/controllers/authController.js#L16-L18)
-- [authController.js:21-27](file://backend/controllers/authController.js#L21-L27)
-- [authController.js:98-100](file://backend/controllers/authController.js#L98-L100)
+- [authMiddleware.js:9-23](file://backend/middleware/authMiddleware.js#L9-L23)
+- [authController.js:9-11](file://backend/controllers/authController.js#L9-L11)
+- [AuthContext.jsx:24-28](file://frontend/src/context/AuthContext.jsx#L24-L28)
+- [firebase.js:21-29](file://frontend/src/config/firebase.js#L21-L29)
 - [server.js:32-64](file://backend/server.js#L32-L64)
-- [AuthContext.jsx:42-45](file://frontend/src/context/AuthContext.jsx#L42-L45)
-- [firebase.js:32-35](file://frontend/src/config/firebase.js#L32-L35)
-- [main.jsx:7-12](file://frontend/src/main.jsx#L7-L12)
 
 ## Conclusion
-The system implements a comprehensive authentication solution with dual authentication methods: JWT-based authentication for traditional email/password login and Firebase Google authentication for social login. The system maintains clean JWT-based flows with bcrypt password hashing and RBAC for admin routes while seamlessly integrating Google OAuth through Firebase. The frontend integrates seamlessly with both authentication methods through a unified AuthContext provider.
+The system has been successfully migrated to a Firebase-only authentication system, eliminating all JWT dependencies and simplifying the authentication architecture. The new system leverages Firebase Authentication's built-in security features while maintaining comprehensive role-based access control through MongoDB user roles. The migration provides enhanced security through Firebase's enterprise-grade authentication infrastructure, simplified token management, and seamless provider-based user synchronization.
 
-**Updated** The enhanced authentication system features improved validation patterns, better error handling, and comprehensive Google authentication integration with automatic user synchronization and photo management. The critical infrastructure improvement involves proper AuthProvider wrapper implementation that ensures authentication context initialization and resolves authentication context errors throughout the application. This enhancement guarantees reliable authentication state management across all application components with robust validation and security measures.
+**Updated** The Firebase-only authentication system represents a significant architectural improvement with enhanced security, simplified token management, and seamless integration between Firebase and MongoDB. The system maintains all existing functionality while providing better performance, security, and developer experience through Firebase's comprehensive authentication platform.
 
-For production, prioritize secure token storage (cookies), CSRF protection, strict secrets management, robust input validation, and proper Firebase configuration management.
+For production deployment, ensure proper Firebase configuration management, monitor authentication metrics, and leverage Firebase's built-in security features for optimal performance and security.

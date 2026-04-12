@@ -17,11 +17,12 @@
 
 ## Update Summary
 **Changes Made**
-- Updated protect middleware implementation to use Firebase ID tokens instead of JWT tokens
+- Complete rewrite of protect middleware to use Firebase ID tokens instead of JWT tokens
+- Firebase Admin SDK integration for token verification and user management
+- User lookup by firebaseUid instead of traditional user ID
 - Enhanced error handling with Firebase-specific error messages
-- Updated middleware architecture to integrate with Firebase Admin SDK
-- Modified user lookup to use firebaseUid instead of traditional user ID
 - Updated authentication flow to support Firebase-based user management
+- Migration from JWT-based authentication to Firebase-only authentication system
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -35,7 +36,7 @@
 9. [Conclusion](#conclusion)
 
 ## Introduction
-This document explains the authentication middleware system that protects routes and manages user sessions in the ecommerce backend using Firebase Authentication. The system has been updated to use Firebase ID tokens for authentication instead of traditional JWT tokens, providing enhanced security and seamless integration with Firebase's authentication infrastructure. It covers:
+This document explains the authentication middleware system that protects routes and manages user sessions in the ecommerce backend using Firebase Authentication. The system has been completely rewritten to use Firebase ID tokens for authentication instead of traditional JWT tokens, providing enhanced security and seamless integration with Firebase's authentication infrastructure. It covers:
 - The protect middleware that validates Firebase ID tokens from Authorization headers, extracts user information, and attaches it to the request object
 - The admin middleware for role-based access control
 - Middleware execution order and enhanced error handling strategies
@@ -92,17 +93,17 @@ C_ADMIN --> M_USER
 ```
 
 **Diagram sources**
-- [server.js:57-63](file://backend/server.js#L57-L63)
-- [adminRoutes.js:3-8](file://backend/routes/adminRoutes.js#L3-L8)
-- [productRoutes.js:9](file://backend/routes/productRoutes.js#L9)
-- [cartRoutes.js:3](file://backend/routes/cartRoutes.js#L3)
-- [orderRoutes.js:11](file://backend/routes/orderRoutes.js#L11)
+- [server.js:73-81](file://backend/server.js#L73-L81)
+- [adminRoutes.js:7-8](file://backend/routes/adminRoutes.js#L7-L8)
+- [productRoutes.js:18-21](file://backend/routes/productRoutes.js#L18-L21)
+- [cartRoutes.js:7-10](file://backend/routes/cartRoutes.js#L7-L10)
+- [orderRoutes.js:15-26](file://backend/routes/orderRoutes.js#L15-L26)
 - [authMiddleware.js:1-33](file://backend/middleware/authMiddleware.js#L1-L33)
 - [firebase.js:1-13](file://backend/config/firebase.js#L1-L13)
-- [User.js:4-9](file://backend/models/User.js#L4-L9)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
 
 **Section sources**
-- [server.js:57-63](file://backend/server.js#L57-L63)
+- [server.js:73-81](file://backend/server.js#L73-L81)
 - [authMiddleware.js:1-33](file://backend/middleware/authMiddleware.js#L1-L33)
 - [firebase.js:1-13](file://backend/config/firebase.js#L1-L13)
 
@@ -120,7 +121,7 @@ Key behaviors:
 
 **Section sources**
 - [authMiddleware.js:4-33](file://backend/middleware/authMiddleware.js#L4-L33)
-- [User.js:4-9](file://backend/models/User.js#L4-L9)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
 - [firebase.js:1-13](file://backend/config/firebase.js#L1-L13)
 
 ## Architecture Overview
@@ -148,7 +149,7 @@ Note over AuthMW,Firebase : "Enhanced error handling for Firebase-specific error
 
 **Diagram sources**
 - [authMiddleware.js:4-33](file://backend/middleware/authMiddleware.js#L4-L33)
-- [User.js:4-9](file://backend/models/User.js#L4-L9)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
 - [firebase.js:1-13](file://backend/config/firebase.js#L1-L13)
 
 ## Detailed Component Analysis
@@ -185,7 +186,7 @@ Attach --> Next["Call next()"]
 
 **Diagram sources**
 - [authMiddleware.js:4-33](file://backend/middleware/authMiddleware.js#L4-L33)
-- [User.js:4-9](file://backend/models/User.js#L4-L9)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
 
 **Section sources**
 - [authMiddleware.js:4-33](file://backend/middleware/authMiddleware.js#L4-L33)
@@ -209,11 +210,11 @@ IsAdmin --> |No| Deny["Respond 403 Access denied.<br/>Admin only."]
 
 **Diagram sources**
 - [authMiddleware.js:26-33](file://backend/middleware/authMiddleware.js#L26-L33)
-- [User.js:8](file://backend/models/User.js#L8)
+- [User.js:22](file://backend/models/User.js#L22)
 
 **Section sources**
 - [authMiddleware.js:26-33](file://backend/middleware/authMiddleware.js#L26-L33)
-- [User.js:8](file://backend/models/User.js#L8)
+- [User.js:22](file://backend/models/User.js#L22)
 
 ### Middleware Execution Order
 There are two primary patterns:
@@ -254,13 +255,13 @@ end
 ```
 
 **Diagram sources**
-- [adminRoutes.js:7-12](file://backend/routes/adminRoutes.js#L7-L12)
+- [adminRoutes.js:7-8](file://backend/routes/adminRoutes.js#L7-L8)
 - [productRoutes.js:18-21](file://backend/routes/productRoutes.js#L18-L21)
 - [cartRoutes.js:7-10](file://backend/routes/cartRoutes.js#L7-L10)
 - [orderRoutes.js:15-26](file://backend/routes/orderRoutes.js#L15-L26)
 
 **Section sources**
-- [adminRoutes.js:7-12](file://backend/routes/adminRoutes.js#L7-L12)
+- [adminRoutes.js:7-8](file://backend/routes/adminRoutes.js#L7-L8)
 - [productRoutes.js:18-21](file://backend/routes/productRoutes.js#L18-L21)
 - [cartRoutes.js:7-10](file://backend/routes/cartRoutes.js#L7-L10)
 - [orderRoutes.js:15-26](file://backend/routes/orderRoutes.js#L15-L26)
@@ -280,8 +281,8 @@ Examples:
 - Payment-related endpoints require authentication
 
 **Section sources**
-- [authRoutes.js:6-7](file://backend/routes/authRoutes.js#L6-L7)
-- [adminRoutes.js:10-12](file://backend/routes/adminRoutes.js#L10-L12)
+- [authRoutes.js:6](file://backend/routes/authRoutes.js#L6)
+- [adminRoutes.js:7-8](file://backend/routes/adminRoutes.js#L7-L8)
 - [productRoutes.js:18-21](file://backend/routes/productRoutes.js#L18-L21)
 - [cartRoutes.js:7-10](file://backend/routes/cartRoutes.js#L7-L10)
 - [orderRoutes.js:15-26](file://backend/routes/orderRoutes.js#L15-L26)
@@ -324,7 +325,7 @@ OR --> AMW
 **Diagram sources**
 - [authMiddleware.js:1-2](file://backend/middleware/authMiddleware.js#L1-L2)
 - [firebase.js:1-13](file://backend/config/firebase.js#L1-L13)
-- [User.js:4-9](file://backend/models/User.js#L4-L9)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
 - [adminRoutes.js:3](file://backend/routes/adminRoutes.js#L3)
 - [productRoutes.js:9](file://backend/routes/productRoutes.js#L9)
 - [cartRoutes.js:3](file://backend/routes/cartRoutes.js#L3)
@@ -333,7 +334,7 @@ OR --> AMW
 **Section sources**
 - [authMiddleware.js:1-2](file://backend/middleware/authMiddleware.js#L1-L2)
 - [firebase.js:1-13](file://backend/config/firebase.js#L1-L13)
-- [User.js:4-9](file://backend/models/User.js#L4-L9)
+- [User.js:25-26](file://backend/models/User.js#L25-L26)
 - [adminRoutes.js:3](file://backend/routes/adminRoutes.js#L3)
 - [productRoutes.js:9](file://backend/routes/productRoutes.js#L9)
 - [cartRoutes.js:3](file://backend/routes/cartRoutes.js#L3)
@@ -386,10 +387,10 @@ Logging and debugging tips:
 - Use structured errors with consistent response format including Firebase-specific error messages
 
 **Section sources**
-- [authMiddleware.js:5-6](file://backend/middleware/authMiddleware.js#L5-L6)
-- [authMiddleware.js:12-14](file://backend/middleware/authMiddleware.js#L12-L14)
-- [authMiddleware.js:17-20](file://backend/middleware/authMiddleware.js#L17-L20)
-- [authMiddleware.js:21-22](file://backend/middleware/authMiddleware.js#L21-L22)
+- [authMiddleware.js:9-11](file://backend/middleware/authMiddleware.js#L9-L11)
+- [authMiddleware.js:20-23](file://backend/middleware/authMiddleware.js#L20-L23)
+- [authMiddleware.js:15-18](file://backend/middleware/authMiddleware.js#L15-L18)
+- [authMiddleware.js:26-32](file://backend/middleware/authMiddleware.js#L26-L32)
 
 ## Conclusion
 **Updated** The authentication middleware system now provides enhanced security through Firebase Authentication integration.

@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -43,8 +43,8 @@ export const signInWithEmail = async (email, password) => {
 export const signUpWithEmail = async (name, email, password) => {
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
-    // Update profile with name
-    await result.user.updateProfile({ displayName: name });
+    // Update profile with name using Firebase v9+ modular API
+    await updateProfile(result.user, { displayName: name });
     return { user: result.user };
   } catch (error) {
     console.error('Sign-up error:', error);

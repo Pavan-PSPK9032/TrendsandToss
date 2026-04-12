@@ -390,7 +390,7 @@ References:
 Note:
 - This section provides guidance for future enhancements; the current codebase relies on Firebase's automatic token management.
 
-### Security Considerations for Firebase Authentication
+## Security Considerations for Firebase Authentication
 - **Firebase token security**:
   - Firebase ID tokens are cryptographically signed and verified server-side
   - Tokens are automatically refreshed by Firebase Auth SDK

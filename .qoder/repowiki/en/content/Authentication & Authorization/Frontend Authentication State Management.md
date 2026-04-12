@@ -10,6 +10,7 @@
 - [authMiddleware.js](file://backend/middleware/authMiddleware.js)
 - [Login.jsx](file://frontend/src/pages/Login.jsx)
 - [navbar.jsx](file://frontend/src/components/navbar.jsx)
+- [firebase.js](file://backend/config/firebase.js)
 </cite>
 
 ## Update Summary
@@ -20,6 +21,7 @@
 - Updated API interceptors to work with Firebase ID tokens from auth.currentUser
 - Implemented real-time authentication state synchronization with Firebase
 - Added comprehensive error handling for Firebase authentication flows
+- Integrated Firebase Admin SDK for backend token verification and user management
 
 ## Table of Contents
 1. [Introduction](#introduction)
