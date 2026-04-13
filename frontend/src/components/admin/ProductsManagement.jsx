@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
+import api from '../../api/axios';
 import toast from 'react-hot-toast';
-import { getImageUrl } from '../utils/imageHelper';
-import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../../utils/imageHelper';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProductsManagement() {
   const { user } = useAuth();
