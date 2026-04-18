@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import api from '../api/axios'
 import ImageCarousel from '../components/ImageCarousel'
 import { useCart } from '../context/CartContext'
 import toast from 'react-hot-toast'
 
 export default function Cart() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const { removeFromCart, updateCartUI } = useCart()
   const [cart, setCart] = useState({ items: [] })
   const [loading, setLoading] = useState(true)
@@ -15,6 +17,21 @@ export default function Cart() {
   const [couponCode, setCouponCode] = useState('')
   const [couponInfo, setCouponInfo] = useState(null)
   const [applyingCoupon, setApplyingCoupon] = useState(false)
+
+  // Handle coupon passed from Coupons page
+  useEffect(() => {
+    if (location.state?.appliedCoupon) {
+      const { appliedCoupon } = location.state
+      setCouponInfo({
+        code: appliedCoupon.code,
+        discountAmount: appliedCoupon.discountAmount,
+        description: appliedCoupon.description
+      })
+      toast.success(`🎉 Coupon ${appliedCoupon.code} applied!`)
+      // Clear the state to prevent re-applying on refresh
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
 
   useEffect(() => {
     fetchCart()
@@ -202,7 +219,18 @@ export default function Cart() {
 
               {/* Coupon Section */}
               <div>
-                <h3 className="font-medium text-slate-900 mb-3">Have a Coupon?</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-slate-900">Have a Coupon?</h3>
+                  <button
+                    onClick={() => navigate('/coupons')}
+                    className="text-sm text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
+                  >
+                    Browse All
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
                 {!couponInfo ? (
                   <div className="flex gap-2">
                     <input

@@ -60,6 +60,23 @@ export const createCoupon = async (req, res) => {
   }
 };
 
+// Get all active coupons (public)
+export const getActiveCoupons = async (req, res) => {
+  try {
+    const coupons = await Coupon.find({ 
+      isActive: true,
+      $or: [
+        { validUntil: null },
+        { validUntil: { $gte: new Date() } }
+      ]
+    }).sort({ createdAt: -1 });
+    
+    res.json(coupons);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch coupons' });
+  }
+};
+
 // Get all coupons (admin only)
 export const getAllCoupons = async (req, res) => {
   try {

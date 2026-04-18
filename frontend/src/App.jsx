@@ -10,6 +10,7 @@ import OrderConfirmation from './pages/OrderConfirmation'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import AdminDashboard from './pages/AdminDashboard'
+import Coupons from './pages/Coupons'
 import Footer from './components/Footer'
 import SplashScreen from './components/SplashScreen'
 import { CartProvider, useCart } from './context/CartContext'
@@ -233,6 +234,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/coupons" element={<Coupons />} />
               </Routes>
             </main>
 
