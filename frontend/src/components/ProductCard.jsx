@@ -90,9 +90,23 @@ export default function ProductCard({ product }) {
           
           {/* Price & Stock */}
           <div className="flex items-center justify-between">
-            <span className="text-lg font-bold text-gray-900">
-              ₹{product.price}
-            </span>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-gray-900">
+                  ₹{product.price}
+                </span>
+                {product.originalPrice && product.originalPrice > product.price && (
+                  <>
+                    <span className="text-sm text-gray-400 line-through">
+                      ₹{product.originalPrice}
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                      {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
             {product.stock > 0 ? (
               <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
                 In Stock

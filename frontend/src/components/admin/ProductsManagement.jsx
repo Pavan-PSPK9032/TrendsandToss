@@ -16,6 +16,7 @@ export default function ProductsManagement() {
     name: '',
     description: '',
     price: '',
+    originalPrice: '',
     category: '',
     stock: ''
   });
@@ -96,6 +97,9 @@ export default function ProductsManagement() {
       formDataToSend.append('name', formData.name);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('price', formData.price);
+      if (formData.originalPrice) {
+        formDataToSend.append('originalPrice', formData.originalPrice);
+      }
       formDataToSend.append('category', formData.category);
       formDataToSend.append('stock', formData.stock);
       images.forEach(image => formDataToSend.append('images', image));
@@ -122,6 +126,7 @@ export default function ProductsManagement() {
       name: product.name,
       description: product.description,
       price: product.price,
+      originalPrice: product.originalPrice || '',
       category: product.category,
       stock: product.stock
     });
@@ -142,7 +147,7 @@ export default function ProductsManagement() {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', description: '', price: '', category: '', stock: '' });
+    setFormData({ name: '', description: '', price: '', originalPrice: '', category: '', stock: '' });
     setImages([]);
     setImagePreviews([]);
     setEditingProduct(null);
@@ -201,7 +206,7 @@ export default function ProductsManagement() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-slate-700 mb-2 font-medium">Price (₹) *</label>
+                <label className="block text-slate-700 mb-2 font-medium">Selling Price (₹) *</label>
                 <input 
                   type="number" 
                   step="0.01" 
@@ -209,6 +214,17 @@ export default function ProductsManagement() {
                   onChange={(e) => setFormData({...formData, price: e.target.value})} 
                   className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                   required 
+                />
+              </div>
+              <div>
+                <label className="block text-slate-700 mb-2 font-medium">MRP (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  value={formData.originalPrice} 
+                  onChange={(e) => setFormData({...formData, originalPrice: e.target.value})} 
+                  className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                  placeholder="Original price before discount"
                 />
               </div>
               <div>
@@ -221,20 +237,21 @@ export default function ProductsManagement() {
                   required 
                 />
               </div>
-              <div>
-                <label className="block text-slate-700 mb-2 font-medium">Category *</label>
-                <select 
-                  value={formData.category} 
-                  onChange={(e) => setFormData({...formData, category: e.target.value})} 
-                  className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="">Select a category</option>
-                  {availableCategories.map(cat => (
-                    <option key={cat._id} value={cat.name}>{cat.icon} {cat.name}</option>
-                  ))}
-                </select>
-              </div>
+            </div>
+
+            <div>
+              <label className="block text-slate-700 mb-2 font-medium">Category *</label>
+              <select 
+                value={formData.category} 
+                onChange={(e) => setFormData({...formData, category: e.target.value})} 
+                className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              >
+                <option value="">Select a category</option>
+                {availableCategories.map(cat => (
+                  <option key={cat._id} value={cat.name}>{cat.icon} {cat.name}</option>
+                ))}
+              </select>
             </div>
 
             <div>

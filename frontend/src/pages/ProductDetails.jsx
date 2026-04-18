@@ -97,6 +97,14 @@ export default function ProductDetails() {
             {/* Price */}
             <div className="flex items-baseline gap-3 mb-6">
               <p className="text-5xl font-bold text-gray-900">₹{product.price}</p>
+              {product.originalPrice && product.originalPrice > product.price && (
+                <>
+                  <p className="text-2xl text-gray-400 line-through">₹{product.originalPrice}</p>
+                  <span className="text-lg font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                    {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                  </span>
+                </>
+              )}
             </div>
             
             {/* Description - Mobile Optimized */}
