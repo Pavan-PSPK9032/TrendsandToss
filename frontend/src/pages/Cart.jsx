@@ -41,15 +41,17 @@ export default function Cart() {
 
   const checkShipping = async () => {
     if (pincode.length !== 6) {
-      alert('Please enter a valid 6-digit pincode')
+      toast.error('Please enter a valid 6-digit pincode')
       return
     }
     
     setCheckingShipping(true)
     try {
+      console.log('🔍 Checking pincode:', pincode)
       const { data } = await api.get(`/shipping/check/${pincode}`)
+      console.log('✅ Shipping data received:', data)
       
-      // Check if order qualifies for free delivery
+      // Check if order qualifies for free delivery (above ₹500)
       const isFree = subtotal >= 500
       const charge = isFree ? 0 : data.charge
       
@@ -59,10 +61,13 @@ export default function Cart() {
         shippingCharge: charge,
         isFree: isFree,
         estimatedDays: data.estimatedDays,
-        message: isFree ? 'FREE delivery on this order!' : data.message
+        message: isFree ? '🎉 FREE delivery on this order!' : data.message
       })
+      
+      toast.success(isFree ? '🎉 You got FREE delivery!' : 'Pincode verified!')
     } catch (err) {
-      alert('Failed to calculate shipping. Please try again.')
+      console.error('❌ Shipping check error:', err)
+      toast.error('Failed to check delivery. Please try again.')
     } finally {
       setCheckingShipping(false)
     }
@@ -70,22 +75,25 @@ export default function Cart() {
 
   const applyCoupon = async () => {
     if (!couponCode.trim()) {
-      alert('Please enter a coupon code')
+      toast.error('Please enter a coupon code')
       return
     }
     
     setApplyingCoupon(true)
     try {
+      console.log('🎫 Applying coupon:', couponCode, 'Subtotal:', subtotal)
       const { data } = await api.post('/coupons/validate', {
         code: couponCode,
         orderValue: subtotal
       })
       
+      console.log('✅ Coupon validated:', data)
       setCouponInfo(data)
-      alert(`✅ Coupon applied! You saved ₹${data.discountAmount}`)
+      toast.success(`🎉 Coupon applied! You saved ₹${data.discountAmount.toFixed(2)}`)
     } catch (err) {
+      console.error('❌ Coupon error:', err)
       setCouponInfo(null)
-      alert(err.response?.data?.error || 'Invalid coupon code')
+      toast.error(err.response?.data?.error || 'Invalid coupon code')
     } finally {
       setApplyingCoupon(false)
     }
@@ -152,6 +160,15 @@ export default function Cart() {
           
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sticky top-4 space-y-6">
+              {/* Free Delivery Banner */}
+              {subtotal < 500 && (
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3">
+                  <p className="text-sm text-amber-800 font-medium">
+                    🚚 Add ₹{(500 - subtotal).toFixed(2)} more for FREE delivery!
+                  </p>
+                </div>
+              )}
+              
               {/* Pincode Checker */}
               <div>
                 <h3 className="font-medium text-slate-900 mb-3">Check Delivery</h3>
@@ -209,7 +226,7 @@ export default function Cart() {
                       <div>
                         <p className="font-semibold text-emerald-800">✅ {couponInfo.code}</p>
                         <p className="text-xs text-emerald-700 mt-1">{couponInfo.description}</p>
-                        <p className="text-sm font-bold text-emerald-800 mt-1">Saved: ₹{couponInfo.discountAmount}</p>
+                        <p className="text-sm font-bold text-emerald-800 mt-1">Saved: ₹{couponInfo.discountAmount.toFixed(2)}</p>
                       </div>
                       <button 
                         onClick={removeCoupon}
