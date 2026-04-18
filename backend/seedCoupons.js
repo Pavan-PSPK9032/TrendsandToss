@@ -1,3 +1,6 @@
+// Run this script to seed coupons in your database
+// Execute: node seedCoupons.js
+
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Coupon from './models/Coupon.js';
@@ -9,12 +12,9 @@ const seedCoupons = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('✅ Connected to MongoDB\n');
 
-    // Check if coupons already exist
-    const existingCount = await Coupon.countDocuments();
-    if (existingCount > 0) {
-      console.log('⚠️  Coupons already exist!');
-      process.exit(0);
-    }
+    // Clear existing coupons
+    await Coupon.deleteMany({});
+    console.log('🗑️  Cleared existing coupons\n');
 
     // Create sample coupons
     const coupons = [
@@ -25,9 +25,9 @@ const seedCoupons = async () => {
         discountValue: 10,
         minOrderValue: 299,
         maxDiscountAmount: 100,
-        usageLimit: 100,
+        usageLimit: 1000,
         isActive: true,
-        validUntil: new Date('2026-12-31')
+        validUntil: new Date('2027-12-31')
       },
       {
         code: 'SAVE50',
@@ -35,9 +35,9 @@ const seedCoupons = async () => {
         discountType: 'fixed',
         discountValue: 50,
         minOrderValue: 499,
-        usageLimit: 200,
+        usageLimit: 500,
         isActive: true,
-        validUntil: new Date('2026-12-31')
+        validUntil: new Date('2027-12-31')
       },
       {
         code: 'MEGA20',
@@ -46,28 +46,42 @@ const seedCoupons = async () => {
         discountValue: 20,
         minOrderValue: 999,
         maxDiscountAmount: 300,
-        usageLimit: 50,
+        usageLimit: 200,
         isActive: true,
-        validUntil: new Date('2026-06-30')
+        validUntil: new Date('2027-06-30')
       },
       {
         code: 'FREESHIP',
-        description: 'Free shipping on any order',
+        description: 'Get ₹50 off (covers shipping cost)',
         discountType: 'fixed',
         discountValue: 50,
         minOrderValue: 199,
         usageLimit: null,
         isActive: true,
-        validUntil: new Date('2026-12-31')
+        validUntil: new Date('2027-12-31')
+      },
+      {
+        code: 'SUPER100',
+        description: 'Flat ₹100 off on orders above ₹999',
+        discountType: 'fixed',
+        discountValue: 100,
+        minOrderValue: 999,
+        usageLimit: 300,
+        isActive: true,
+        validUntil: new Date('2027-12-31')
       }
     ];
 
     await Coupon.insertMany(coupons);
-    console.log('✅ Sample coupons created successfully!\n');
+    console.log('✅ Coupons created successfully!\n');
     console.log('📋 Available Coupons:');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     coupons.forEach(c => {
-      console.log(`   - ${c.code}: ${c.description}`);
+      console.log(`   🎫 ${c.code}`);
+      console.log(`      ${c.description}`);
+      console.log(`      Min order: ₹${c.minOrderValue}\n`);
     });
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     
     process.exit(0);
   } catch (error) {
