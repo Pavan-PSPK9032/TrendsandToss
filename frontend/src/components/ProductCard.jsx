@@ -89,18 +89,18 @@ export default function ProductCard({ product }) {
           </h3>
           
           {/* Price & Stock */}
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-gray-900">
+          <div className="flex items-start justify-between gap-1">
+            <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-base sm:text-lg font-bold text-gray-900">
                   ₹{product.price}
                 </span>
                 {product.originalPrice && product.originalPrice > product.price && (
                   <>
-                    <span className="text-sm text-gray-400 line-through">
+                    <span className="text-xs sm:text-sm text-gray-400 line-through">
                       ₹{product.originalPrice}
                     </span>
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                    <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1 sm:px-1.5 py-0.5 rounded whitespace-nowrap">
                       {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                     </span>
                   </>
@@ -108,11 +108,11 @@ export default function ProductCard({ product }) {
               </div>
             </div>
             {product.stock > 0 ? (
-              <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+              <span className="text-[9px] sm:text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
                 In Stock
               </span>
             ) : (
-              <span className="text-[10px] font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+              <span className="text-[9px] sm:text-[10px] font-medium text-red-600 bg-red-50 px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
                 Sold Out
               </span>
             )}
