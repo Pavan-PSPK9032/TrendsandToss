@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Fix scroll behavior - disable smooth scrolling */
+html {
+  scroll-behavior: auto !important;
+}
+
+/* Optimize image loading */
+img {
+  loading: lazy;
+}

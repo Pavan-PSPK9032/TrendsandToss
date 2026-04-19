@@ -52,7 +52,8 @@ export default function Home() {
       // Fetch products for ALL categories in parallel (much faster!)
       const productPromises = cats.map(async (category) => {
         try {
-          const productsRes = await api.get(`/categories/slug/${category.slug}/products?limit=20`)
+          // Reduced limit to 8 for faster loading
+          const productsRes = await api.get(`/categories/slug/${category.slug}/products?limit=8`)
           return { categoryId: category._id, products: productsRes.data.products }
         } catch (err) {
           console.error(`Error fetching products for ${category.name}:`, err)
