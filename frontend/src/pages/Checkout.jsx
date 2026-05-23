@@ -209,7 +209,7 @@ export default function Checkout() {
               <div className={`mb-4 p-3 text-sm ${shippingInfo.isFree ? 'bg-gold/10 text-navy border border-gold/30' : 'bg-gray-50 text-navy/70 border border-navy/10'}`}>
                 <p className="font-medium">{shippingInfo.message}</p>
                 <p className="text-xs mt-1">
-                  {cartPincode} • {shippingInfo.estimatedDays}
+                  {cartPincode} {String.fromCharCode(8226)} {shippingInfo.estimatedDays}
                 </p>
               </div>
             )}
@@ -260,7 +260,7 @@ export default function Checkout() {
                 <input type="radio" name="payment" value="upi" checked={paymentMethod === 'upi'} onChange={() => setPaymentMethod('upi')} className="text-gold focus:ring-gold" />
                 <div>
                   <div className="font-medium text-navy">Direct UPI Payment</div>
-                  <div className="text-xs text-navy/50">Scan QR or use UPI ID • Manual verification</div>
+                  <div className="text-xs text-navy/50">Scan QR or use UPI ID {String.fromCharCode(8226)} Manual verification</div>
                 </div>
               </label>
               
@@ -283,7 +283,7 @@ export default function Checkout() {
 
             {/* Action Button */}
             {paymentMethod !== 'upi' && (
-              <>
+              <div className="space-y-3">
               <button 
                   onClick={paymentMethod === 'cod' ? handleCODOrder : handleOnlinePayment}
                   disabled={processing || !shippingInfo}
@@ -292,8 +292,9 @@ export default function Checkout() {
                   {processing ? 'Processing...' : paymentMethod === 'cod' ? 'Place Order (COD)' : 'Pay Securely'}
                 </button>
                 
-                <p className="text-[10px] text-center text-navy/30 mt-4 uppercase tracking-widest">Secure SSL Encryption • 30-day returns</p>
-              </>
+                <p className="text-[10px] text-center text-navy/30 mt-4 uppercase tracking-widest">Secure SSL Encryption - 30-day returns</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
