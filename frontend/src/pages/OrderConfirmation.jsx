@@ -7,46 +7,48 @@ export default function OrderConfirmation() {
   if (!order) {
     return (
       <div className="text-center mt-20">
-        <h1 className="text-2xl font-bold mb-4">Order Not Found</h1>
-        <Link to="/" className="text-blue-600 hover:underline">Continue Shopping</Link>
+        <h1 className="font-playfair text-2xl font-semibold text-navy mb-4">Order Not Found</h1>
+        <Link to="/" className="text-gold hover:text-gold-dark font-medium">Continue Shopping</Link>
       </div>
     )
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 text-center">
-      <div className="bg-green-100 text-green-800 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 text-4xl">
-        ✓
+    <div className="max-w-2xl mx-auto p-4 sm:p-6 text-center">
+      <div className="bg-gold/10 text-gold w-20 h-20 flex items-center justify-center mx-auto mb-6">
+        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
       </div>
       
-      <h1 className="text-3xl font-bold mb-2">Order Confirmed! 🎉</h1>
-      <p className="text-gray-600 mb-6">Thank you for your purchase</p>
+      <h1 className="font-playfair text-3xl font-semibold text-navy mb-2">Order Confirmed</h1>
+      <p className="text-navy/50 text-sm tracking-wide mb-8">Thank you for your purchase</p>
       
-      <div className="bg-white rounded-lg shadow p-6 text-left mb-6">
-        <h2 className="font-bold mb-4">Order Details</h2>
-        <div className="space-y-2 text-sm">
+      <div className="bg-white border border-navy/10 p-6 text-left mb-6">
+        <h2 className="font-semibold text-navy text-sm uppercase tracking-widest mb-4">Order Details</h2>
+        <div className="space-y-3 text-sm text-navy/60">
           <div className="flex justify-between">
             <span>Order ID:</span>
-            <span className="font-mono">{order._id}</span>
+            <span className="font-mono text-navy">{order._id}</span>
           </div>
           <div className="flex justify-between">
             <span>Total Amount:</span>
-            <span className="font-bold">${order.totalPrice.toFixed(2)}</span>
+            <span className="font-bold text-navy">Rs.{order.totalPrice.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span>Payment Status:</span>
-            <span className="text-green-600 font-semibold">{order.paymentStatus}</span>
+            <span className="text-gold font-semibold">{order.paymentStatus}</span>
           </div>
           <div className="flex justify-between">
             <span>Order Status:</span>
-            <span className="text-blue-600 font-semibold">{order.orderStatus}</span>
+            <span className="text-navy font-semibold">{order.orderStatus}</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
-        <h3 className="font-semibold mb-2">Shipping To:</h3>
-        <p className="text-sm text-gray-600">
+      <div className="bg-navy/5 border border-navy/10 p-4 mb-6 text-left">
+        <h3 className="font-semibold text-navy text-xs uppercase tracking-widest mb-2">Shipping To:</h3>
+        <p className="text-sm text-navy/60">
           {order.shippingAddress?.fullName}<br/>
           {order.shippingAddress?.address}<br/>
           {order.shippingAddress?.city}, {order.shippingAddress?.state} {order.shippingAddress?.pincode}<br/>
@@ -57,13 +59,13 @@ export default function OrderConfirmation() {
       <div className="flex gap-4 justify-center">
         <Link 
           to="/" 
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-navy text-white px-6 py-3 hover:bg-navy-light transition font-medium text-sm uppercase tracking-widest"
         >
           Continue Shopping
         </Link>
         <Link 
           to="/cart" 
-          className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300"
+          className="border border-navy/20 text-navy px-6 py-3 hover:border-gold hover:text-gold transition font-medium text-sm"
         >
           View Orders
         </Link>

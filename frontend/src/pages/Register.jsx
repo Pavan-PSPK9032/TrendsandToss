@@ -25,7 +25,7 @@ export default function Register() {
     setLoading(true)
     try {
       await register(name, email, password)
-      toast.success('Registration successful! Welcome to Trends & Toss! 🎉')
+      toast.success('Registration successful! Welcome to Trends & Toss!')
       navigate('/')
     } catch (err) {
       toast.error(err.response?.data?.error || 'Registration failed')
@@ -38,7 +38,7 @@ export default function Register() {
     setLoading(true)
     try {
       await loginWithGoogle()
-      toast.success('Signed up with Google successfully! 🎉')
+      toast.success('Signed up with Google successfully!')
       navigate('/')
     } catch (err) {
       // Don't show error if user just closed the popup

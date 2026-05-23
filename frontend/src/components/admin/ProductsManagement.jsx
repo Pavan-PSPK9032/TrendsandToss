@@ -172,111 +172,113 @@ export default function ProductsManagement() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  if (loading) return <div className="text-center mt-20">Loading products...</div>;
+  if (loading) return <div className="text-center mt-20 text-navy/40 tracking-wide">Loading products...</div>;
 
   return (
     <div className="max-w-7xl mx-auto p-4">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Products Management</h1>
-          <p className="text-slate-600 mt-1">Total: {totalProducts} products</p>
+          <h1 className="font-playfair text-3xl font-semibold text-navy">Products Management</h1>
+          <p className="text-navy/50 text-sm mt-1">Total: {totalProducts} products</p>
         </div>
-        <button 
-          onClick={() => setShowForm(!showForm)} 
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-indigo-700 font-medium shadow-lg"
-        >
-          {showForm ? '✕ Cancel' : '+ Add New Product'}
-        </button>
-        {products.length > 0 && (
-          <button
-            onClick={handleDeleteAll}
-            className="bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-3 rounded-lg hover:from-red-700 hover:to-rose-700 font-medium shadow-lg"
+        <div className="flex gap-3">
+          <button 
+            onClick={() => setShowForm(!showForm)} 
+            className="bg-navy text-white px-6 py-3 hover:bg-navy-light font-medium text-sm uppercase tracking-widest"
           >
-            Delete All Products
+            {showForm ? 'Cancel' : '+ Add New Product'}
           </button>
-        )}
+          {products.length > 0 && (
+            <button
+              onClick={handleDeleteAll}
+              className="bg-red-600 text-white px-6 py-3 hover:bg-red-700 font-medium text-sm uppercase tracking-widest"
+            >
+              Delete All Products
+            </button>
+          )}
+        </div>
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-slate-200">
-          <h2 className="text-2xl font-bold mb-6 text-slate-900">
-            {editingProduct ? '✏️ Edit Product' : '➕ Add New Product'}
+        <div className="bg-white border border-navy/10 p-6 mb-8">
+          <h2 className="font-semibold text-navy text-sm uppercase tracking-widest mb-6">
+            {editingProduct ? 'Edit Product' : 'Add New Product'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-slate-700 mb-2 font-medium">Product Name *</label>
+              <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">Product Name *</label>
               <input 
                 type="text" 
                 value={formData.name} 
                 onChange={(e) => setFormData({...formData, name: e.target.value})} 
-                className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                className="w-full border border-navy/20 p-3 focus:ring-2 focus:ring-gold focus:outline-none text-navy text-sm" 
                 required 
               />
             </div>
             
             <div>
-              <label className="block text-slate-700 mb-2 font-medium">Description *</label>
+              <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">Description *</label>
               <textarea 
                 value={formData.description} 
                 onChange={(e) => setFormData({...formData, description: e.target.value})} 
-                className="w-full border border-slate-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                className="w-full border border-navy/20 p-3 focus:ring-2 focus:ring-gold focus:outline-none text-navy text-sm h-24" 
                 required 
               />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-slate-700 mb-2 font-medium">Selling Price (₹) *</label>
+                <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">Selling Price (Rs.) *</label>
                 <input 
                   type="number" 
                   step="0.01" 
                   value={formData.price} 
                   onChange={(e) => setFormData({...formData, price: e.target.value})} 
-                  className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                  className="w-full border border-navy/20 p-3 focus:ring-2 focus:ring-gold focus:outline-none text-navy text-sm" 
                   required 
                 />
               </div>
               <div>
-                <label className="block text-slate-700 mb-2 font-medium">MRP (₹) <span className="text-slate-500 font-normal">(Optional)</span></label>
+                <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">MRP (Rs.)</label>
                 <input 
                   type="number" 
                   step="0.01" 
                   value={formData.originalPrice} 
                   onChange={(e) => setFormData({...formData, originalPrice: e.target.value})} 
-                  className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                  className="w-full border border-navy/20 p-3 focus:ring-2 focus:ring-gold focus:outline-none text-navy text-sm" 
                   placeholder="Original price before discount"
                 />
               </div>
               <div>
-                <label className="block text-slate-700 mb-2 font-medium">Stock *</label>
+                <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">Stock *</label>
                 <input 
                   type="number" 
                   value={formData.stock} 
                   onChange={(e) => setFormData({...formData, stock: e.target.value})} 
-                  className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                  className="w-full border border-navy/20 p-3 focus:ring-2 focus:ring-gold focus:outline-none text-navy text-sm" 
                   required 
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-slate-700 mb-2 font-medium">Category *</label>
+              <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">Category *</label>
               <select 
                 value={formData.category} 
                 onChange={(e) => setFormData({...formData, category: e.target.value})} 
-                className="w-full border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full border border-navy/20 p-3 focus:ring-2 focus:ring-gold focus:outline-none text-navy text-sm"
                 required
               >
                 <option value="">Select a category</option>
                 {availableCategories.map(cat => (
-                  <option key={cat._id} value={cat.name}>{cat.icon} {cat.name}</option>
+                  <option key={cat._id} value={cat.name}>{cat.name}</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-slate-700 mb-2 font-medium">Product Images ({imagePreviews.length}/3)</label>
-              <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-blue-500 transition">
+              <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">Product Images ({imagePreviews.length}/3)</label>
+              <div className="border-2 border-dashed border-navy/20 p-6 text-center hover:border-gold transition">
                 <input 
                   type="file" 
                   multiple 
@@ -286,21 +288,21 @@ export default function ProductsManagement() {
                   id="image-upload" 
                   disabled={imagePreviews.length >= 3} 
                 />
-                <label htmlFor="image-upload" className="cursor-pointer text-blue-600 hover:text-blue-700 font-medium">
-                  {imagePreviews.length >= 3 ? 'Maximum 3 images reached' : '📷 Click to upload images'}
+                <label htmlFor="image-upload" className="cursor-pointer text-gold hover:text-gold-dark font-medium text-sm">
+                  {imagePreviews.length >= 3 ? 'Maximum 3 images reached' : 'Click to upload images'}
                 </label>
               </div>
               {imagePreviews.length > 0 && (
                 <div className="grid grid-cols-3 gap-4 mt-4">
                   {imagePreviews.map((preview, index) => (
                     <div key={index} className="relative group">
-                      <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-32 object-cover rounded-lg" />
+                      <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-32 object-cover border border-navy/10" />
                       <button 
                         type="button" 
                         onClick={() => removeImage(index)} 
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 opacity-0 group-hover:opacity-100 transition"
+                        className="absolute top-2 right-2 bg-red-600 text-white w-8 h-8 flex items-center justify-center hover:bg-red-700 opacity-0 group-hover:opacity-100 transition"
                       >
-                        ×
+                        x
                       </button>
                     </div>
                   ))}
@@ -312,14 +314,14 @@ export default function ProductsManagement() {
               <button 
                 type="submit" 
                 disabled={uploading} 
-                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg hover:from-green-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 font-medium shadow-lg"
+                className="flex-1 bg-gold text-white py-3 hover:bg-gold-dark disabled:opacity-40 font-medium text-sm uppercase tracking-widest"
               >
-                {uploading ? '⏳ Uploading...' : editingProduct ? '💾 Update Product' : '➕ Add Product'}
+                {uploading ? 'Uploading...' : editingProduct ? 'Update Product' : 'Add Product'}
               </button>
               <button 
                 type="button" 
                 onClick={resetForm} 
-                className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-lg hover:bg-slate-300 font-medium"
+                className="flex-1 bg-navy/10 text-navy py-3 hover:bg-navy/20 font-medium text-sm"
               >
                 Cancel
               </button>
@@ -329,37 +331,37 @@ export default function ProductsManagement() {
       )}
 
       {/* Products Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
+      <div className="bg-white border border-navy/10 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gradient-to-r from-slate-50 to-slate-100">
+            <thead className="bg-navy/5">
               <tr>
-                <th className="p-4 text-left font-semibold text-slate-700">Product</th>
-                <th className="p-4 text-left font-semibold text-slate-700">Category</th>
-                <th className="p-4 text-left font-semibold text-slate-700">Price</th>
-                <th className="p-4 text-left font-semibold text-slate-700">Stock</th>
-                <th className="p-4 text-left font-semibold text-slate-700">Actions</th>
+                <th className="p-4 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Product</th>
+                <th className="p-4 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Category</th>
+                <th className="p-4 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Price</th>
+                <th className="p-4 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Stock</th>
+                <th className="p-4 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Actions</th>
               </tr>
             </thead>
             <tbody>
               {currentProducts.map(product => (
-                <tr key={product._id} className="border-t border-slate-100 hover:bg-slate-50 transition">
+                <tr key={product._id} className="border-t border-navy/5 hover:bg-navy/[0.02] transition">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
-                      <img src={getImageUrl(product.images?.[0])} alt={product.name} className="w-16 h-16 object-cover rounded-lg" />
+                      <img src={getImageUrl(product.images?.[0])} alt={product.name} className="w-16 h-16 object-cover border border-navy/10" />
                       <div>
-                        <div className="font-semibold text-slate-900">{product.name}</div>
-                        <div className="text-sm text-slate-500 truncate max-w-xs">{product.description}</div>
+                        <div className="font-medium text-navy">{product.name}</div>
+                        <div className="text-sm text-navy/50 truncate max-w-xs">{product.description}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="p-4 capitalize text-slate-700">{product.category}</td>
-                  <td className="p-4 font-semibold text-slate-900">₹{product.price}</td>
+                  <td className="p-4 capitalize text-navy/60 text-sm">{product.category}</td>
+                  <td className="p-4 font-semibold text-navy">Rs.{product.price}</td>
                   <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      product.stock > 10 ? 'bg-green-100 text-green-800' : 
-                      product.stock > 0 ? 'bg-yellow-100 text-yellow-800' : 
-                      'bg-red-100 text-red-800'
+                    <span className={`px-3 py-1 text-sm font-medium border ${
+                      product.stock > 10 ? 'bg-gold/10 text-gold border-gold/30' : 
+                      product.stock > 0 ? 'bg-gold/10 text-gold border-gold/30' : 
+                      'bg-red-50 text-red-600 border-red-200'
                     }`}>
                       {product.stock}
                     </span>
@@ -367,15 +369,15 @@ export default function ProductsManagement() {
                   <td className="p-4">
                     <button 
                       onClick={() => handleEdit(product)} 
-                      className="text-blue-600 hover:text-blue-800 mr-3 font-medium hover:underline"
+                      className="text-gold hover:text-gold-dark mr-3 font-medium text-sm"
                     >
-                      ✏️ Edit
+                      Edit
                     </button>
                     <button 
                       onClick={() => handleDelete(product._id)} 
-                      className="text-red-600 hover:text-red-800 font-medium hover:underline"
+                      className="text-red-500 hover:text-red-700 font-medium text-sm"
                     >
-                      🗑️ Delete
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -385,8 +387,7 @@ export default function ProductsManagement() {
         </div>
         
         {currentProducts.length === 0 && (
-          <div className="text-center py-16 text-slate-500">
-            <div className="text-6xl mb-4">📦</div>
+          <div className="text-center py-16 text-navy/40">
             <p className="text-xl">No products found</p>
             <p className="text-sm mt-2">Click "Add New Product" to create one</p>
           </div>
@@ -399,19 +400,19 @@ export default function ProductsManagement() {
           <button
             onClick={() => paginate(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-4 py-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="px-4 py-2 bg-white border border-navy/20 hover:border-gold text-navy disabled:opacity-40 disabled:cursor-not-allowed font-medium text-sm"
           >
-            ← Previous
+            Previous
           </button>
           
           {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
             <button
               key={page}
               onClick={() => paginate(page)}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
+              className={`px-4 py-2 font-medium text-sm transition ${
                 currentPage === page
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                  : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                  ? 'bg-navy text-white'
+                  : 'bg-white border border-navy/20 text-navy hover:border-gold'
               }`}
             >
               {page}
@@ -421,15 +422,14 @@ export default function ProductsManagement() {
           <button
             onClick={() => paginate(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            className="px-4 py-2 bg-white border border-navy/20 hover:border-gold text-navy disabled:opacity-40 disabled:cursor-not-allowed font-medium text-sm"
           >
-            Next →
+            Next
           </button>
         </div>
       )}
 
-      {/* Page Info */}
-      <div className="text-center mt-4 text-sm text-slate-600">
+      <div className="text-center mt-4 text-sm text-navy/50">
         Showing {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, totalProducts)} of {totalProducts} products
       </div>
     </div>

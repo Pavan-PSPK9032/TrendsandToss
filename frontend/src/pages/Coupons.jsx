@@ -52,9 +52,8 @@ export default function Coupons() {
         orderValue: cartSubtotal
       })
       
-      toast.success(`🎉 Coupon ${data.code} applied! You saved ₹${data.discountAmount.toFixed(2)}`)
+      toast.success(`Coupon ${data.code} applied! You saved Rs.${data.discountAmount.toFixed(2)}`)
       
-      // Navigate to cart with coupon info
       navigate('/cart', { 
         state: { 
           appliedCoupon: {
@@ -80,36 +79,34 @@ export default function Coupons() {
     if (coupon.discountType === 'percentage') {
       return `${coupon.discountValue}% OFF`
     }
-    return `₹${coupon.discountValue} OFF`
+    return `Rs.${coupon.discountValue} OFF`
   }
 
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <div className="text-center mt-20 text-slate-500">Loading coupons...</div>
+        <div className="text-center mt-20 text-navy/40 tracking-wide">Loading coupons...</div>
       </div>
     )
   }
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6">
-      {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-light text-slate-900 mb-2 tracking-tight">Available Coupons</h1>
-        <p className="text-slate-600">
+        <h1 className="font-playfair text-3xl font-semibold text-navy mb-2 tracking-tight">Available Coupons</h1>
+        <p className="text-navy/50 text-sm tracking-wide">
           {cartSubtotal > 0 
-            ? `Your cart subtotal: ₹${cartSubtotal.toFixed(2)} - Apply a coupon to save!` 
+            ? `Your cart subtotal: Rs.${cartSubtotal.toFixed(2)} - Apply a coupon to save!` 
             : 'Add items to your cart to apply coupons'}
         </p>
       </div>
 
-      {/* Coupons List */}
       {coupons.length === 0 ? (
-        <div className="text-center mt-20 p-10 bg-white rounded-2xl shadow-sm border border-slate-100">
-          <p className="text-xl text-slate-600 mb-6 font-light">No coupons available at the moment</p>
+        <div className="text-center mt-20 p-10 bg-white border border-navy/10">
+          <p className="text-xl text-navy/40 mb-6 font-light tracking-wide">No coupons available at the moment</p>
           <button 
             onClick={() => navigate('/')}
-            className="inline-block bg-slate-900 text-white px-8 py-3 rounded-xl hover:bg-slate-800 transition font-medium"
+            className="inline-block bg-navy text-white px-8 py-3 hover:bg-navy-light transition font-medium text-sm uppercase tracking-widest"
           >
             Continue Shopping
           </button>
@@ -119,44 +116,43 @@ export default function Coupons() {
           {coupons.map((coupon) => {
             const applicable = isApplicable(coupon)
             const maxDiscountText = coupon.maxDiscountAmount 
-              ? ` (Max discount: ₹${coupon.maxDiscountAmount})` 
+              ? ` (Max discount: Rs.${coupon.maxDiscountAmount})` 
               : ''
 
             return (
               <div 
                 key={coupon._id}
-                className={`bg-white rounded-2xl shadow-sm border-2 p-6 transition-all hover:shadow-md ${
+                className={`bg-white border-2 p-6 transition-all hover:shadow-lg ${
                   applicable 
-                    ? 'border-amber-400 hover:border-amber-500' 
-                    : 'border-slate-200 opacity-75'
+                    ? 'border-gold hover:border-gold' 
+                    : 'border-navy/10 opacity-60'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  {/* Coupon Info */}
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-slate-900 uppercase tracking-wide">
+                      <h3 className="text-xl font-bold text-navy uppercase tracking-wide">
                         {coupon.code}
                       </h3>
-                      <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      <span className="bg-gold text-white px-3 py-1 text-sm font-semibold">
                         {formatDiscount(coupon)}
                       </span>
                     </div>
                     
-                    <p className="text-slate-600 mb-2">{coupon.description}</p>
+                    <p className="text-navy/60 mb-2 text-sm">{coupon.description}</p>
                     
-                    <div className="flex flex-wrap gap-3 text-sm text-slate-500">
+                    <div className="flex flex-wrap gap-3 text-sm text-navy/50">
                       {coupon.minOrderValue > 0 && (
                         <span className="flex items-center gap-1">
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
                             <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
                           </svg>
-                          Min. order: ₹{coupon.minOrderValue}
+                          Min. order: Rs.{coupon.minOrderValue}
                         </span>
                       )}
                       {coupon.maxDiscountAmount && (
-                        <span>Max discount: ₹{coupon.maxDiscountAmount}</span>
+                        <span>Max discount: Rs.{coupon.maxDiscountAmount}</span>
                       )}
                       {coupon.validUntil && (
                         <span>
@@ -171,15 +167,14 @@ export default function Coupons() {
                     </div>
                   </div>
 
-                  {/* Apply Button */}
                   <div className="sm:ml-4">
                     <button
                       onClick={() => applyCoupon(coupon.code)}
                       disabled={!applicable || applyingCoupon === coupon.code}
-                      className={`px-6 py-3 rounded-xl font-medium transition-all whitespace-nowrap ${
+                      className={`px-6 py-3 font-medium transition-all whitespace-nowrap text-sm uppercase tracking-widest ${
                         applicable
-                          ? 'bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-400'
-                          : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                          ? 'bg-navy text-white hover:bg-navy-light disabled:opacity-40'
+                          : 'bg-navy/10 text-navy/40 cursor-not-allowed'
                       }`}
                     >
                       {applyingCoupon === coupon.code ? (
@@ -193,7 +188,7 @@ export default function Coupons() {
                       ) : applicable ? (
                         'Apply Coupon'
                       ) : (
-                        `Need ₹${(coupon.minOrderValue - cartSubtotal).toFixed(2)} more`
+                        `Need Rs.${(coupon.minOrderValue - cartSubtotal).toFixed(2)} more`
                       )}
                     </button>
                   </div>
@@ -204,11 +199,10 @@ export default function Coupons() {
         </div>
       )}
 
-      {/* Back to Cart Button */}
       <div className="mt-8 text-center">
         <button
           onClick={() => navigate('/cart')}
-          className="inline-flex items-center gap-2 bg-white border-2 border-slate-900 text-slate-900 px-8 py-3 rounded-xl hover:bg-slate-50 transition font-medium"
+          className="inline-flex items-center gap-2 bg-white border-2 border-navy text-navy px-8 py-3 hover:bg-navy hover:text-white transition font-medium text-sm uppercase tracking-widest"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

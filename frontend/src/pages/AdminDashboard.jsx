@@ -230,25 +230,29 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-7xl mx-auto p-4">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <h1 className="font-playfair text-3xl font-semibold text-navy">Admin Dashboard</h1>
         <div className="flex items-center gap-4">
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <button onClick={() => setActiveTab('products')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'products' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-              📦 Products
+          <div className="flex bg-navy/5 p-1">
+            <button onClick={() => setActiveTab('products')} className={`px-4 py-2 font-medium transition text-sm uppercase tracking-widest ${activeTab === 'products' ? 'bg-white shadow text-gold' : 'text-navy/60 hover:text-navy'}`}>
+              <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+              Products
             </button>
-            <button onClick={() => setActiveTab('categories')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'categories' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-              🏷️ Categories
+            <button onClick={() => setActiveTab('categories')} className={`px-4 py-2 font-medium transition text-sm uppercase tracking-widest ${activeTab === 'categories' ? 'bg-white shadow text-gold' : 'text-navy/60 hover:text-navy'}`}>
+              <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+              Categories
             </button>
-            <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'orders' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-              📋 Orders
+            <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 font-medium transition text-sm uppercase tracking-widest ${activeTab === 'orders' ? 'bg-white shadow text-gold' : 'text-navy/60 hover:text-navy'}`}>
+              <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+              Orders
             </button>
-            <button onClick={() => setActiveTab('admins')} className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'admins' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}>
-              👥 Admins
+            <button onClick={() => setActiveTab('admins')} className={`px-4 py-2 font-medium transition text-sm uppercase tracking-widest ${activeTab === 'admins' ? 'bg-white shadow text-gold' : 'text-navy/60 hover:text-navy'}`}>
+              <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" /></svg>
+              Admins
             </button>
           </div>
           <button 
             onClick={handleLogout} 
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+            className="bg-red-600 text-white px-4 py-2 hover:bg-red-700 transition flex items-center gap-2 text-sm uppercase tracking-widest"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -266,9 +270,9 @@ export default function AdminDashboard() {
         <AdminOrders />
       ) : (
         <div className="text-center py-20">
-          <div className="text-6xl mb-4">👥</div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">Admin Management</h2>
-          <p className="text-slate-600">Manage admin users here</p>
+          <svg className="w-16 h-16 mx-auto text-navy/20 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" /></svg>
+          <h2 className="font-playfair text-2xl font-semibold text-navy mb-4">Admin Management</h2>
+          <p className="text-navy/50">Manage admin users here</p>
         </div>
       )}
       

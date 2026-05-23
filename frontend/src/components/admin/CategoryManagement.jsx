@@ -74,76 +74,56 @@ export default function CategoryManagement() {
     setShowForm(false);
   };
 
-  if (loading) return <div className="text-center py-10">Loading categories...</div>;
+  if (loading) return <div className="text-center py-10 text-navy/40 tracking-wide">Loading categories...</div>;
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Category Management</h2>
+        <h2 className="font-playfair text-2xl font-semibold text-navy">Category Management</h2>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition"
+          className="bg-navy text-white px-6 py-2 hover:bg-navy-light transition font-medium text-sm uppercase tracking-widest"
         >
           + Add Category
         </button>
       </div>
 
-      {/* Category Form */}
       {showForm && (
-        <div className="bg-white p-6 rounded-xl shadow-md">
-          <h3 className="text-xl font-semibold mb-4">
+        <div className="bg-white p-6 border border-navy/10">
+          <h3 className="font-semibold text-navy text-sm uppercase tracking-widest mb-4">
             {editingCategory ? 'Edit Category' : 'Add New Category'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category Name *
-              </label>
+              <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">Category Name *</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                placeholder="e.g., Electronics, Clothing, Home Decor"
+                className="w-full p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:outline-none text-navy text-sm"
+                placeholder="e.g., Necklaces, Earrings"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
+              <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">Description</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:outline-none text-navy text-sm"
                 rows="3"
                 placeholder="Brief description of this category"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Icon (Emoji or URL)
-              </label>
-              <input
-                type="text"
-                value={formData.icon}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                placeholder="e.g., 📱 or https://example.com/icon.png"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Display Order
-              </label>
+              <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">Display Order</label>
               <input
                 type="number"
                 value={formData.displayOrder}
                 onChange={(e) => setFormData({ ...formData, displayOrder: e.target.value })}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                className="w-full p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:outline-none text-navy text-sm"
                 placeholder="0 (lower numbers appear first)"
               />
             </div>
@@ -151,14 +131,14 @@ export default function CategoryManagement() {
             <div className="flex gap-3">
               <button
                 type="submit"
-                className="flex-1 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium"
+                className="flex-1 bg-gold text-white py-3 hover:bg-gold-dark transition font-medium text-sm uppercase tracking-widest"
               >
                 {editingCategory ? 'Update Category' : 'Create Category'}
               </button>
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                className="px-6 py-3 border border-navy/20 text-navy hover:bg-navy/5 transition text-sm font-medium"
               >
                 Cancel
               </button>
@@ -167,29 +147,26 @@ export default function CategoryManagement() {
         </div>
       )}
 
-      {/* Categories List */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="bg-white border border-navy/10 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-navy/5">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Icon</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Slug</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Order</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Status</th>
+              <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-widest text-navy/60">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-navy/5">
             {categories.map((category) => (
-              <tr key={category._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 text-2xl">{category.icon || '📦'}</td>
-                <td className="px-6 py-4 font-medium">{category.name}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">{category.slug}</td>
-                <td className="px-6 py-4">{category.displayOrder}</td>
+              <tr key={category._id} className="hover:bg-navy/[0.02]">
+                <td className="px-6 py-4 font-medium text-navy">{category.name}</td>
+                <td className="px-6 py-4 text-sm text-navy/50">{category.slug}</td>
+                <td className="px-6 py-4 text-navy/60">{category.displayOrder}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    category.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  <span className={`px-2 py-1 text-xs font-medium ${
+                    category.isActive ? 'bg-gold/10 text-gold border border-gold/30' : 'bg-red-50 text-red-600 border border-red-200'
                   }`}>
                     {category.isActive ? 'Active' : 'Inactive'}
                   </span>
@@ -197,13 +174,13 @@ export default function CategoryManagement() {
                 <td className="px-6 py-4 text-right space-x-2">
                   <button
                     onClick={() => handleEdit(category)}
-                    className="text-indigo-600 hover:text-indigo-900 font-medium"
+                    className="text-gold hover:text-gold-dark font-medium text-sm"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(category._id)}
-                    className="text-red-600 hover:text-red-900 font-medium"
+                    className="text-red-500 hover:text-red-700 font-medium text-sm"
                   >
                     Delete
                   </button>
@@ -213,7 +190,7 @@ export default function CategoryManagement() {
           </tbody>
         </table>
         {categories.length === 0 && (
-          <div className="text-center py-10 text-gray-500">
+          <div className="text-center py-10 text-navy/40">
             No categories yet. Create your first category!
           </div>
         )}

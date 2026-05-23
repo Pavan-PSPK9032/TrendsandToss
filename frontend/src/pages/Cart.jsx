@@ -27,7 +27,7 @@ export default function Cart() {
         discountAmount: appliedCoupon.discountAmount,
         description: appliedCoupon.description
       })
-      toast.success(`🎉 Coupon ${appliedCoupon.code} applied!`)
+      toast.success(`Coupon ${appliedCoupon.code} applied!`)
       // Clear the state to prevent re-applying on refresh
       window.history.replaceState({}, document.title)
     }
@@ -64,9 +64,9 @@ export default function Cart() {
     
     setCheckingShipping(true)
     try {
-      console.log('🔍 Checking pincode:', pincode)
+      console.log('Checking pincode:', pincode)
       const { data } = await api.get(`/shipping/check/${pincode}`)
-      console.log('✅ Shipping data received:', data)
+      console.log('Shipping data received:', data)
       
       // Check if order qualifies for free delivery (above ₹500)
       const isFree = subtotal >= 500
@@ -78,12 +78,12 @@ export default function Cart() {
         shippingCharge: charge,
         isFree: isFree,
         estimatedDays: data.estimatedDays,
-        message: isFree ? '🎉 FREE delivery on this order!' : data.message
+        message: isFree ? 'FREE delivery on this order!' : data.message
       })
       
-      toast.success(isFree ? '🎉 You got FREE delivery!' : 'Pincode verified!')
+      toast.success(isFree ? 'You got FREE delivery!' : 'Pincode verified!')
     } catch (err) {
-      console.error('❌ Shipping check error:', err)
+      console.error('Shipping check error:', err)
       toast.error('Failed to check delivery. Please try again.')
     } finally {
       setCheckingShipping(false)
@@ -98,17 +98,17 @@ export default function Cart() {
     
     setApplyingCoupon(true)
     try {
-      console.log('🎫 Applying coupon:', couponCode, 'Subtotal:', subtotal)
+      console.log('Applying coupon:', couponCode, 'Subtotal:', subtotal)
       const { data } = await api.post('/coupons/validate', {
         code: couponCode,
         orderValue: subtotal
       })
       
-      console.log('✅ Coupon validated:', data)
+      console.log('Coupon validated:', data)
       setCouponInfo(data)
-      toast.success(`🎉 Coupon applied! You saved ₹${data.discountAmount.toFixed(2)}`)
+      toast.success(`Coupon applied! You saved Rs.${data.discountAmount.toFixed(2)}`)
     } catch (err) {
-      console.error('❌ Coupon error:', err)
+      console.error('Coupon error:', err)
       setCouponInfo(null)
       toast.error(err.response?.data?.error || 'Invalid coupon code')
     } finally {

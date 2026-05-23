@@ -31,7 +31,7 @@ export default function Login() {
     setLoading(true)
     try {
       await loginWithGoogle()
-      toast.success('Login successful with Google! 🎉')
+      toast.success('Login successful with Google!')
       navigate('/')
     } catch (err) {
       // Don't show error if user just closed the popup
