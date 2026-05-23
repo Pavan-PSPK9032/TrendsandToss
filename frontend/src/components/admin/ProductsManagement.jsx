@@ -146,6 +146,18 @@ export default function ProductsManagement() {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (!window.confirm(`Are you sure you want to DELETE ALL ${totalProducts} products? This cannot be undone!`)) return;
+    if (!window.confirm('Final confirmation: This will permanently delete ALL products!')) return;
+    try {
+      await api.delete('/products/all');
+      toast.success('All products deleted successfully!');
+      fetchProducts();
+    } catch (err) {
+      toast.error('Failed to delete all products');
+    }
+  };
+
   const resetForm = () => {
     setFormData({ name: '', description: '', price: '', originalPrice: '', category: '', stock: '' });
     setImages([]);
@@ -175,6 +187,14 @@ export default function ProductsManagement() {
         >
           {showForm ? '✕ Cancel' : '+ Add New Product'}
         </button>
+        {products.length > 0 && (
+          <button
+            onClick={handleDeleteAll}
+            className="bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-3 rounded-lg hover:from-red-700 hover:to-rose-700 font-medium shadow-lg"
+          >
+            Delete All Products
+          </button>
+        )}
       </div>
 
       {showForm && (

@@ -4,7 +4,8 @@ import {
   getProductById, 
   createProduct, 
   updateProduct, 
-  deleteProduct 
+  deleteProduct,
+  deleteAllProducts
 } from '../controllers/productController.js';
 import { protect, isAdmin } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
@@ -18,6 +19,7 @@ router.get('/:id', getProductById);
 // Protected admin routes
 router.post('/', protect, isAdmin, upload.array('images', 3), createProduct);
 router.put('/:id', protect, isAdmin, upload.array('images', 3), updateProduct);
+router.delete('/all', protect, isAdmin, deleteAllProducts);
 router.delete('/:id', protect, isAdmin, deleteProduct);
 
 export default router;

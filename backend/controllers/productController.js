@@ -122,6 +122,17 @@ export const updateProduct = async (req, res) => {
   }
 };
 
+// DELETE ALL products
+export const deleteAllProducts = async (req, res) => {
+  try {
+    const result = await Product.deleteMany({});
+    res.json({ message: `All products deleted successfully`, deletedCount: result.deletedCount });
+  } catch (err) {
+    console.error('Delete all products error:', err);
+    res.status(500).json({ error: err.message || 'Failed to delete all products' });
+  }
+};
+
 // DELETE product
 export const deleteProduct = async (req, res) => {
   try {
