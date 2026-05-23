@@ -283,15 +283,17 @@ export default function Checkout() {
 
             {/* Action Button */}
             {paymentMethod !== 'upi' && (
-            <button 
-                onClick={paymentMethod === 'cod' ? handleCODOrder : handleOnlinePayment}
-                disabled={processing || !shippingInfo}
-                className="w-full bg-navy text-white py-3 font-semibold hover:bg-navy-light disabled:opacity-40 disabled:cursor-not-allowed transition text-sm uppercase tracking-widest"
-              >
-                {processing ? 'Processing...' : paymentMethod === 'cod' ? 'Place Order (COD)' : 'Pay Securely'}
-              </button>
-              
-              <p className="text-[10px] text-center text-navy/30 mt-4 uppercase tracking-widest">Secure SSL Encryption • 30-day returns</p>
+              <>
+              <button 
+                  onClick={paymentMethod === 'cod' ? handleCODOrder : handleOnlinePayment}
+                  disabled={processing || !shippingInfo}
+                  className="w-full bg-navy text-white py-3 font-semibold hover:bg-navy-light disabled:opacity-40 disabled:cursor-not-allowed transition text-sm uppercase tracking-widest"
+                >
+                  {processing ? 'Processing...' : paymentMethod === 'cod' ? 'Place Order (COD)' : 'Pay Securely'}
+                </button>
+                
+                <p className="text-[10px] text-center text-navy/30 mt-4 uppercase tracking-widest">Secure SSL Encryption • 30-day returns</p>
+              </>
           </div>
         </div>
       </div>
