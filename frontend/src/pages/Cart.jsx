@@ -212,7 +212,7 @@ export default function Cart() {
                   <div className={`mt-3 p-3 text-xs sm:text-sm ${shippingInfo.isFree ? 'bg-gold/10 text-navy border border-gold/30' : 'bg-gray-50 text-navy/70 border border-navy/10'}`}>
                     <p className="font-medium">{shippingInfo.message}</p>
                     <p className="text-[10px] sm:text-xs mt-1">
-                      {shippingInfo.isFree ? 'Free' : `₹${shippingInfo.shippingCharge}`} &bull; Delivery in {shippingInfo.estimatedDays}
+                      {shippingInfo.isFree ? 'Free' : `₹${shippingInfo.shippingCharge}`} • Delivery in {shippingInfo.estimatedDays}
                     </p>
                   </div>
                 )}

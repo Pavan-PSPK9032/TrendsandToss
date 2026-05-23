@@ -72,7 +72,7 @@ export default function ManualUPI({ amount, onPaymentComplete }) {
                 toast.error('QR generation failed. Use UPI ID instead.')
               }}
             />
-            <p className="text-xs text-navy/40 mt-3">GPay &bull; PhonePe &bull; Paytm &bull; BHIM</p>
+            <p className="text-xs text-navy/40 mt-3">GPay • PhonePe • Paytm • BHIM</p>
           </div>
         )}
         

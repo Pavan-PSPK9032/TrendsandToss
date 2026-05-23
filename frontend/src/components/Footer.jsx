@@ -133,7 +133,7 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               <span className="text-white/30 text-xs tracking-wider">Secure Payments</span>
               <span className="w-px h-3 bg-white/20"></span>
-              <span className="text-white/30 text-xs tracking-wider">UPI &bull; Cards &bull; Net Banking</span>
+              <span className="text-white/30 text-xs tracking-wider">UPI • Cards • Net Banking</span>
             </div>
           </div>
         </div>
