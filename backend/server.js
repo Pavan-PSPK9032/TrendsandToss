@@ -106,10 +106,22 @@ app.get('/', (req, res) => {
   });
 });
 
-// Error handling middleware
+// Global error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  console.error('Unhandled error:', err.stack || err.message || err);
+  res.status(err.status || 500).json({ 
+    error: err.message || 'Something went wrong!' 
+  });
+});
+
+// Catch uncaught exceptions and rejections
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err.message);
+  process.exit(1);
+});
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled Rejection:', err.message);
+  process.exit(1);
 });
 
 const PORT = process.env.PORT || 5000;
