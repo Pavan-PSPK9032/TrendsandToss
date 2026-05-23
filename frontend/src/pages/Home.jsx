@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom'
 import api from '../api/axios'
 import BannerSlider from '../components/BannerSlider'
 
-// Lazy load ProductCard for better performance
 const ProductCard = lazy(() => import('../components/ProductCard'))
 
-// Skeleton loader component
 function ProductSkeleton() {
   return (
     <div className="animate-pulse">
@@ -34,43 +32,35 @@ export default function Home() {
   const [categories, setCategories] = useState([])
   const [productsByCategory, setProductsByCategory] = useState({})
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
-    fetchData()
+    fetchAll()
   }, [])
 
-  const fetchData = async () => {
+  const fetchAll = async () => {
     try {
       setLoading(true)
-      
-      // Fetch categories first
-      const categoriesRes = await api.get('/categories')
-      const cats = categoriesRes.data.categories
+      // Fetch categories and all products in parallel — just 2 calls
+      const [catRes, prodRes] = await Promise.all([
+        api.get('/categories'),
+        api.get('/products?limit=50')
+      ])
+      const cats = catRes.data.categories
+      const allProducts = prodRes.data.products || []
+
       setCategories(cats)
 
-      // Fetch products for ALL categories in parallel (much faster!)
-      const productPromises = cats.map(async (category) => {
-        try {
-          // Reduced limit to 8 for faster loading
-          const productsRes = await api.get(`/categories/slug/${category.slug}/products?limit=8`)
-          return { categoryId: category._id, products: productsRes.data.products }
-        } catch (err) {
-          console.error(`Error fetching products for ${category.name}:`, err)
-          return { categoryId: category._id, products: [] }
+      // Group products by category name client-side
+      const grouped = {}
+      cats.forEach(cat => { grouped[cat._id] = [] })
+      allProducts.forEach(p => {
+        // Find matching category by name
+        const match = cats.find(c => c.name === p.category)
+        if (match && grouped[match._id]) {
+          grouped[match._id].push(p)
         }
       })
-
-      // Wait for all requests to complete simultaneously
-      const results = await Promise.all(productPromises)
-      
-      // Build products map
-      const productsData = {}
-      results.forEach(({ categoryId, products }) => {
-        productsData[categoryId] = products
-      })
-
-      setProductsByCategory(productsData)
+      setProductsByCategory(grouped)
     } catch (err) {
       console.error('Error fetching data:', err)
     } finally {
@@ -78,29 +68,9 @@ export default function Home() {
     }
   }
 
-  const filteredCategories = categories.filter(cat => {
-    if (!searchTerm.trim()) return true
-    const catProducts = productsByCategory[cat._id] || []
-    return catProducts.some(p => 
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      p.description.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })
-
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6">
       <BannerSlider />
-
-      {/* Search Bar */}
-      <div className="mb-8">
-        <input
-          type="text"
-          placeholder="Search jewellery..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-4 bg-white border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none transition text-navy placeholder-navy/40 text-sm tracking-wide"
-        />
-      </div>
 
       {/* Loading State */}
       {loading ? (
@@ -111,27 +81,20 @@ export default function Home() {
         </div>
       ) : (
         <>
-          {/* Categories with Products */}
-          {filteredCategories.map(category => {
-            const categoryProducts = (productsByCategory[category._id] || []).filter(p =>
-              p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-              p.description.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-
+          {categories.map(category => {
+            const categoryProducts = productsByCategory[category._id] || []
             if (categoryProducts.length === 0) return null
 
             return (
               <div key={category._id} className="mb-14">
-                {/* Category Header */}
                 <div className="flex items-center gap-4 mb-6">
                   <h2 className="font-playfair text-2xl md:text-3xl font-semibold text-navy">{category.name}</h2>
                   <div className="flex-1 h-px bg-gold/30"></div>
                 </div>
 
-                {/* Products Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
                   <Suspense fallback={<ProductSkeleton />}>
-                    {categoryProducts.map(product => (
+                    {categoryProducts.slice(0, 8).map(product => (
                       <div key={product._id}>
                         <ProductCard product={product} />
                       </div>
@@ -142,7 +105,7 @@ export default function Home() {
             )
           })}
 
-          {filteredCategories.length === 0 && (
+          {categories.length === 0 && (
             <div className="text-center mt-20 text-navy/40">
               <p className="text-xl font-light tracking-wide">No products found</p>
             </div>
