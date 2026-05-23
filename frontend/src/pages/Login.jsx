@@ -48,13 +48,14 @@ export default function Login() {
 
   return (
     <div className="max-w-md mx-auto p-4 mt-20">
-      <h1 className="text-3xl font-bold mb-6 text-center">Welcome Back</h1>
+      <h1 className="font-playfair text-3xl font-semibold mb-2 text-center text-navy">Welcome Back</h1>
+      <p className="text-center text-navy/50 text-sm tracking-wide mb-8">Sign in to your account</p>
       
       {/* Google Login Button */}
       <button
         onClick={handleGoogleLogin}
         disabled={loading}
-        className="w-full mb-4 bg-white border-2 border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-3 font-medium disabled:opacity-50"
+        className="w-full mb-4 bg-white border border-navy/20 text-navy py-3 hover:border-gold hover:text-gold transition flex items-center justify-center gap-3 font-medium disabled:opacity-50 text-sm"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -68,40 +69,40 @@ export default function Login() {
       {/* Divider */}
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300"></div>
+          <div className="w-full border-t border-navy/10"></div>
         </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-gray-50 text-gray-500">Or continue with email</span>
+        <div className="relative flex justify-center text-xs">
+          <span className="px-3 bg-white text-navy/40 uppercase tracking-widest">Or continue with email</span>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6">
-        <div className="mb-4">
-          <label className="block text-gray-700 mb-2 font-medium">Email</label>
+      <form onSubmit={handleSubmit} className="bg-white border border-navy/10 p-6 space-y-5">
+        <div>
+          <label className="block text-navy/70 mb-2 text-xs font-semibold uppercase tracking-wider">Email</label>
           <input 
             type="email" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full border border-navy/20 p-3 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none text-navy text-sm"
             placeholder="your@email.com"
             required
           />
         </div>
-        <div className="mb-6">
-          <label className="block text-gray-700 mb-2 font-medium">Password</label>
+        <div>
+          <label className="block text-navy/70 mb-2 text-xs font-semibold uppercase tracking-wider">Password</label>
           <div className="relative">
             <input 
               type={showPassword ? "text" : "password"} 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border rounded-lg p-3 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-navy/20 p-3 pr-10 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none text-navy text-sm"
               placeholder="••••••••"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-navy/40 hover:text-navy"
             >
               {showPassword ? (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,12 +120,13 @@ export default function Login() {
         <button 
           type="submit" 
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50"
+          className="w-full bg-navy text-white py-3 hover:bg-navy-light disabled:opacity-50 transition font-semibold text-sm uppercase tracking-widest"
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
-        <p className="mt-4 text-center text-gray-600">
-          Don't have an account? <Link to="/register" className="text-blue-600 font-medium hover:underline">Register</Link>
+        <p className="text-center text-navy/50 text-sm">
+          Don't have an account?{' '}
+          <Link to="/register" className="text-gold font-semibold hover:text-gold-dark">Register</Link>
         </p>
       </form>
     </div>

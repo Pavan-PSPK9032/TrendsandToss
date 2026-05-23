@@ -137,36 +137,36 @@ export default function Cart() {
     }
   }
 
-  if (loading) return <div className="text-center mt-20 text-slate-500">Loading cart...</div>
+  if (loading) return <div className="text-center mt-20 text-navy/40 tracking-wide">Loading cart...</div>
 
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6">
-      <h1 className="text-3xl font-light text-slate-900 mb-8 tracking-tight">Shopping Bag</h1>
+      <h1 className="font-playfair text-3xl font-semibold text-navy mb-8 tracking-tight">Shopping Bag</h1>
       
       {cart.items.length === 0 ? (
-        <div className="text-center mt-20 p-10 bg-white rounded-2xl shadow-sm border border-slate-100">
-          <p className="text-xl text-slate-600 mb-6 font-light">Your bag is empty</p>
-          <Link to="/" className="inline-block bg-slate-900 text-white px-8 py-3 rounded-xl hover:bg-slate-800 transition font-medium">Continue Shopping</Link>
+        <div className="text-center mt-20 p-10 bg-white border border-navy/10">
+          <p className="text-xl text-navy/40 mb-6 font-light tracking-wide">Your bag is empty</p>
+          <Link to="/" className="inline-block bg-navy text-white px-8 py-3 hover:bg-navy-light transition font-medium text-sm uppercase tracking-widest">Continue Shopping</Link>
         </div>
       ) : (
         <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {cart.items.map(item => (
-              <div key={item.productId?._id} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex gap-4 hover:shadow-md transition">
+              <div key={item.productId?._id} className="bg-white border border-navy/10 p-4 flex gap-4 hover:border-gold/40 transition">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0">
                   <ImageCarousel images={item.productId?.images} alt={item.productId?.name} height="h-full" />
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="font-medium text-slate-900 text-sm sm:text-base">{item.productId?.name}</h3>
-                    <p className="text-slate-500 text-xs sm:text-sm mt-1">Qty: {item.quantity}</p>
+                    <h3 className="font-medium text-navy text-sm sm:text-base">{item.productId?.name}</h3>
+                    <p className="text-navy/40 text-xs sm:text-sm mt-1">Qty: {item.quantity}</p>
                   </div>
                   <div className="flex items-center justify-between mt-2">
-                    <p className="font-semibold text-slate-900 text-sm sm:text-base">₹{(item.productId?.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-semibold text-navy text-sm sm:text-base">₹{(item.productId?.price * item.quantity).toFixed(2)}</p>
                     <button 
                       onClick={() => handleRemoveItem(item.productId?._id)}
-                      className="text-red-500 hover:text-red-700 text-xs sm:text-sm font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition"
+                      className="text-red-500 hover:text-red-700 text-xs sm:text-sm font-medium px-3 py-1 hover:bg-red-50 transition"
                     >
                       Remove
                     </button>
@@ -176,21 +176,21 @@ export default function Cart() {
             ))}
           </div>
           
-          {/* Order Summary Sidebar - Mobile: Full width, Desktop: Sticky sidebar */}
+          {/* Order Summary Sidebar */}
           <div className="lg:col-span-1 order-first lg:order-last mb-6 lg:mb-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 space-y-4 sm:space-y-6 lg:sticky lg:top-4">
+            <div className="bg-white border border-navy/10 p-4 sm:p-6 space-y-4 sm:space-y-6 lg:sticky lg:top-4">
               {/* Free Delivery Banner */}
               {subtotal < 500 && (
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3">
-                  <p className="text-sm text-amber-800 font-medium">
-                    🚚 Add ₹{(500 - subtotal).toFixed(2)} more for FREE delivery!
+                <div className="bg-gold/10 border border-gold/30 p-3">
+                  <p className="text-sm text-navy font-medium">
+                    Add ₹{(500 - subtotal).toFixed(2)} more for FREE delivery!
                   </p>
                 </div>
               )}
               
               {/* Pincode Checker */}
               <div>
-                <h3 className="font-medium text-slate-900 mb-3 text-sm sm:text-base">Check Delivery</h3>
+                <h3 className="font-semibold text-navy mb-3 text-xs uppercase tracking-widest">Check Delivery</h3>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -198,22 +198,21 @@ export default function Cart() {
                     maxLength={6}
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-                    className="flex-1 p-2 sm:p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm"
+                    className="flex-1 p-2 sm:p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:outline-none text-navy text-sm"
                   />
                   <button 
                     onClick={checkShipping}
                     disabled={checkingShipping || pincode.length !== 6}
-                    className="bg-slate-900 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-xl hover:bg-slate-800 disabled:bg-slate-300 transition text-xs sm:text-sm font-medium"
+                    className="bg-navy text-white px-3 sm:px-4 py-2 sm:py-3 hover:bg-navy-light disabled:opacity-40 transition text-xs font-semibold uppercase tracking-wider"
                   >
                     {checkingShipping ? '...' : 'Check'}
                   </button>
                 </div>
                 {shippingInfo && (
-                  <div className={`mt-3 p-3 rounded-xl text-xs sm:text-sm ${shippingInfo.isFree ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-50 text-slate-700'}`}>
+                  <div className={`mt-3 p-3 text-xs sm:text-sm ${shippingInfo.isFree ? 'bg-gold/10 text-navy border border-gold/30' : 'bg-gray-50 text-navy/70 border border-navy/10'}`}>
                     <p className="font-medium">{shippingInfo.message}</p>
                     <p className="text-[10px] sm:text-xs mt-1">
-                      {shippingInfo.isFree ? '✅' : `₹${shippingInfo.shippingCharge} • `}
-                      Delivery in {shippingInfo.estimatedDays}
+                      {shippingInfo.isFree ? 'Free' : `₹${shippingInfo.shippingCharge}`} &bull; Delivery in {shippingInfo.estimatedDays}
                     </p>
                   </div>
                 )}
@@ -222,13 +221,13 @@ export default function Cart() {
               {/* Coupon Section */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-medium text-slate-900 text-sm sm:text-base">Have a Coupon?</h3>
+                  <h3 className="font-semibold text-navy text-xs uppercase tracking-widest">Have a Coupon?</h3>
                   <button
                     onClick={() => navigate('/coupons')}
-                    className="text-xs sm:text-sm text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
+                    className="text-xs text-gold hover:text-gold-dark font-medium flex items-center gap-1"
                   >
                     Browse All
-                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
@@ -240,23 +239,23 @@ export default function Cart() {
                       placeholder="Enter coupon code"
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      className="flex-1 p-2 sm:p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs sm:text-sm uppercase"
+                      className="flex-1 p-2 sm:p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:outline-none text-xs sm:text-sm uppercase text-navy"
                     />
                     <button 
                       onClick={applyCoupon}
                       disabled={applyingCoupon || !couponCode}
-                      className="bg-slate-900 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-xl hover:bg-slate-800 disabled:bg-slate-300 transition text-xs sm:text-sm font-medium"
+                      className="bg-navy text-white px-3 sm:px-4 py-2 sm:py-3 hover:bg-navy-light disabled:opacity-40 transition text-xs font-semibold uppercase tracking-wider"
                     >
                       {applyingCoupon ? '...' : 'Apply'}
                     </button>
                   </div>
                 ) : (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2 sm:p-3">
+                  <div className="bg-gold/10 border border-gold/30 p-2 sm:p-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-emerald-800 text-xs sm:text-sm">✅ {couponInfo.code}</p>
-                        <p className="text-[10px] sm:text-xs text-emerald-700 mt-1">{couponInfo.description}</p>
-                        <p className="text-xs sm:text-sm font-bold text-emerald-800 mt-1">Saved: ₹{couponInfo.discountAmount.toFixed(2)}</p>
+                        <p className="font-bold text-navy text-xs sm:text-sm">{couponInfo.code}</p>
+                        <p className="text-[10px] sm:text-xs text-navy/60 mt-1">{couponInfo.description}</p>
+                        <p className="text-xs sm:text-sm font-bold text-gold mt-1">Saved: ₹{couponInfo.discountAmount.toFixed(2)}</p>
                       </div>
                       <button 
                         onClick={removeCoupon}
@@ -271,37 +270,37 @@ export default function Cart() {
 
               {/* Order Summary */}
               <div>
-                <h2 className="text-lg sm:text-xl font-medium text-slate-900 mb-4">Order Summary</h2>
-                <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 text-slate-600 text-xs sm:text-sm">
-                  <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toFixed(2)}</span></div>
+                <h2 className="text-xs font-bold uppercase tracking-widest text-navy mb-4">Order Summary</h2>
+                <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 text-navy/60 text-xs sm:text-sm">
+                  <div className="flex justify-between"><span>Subtotal</span><span className="text-navy font-medium">₹{subtotal.toFixed(2)}</span></div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span className={shippingInfo?.isFree ? 'text-emerald-600 font-medium' : ''}>
+                    <span className={shippingInfo?.isFree ? 'text-gold font-medium' : ''}>
                       {shippingInfo ? (shippingInfo.isFree ? 'Free' : `₹${shippingInfo.shippingCharge}`) : '-'}
                     </span>
                   </div>
                   {couponInfo && (
-                    <div className="flex justify-between text-emerald-600">
+                    <div className="flex justify-between text-gold">
                       <span>Discount ({couponInfo.code})</span>
                       <span>-₹{couponInfo.discountAmount.toFixed(2)}</span>
                     </div>
                   )}
                 </div>
-                <div className="border-t border-slate-200 pt-3 sm:pt-4 mb-4 sm:mb-6">
+                <div className="border-t border-navy/10 pt-3 sm:pt-4 mb-4 sm:mb-6">
                   <div className="flex justify-between items-center">
-                    <span className="text-base sm:text-lg font-medium text-slate-900">Total</span>
-                    <span className="text-xl sm:text-2xl font-light text-slate-900">₹{total.toFixed(2)}</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-navy">Total</span>
+                    <span className="font-playfair text-2xl font-semibold text-navy">₹{total.toFixed(2)}</span>
                   </div>
                 </div>
                 <Link to="/checkout" state={{ shippingInfo, pincode, couponInfo }}>
                   <button 
                     disabled={!shippingInfo}
-                    className="w-full bg-amber-500 text-white py-2.5 sm:py-3 rounded-xl font-medium hover:bg-amber-600 transition shadow-lg disabled:bg-slate-300 disabled:cursor-not-allowed text-sm sm:text-base"
+                    className="w-full bg-gold text-white py-3 font-semibold hover:bg-gold-dark transition disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm uppercase tracking-widest"
                   >
                     {shippingInfo ? 'Proceed to Checkout' : 'Check Pincode First'}
                   </button>
                 </Link>
-                <p className="text-[10px] sm:text-xs text-center text-slate-400 mt-3 sm:mt-4">🔒 Secure SSL Encryption</p>
+                <p className="text-[10px] sm:text-xs text-center text-navy/30 mt-3 sm:mt-4 uppercase tracking-widest">Secure SSL Encryption</p>
               </div>
             </div>
           </div>

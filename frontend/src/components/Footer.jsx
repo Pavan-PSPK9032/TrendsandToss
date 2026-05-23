@@ -3,17 +3,16 @@ import { Link } from 'react-router-dom'
 export default function Footer() {
   const currentYear = new Date().getFullYear()
 
-  // 🔧 YOUR DETAILS - Already Updated
   const contactInfo = {
     phone: '+91 7396020978',
-    whatsapp: '919032339653', // Numbers only for wa.me links
+    whatsapp: '919032339653',
     email: 'tosstrend6@gmail.com',
     address: '8-28/2 Jayaram Nagar, Quthbullapur, Hyderabad - 500055'
   }
 
   const socialLinks = {
     instagram: 'https://www.instagram.com/trends___toss?igsh=MWJkcnptMnVzbnRpMw==',
-    whatsapp: 'https://wa.me/919032339653' // Direct chat link
+    whatsapp: 'https://wa.me/919032339653'
   }
 
   const quickLinks = [
@@ -33,31 +32,32 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-slate-900 text-white mt-20">
+    <footer className="bg-navy text-white mt-20">
+      {/* Gold top accent line */}
+      <div className="h-px bg-gold w-full"></div>
+
       {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
-          
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+
           {/* Brand & About */}
-          <div className="space-y-4">
-            <h3 className="text-2xl font-light tracking-widest uppercase">Trends&Toss</h3>
-            <p className="text-slate-400 text-sm leading-relaxed">
-              Premium quality products curated for the modern lifestyle. 
-              Experience luxury at affordable prices.
+          <div className="space-y-5">
+            <h3 className="font-playfair text-2xl font-semibold tracking-widest text-white">Trends&amp;Toss</h3>
+            <p className="text-white/50 text-sm leading-relaxed">
+              Premium jewellery curated for the modern lifestyle.
+              Experience luxury at every price.
             </p>
-            
-            {/* Social Media Icons */}
-            <div className="flex gap-4 pt-2">
+            <div className="flex gap-3 pt-1">
               {socialLinks.instagram && (
-                <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" 
-                   className="w-10 h-10 bg-slate-800 hover:bg-amber-500 rounded-full flex items-center justify-center transition-colors text-xs font-medium">
-                  Insta
+                <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer"
+                   className="w-9 h-9 border border-white/20 hover:border-gold hover:text-gold flex items-center justify-center transition-colors text-[10px] font-semibold uppercase tracking-wider text-white/60">
+                  IG
                 </a>
               )}
               {socialLinks.whatsapp && (
-                <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" 
-                   className="w-10 h-10 bg-slate-800 hover:bg-amber-500 rounded-full flex items-center justify-center transition-colors text-xs font-medium">
-                  WhatsApp
+                <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer"
+                   className="w-9 h-9 border border-white/20 hover:border-gold hover:text-gold flex items-center justify-center transition-colors text-[10px] font-semibold uppercase tracking-wider text-white/60">
+                  WA
                 </a>
               )}
             </div>
@@ -65,11 +65,11 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-amber-400">Quick Links</h4>
-            <ul className="space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-widest mb-5 text-gold">Quick Links</h4>
+            <ul className="space-y-3">
               {quickLinks.map(link => (
                 <li key={link.path}>
-                  <Link to={link.path} className="text-slate-400 hover:text-amber-400 transition-colors text-sm">
+                  <Link to={link.path} className="text-white/50 hover:text-gold transition-colors text-sm">
                     {link.name}
                   </Link>
                 </li>
@@ -79,11 +79,11 @@ export default function Footer() {
 
           {/* Customer Service */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-amber-400">Customer Service</h4>
-            <ul className="space-y-2">
+            <h4 className="text-xs font-bold uppercase tracking-widest mb-5 text-gold">Customer Service</h4>
+            <ul className="space-y-3">
               {customerService.map(link => (
                 <li key={link.name}>
-                  <a href={link.path} className="text-slate-400 hover:text-amber-400 transition-colors text-sm">
+                  <a href={link.path} className="text-white/50 hover:text-gold transition-colors text-sm">
                     {link.name}
                   </a>
                 </li>
@@ -93,39 +93,30 @@ export default function Footer() {
 
           {/* Contact Information */}
           <div>
-            <h4 className="text-lg font-semibold mb-4 text-amber-400">Contact Us</h4>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-3">
-                <span className="text-amber-400">📞</span>
-                <div>
-                  <p className="text-slate-400">Phone</p>
-                  <a href={`tel:${contactInfo.phone}`} className="text-white hover:text-amber-400 transition">
-                    {contactInfo.phone}
-                  </a>
-                </div>
+            <h4 className="text-xs font-bold uppercase tracking-widest mb-5 text-gold">Contact</h4>
+            <ul className="space-y-4 text-sm">
+              <li>
+                <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Phone</p>
+                <a href={`tel:${contactInfo.phone}`} className="text-white/80 hover:text-gold transition">
+                  {contactInfo.phone}
+                </a>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-amber-400">💬</span>
-                <div>
-                  <p className="text-slate-400">WhatsApp</p>
-                  <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" 
-                     className="text-white hover:text-amber-400 transition">
-                    Chat on WhatsApp
-                  </a>
-                </div>
+              <li>
+                <p className="text-white/40 text-xs uppercase tracking-wider mb-1">WhatsApp</p>
+                <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer"
+                   className="text-white/80 hover:text-gold transition">
+                  Chat with us
+                </a>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-amber-400">✉️</span>
-                <div>
-                  <p className="text-slate-400">Email</p>
-                  <a href={`mailto:${contactInfo.email}`} className="text-white hover:text-amber-400 transition">
-                    {contactInfo.email}
-                  </a>
-                </div>
+              <li>
+                <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Email</p>
+                <a href={`mailto:${contactInfo.email}`} className="text-white/80 hover:text-gold transition">
+                  {contactInfo.email}
+                </a>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="text-amber-400">📍</span>
-                <p className="text-slate-400 leading-relaxed">{contactInfo.address}</p>
+              <li>
+                <p className="text-white/40 text-xs uppercase tracking-wider mb-1">Address</p>
+                <p className="text-white/60 leading-relaxed">{contactInfo.address}</p>
               </li>
             </ul>
           </div>
@@ -133,19 +124,16 @@ export default function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-slate-500 text-sm text-center sm:text-left">
-              © {currentYear} Trends&Toss. All rights reserved.
+      <div className="border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-5">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p className="text-white/30 text-xs tracking-wider">
+              &copy; {currentYear} Trends&amp;Toss. All rights reserved.
             </p>
-            <div className="flex items-center gap-4">
-              <span className="text-slate-500 text-sm">We Accept:</span>
-              <div className="flex gap-2 text-xl">
-                <span>💳</span>
-                <span>🏦</span>
-                <span>📱</span>
-              </div>
+            <div className="flex items-center gap-3">
+              <span className="text-white/30 text-xs tracking-wider">Secure Payments</span>
+              <span className="w-px h-3 bg-white/20"></span>
+              <span className="text-white/30 text-xs tracking-wider">UPI &bull; Cards &bull; Net Banking</span>
             </div>
           </div>
         </div>

@@ -2,12 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fix scroll behavior - disable smooth scrolling */
+/* Base typography & color */
+:root {
+  --navy: #001F5B;
+  --gold: #C9A84C;
+}
+
 html {
   scroll-behavior: auto !important;
 }
 
-/* Optimize image loading */
+body {
+  font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+  background-color: #ffffff;
+  color: #001F5B;
+}
+
+h1, h2, h3, .font-playfair {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+/* Global: no border-radius (sharp editorial aesthetic) */
+*, *::before, *::after {
+  border-radius: 0 !important;
+}
+
+/* Exception: keep pill badges and full-circle elements */
+.rounded-full {
+  border-radius: 9999px !important;
+}
+
 img {
   loading: lazy;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+::-webkit-scrollbar-thumb {
+  background: #C9A84C;
 }

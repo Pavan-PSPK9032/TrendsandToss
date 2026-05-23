@@ -10,9 +10,20 @@
 - [server.js](file://backend/server.js)
 - [seedCoupons.js](file://backend/seedCoupons.js)
 - [Checkout.jsx](file://frontend/src/pages/Checkout.jsx)
-- [api.js](file://frontend/src/services/api.js)
+- [Coupons.jsx](file://frontend/src/pages/Coupons.jsx)
+- [Cart.jsx](file://frontend/src/pages/Cart.jsx)
+- [axios.js](file://frontend/src/api/axios.js)
 - [CartContext.jsx](file://frontend/src/context/CartContext.jsx)
+- [App.jsx](file://frontend/src/App.jsx)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Added new public API endpoint GET /api/coupons/active for listing active coupons
+- Enhanced coupon validation logic with improved error handling and discount calculations
+- Added comprehensive coupon seeding script with expanded coupon offerings
+- Integrated new Coupons page with bidirectional navigation between Cart and Coupons pages
+- Enhanced frontend integration with real-time coupon applicability checks and visual feedback
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -22,18 +33,21 @@
 5. [Controller Implementation](#controller-implementation)
 6. [Route Configuration](#route-configuration)
 7. [Frontend Integration](#frontend-integration)
-8. [Admin Management](#admin-management)
-9. [Data Flow Analysis](#data-flow-analysis)
-10. [Security Considerations](#security-considerations)
-11. [Performance Analysis](#performance-analysis)
-12. [Troubleshooting Guide](#troubleshooting-guide)
-13. [Conclusion](#conclusion)
+8. [New Coupons Page](#new-coupons-page)
+9. [Admin Management](#admin-management)
+10. [Data Flow Analysis](#data-flow-analysis)
+11. [Security Considerations](#security-considerations)
+12. [Performance Analysis](#performance-analysis)
+13. [Troubleshooting Guide](#troubleshooting-guide)
+14. [Conclusion](#conclusion)
 
 ## Introduction
 
 The Coupon System is a comprehensive discount management solution integrated into an e-commerce platform. It provides dynamic coupon validation, flexible discount calculation, and robust administrative controls. The system supports both percentage-based and fixed-amount discounts with advanced features like usage limits, validity periods, and minimum order requirements.
 
 This system serves as a critical revenue optimization tool, enabling businesses to offer targeted promotions, manage customer acquisition campaigns, and drive sales through strategic discount mechanisms. The implementation follows modern web development practices with proper separation of concerns, security middleware, and scalable database design.
+
+**Updated** Enhanced with new Coupons page featuring scrollable interface, smart applicability checks, seamless navigation integration, and comprehensive coupon seeding capabilities.
 
 ## System Architecture
 
@@ -43,6 +57,8 @@ The coupon system operates within a client-server architecture with clear separa
 graph TB
 subgraph "Frontend Layer"
 FE_Client[React Frontend]
+FE_Coupons[Coupons Page]
+FE_Cart[Cart Page]
 FE_Checkout[Checkout Page]
 FE_API[API Services]
 end
@@ -60,9 +76,12 @@ subgraph "External Services"
 ES_Razorpay[Razorpay Payment]
 ES_Auth[JWT Authentication]
 end
+FE_Client --> FE_Coupons
+FE_Client --> FE_Cart
 FE_Client --> FE_Checkout
+FE_Coupons --> FE_API
+FE_Cart --> FE_API
 FE_Checkout --> FE_API
-FE_API --> BE_Server
 BE_Server --> BE_Routes
 BE_Routes --> BE_Controller
 BE_Controller --> BE_Model
@@ -74,12 +93,12 @@ BE_Server --> ES_Auth
 
 **Diagram sources**
 - [server.js:58-65](file://backend/server.js#L58-L65)
-- [couponRoutes.js:1-17](file://backend/routes/couponRoutes.js#L1-L17)
-- [couponController.js:1-98](file://backend/controllers/couponController.js#L1-L98)
+- [couponRoutes.js:1-18](file://backend/routes/couponRoutes.js#L1-L18)
+- [couponController.js:1-115](file://backend/controllers/couponController.js#L1-L115)
 
 **Section sources**
 - [server.js:1-104](file://backend/server.js#L1-L104)
-- [couponRoutes.js:1-17](file://backend/routes/couponRoutes.js#L1-L17)
+- [couponRoutes.js:1-18](file://backend/routes/couponRoutes.js#L1-L18)
 
 ## Core Components
 
@@ -261,6 +280,27 @@ Note over Client,Validator : Real-time coupon validation
 **Diagram sources**
 - [couponController.js:4-51](file://backend/controllers/couponController.js#L4-L51)
 
+### Active Coupons Endpoint
+
+**New** The system now provides a dedicated endpoint for retrieving active coupons:
+
+```mermaid
+sequenceDiagram
+participant Client as "Coupons Page"
+participant API as "getActiveCoupons Controller"
+participant DB as "MongoDB"
+Client->>API : GET /api/coupons/active
+API->>DB : Find active coupons
+DB-->>API : Active coupon documents
+API->>API : Filter by validity period
+API->>API : Sort by creation date
+API-->>Client : Array of active coupons
+Note over Client,DB : Public access for coupon browsing
+```
+
+**Diagram sources**
+- [couponController.js:63-78](file://backend/controllers/couponController.js#L63-L78)
+
 ### Administrative Operations
 
 The controller supports comprehensive administrative operations:
@@ -272,9 +312,10 @@ The controller supports comprehensive administrative operations:
 | Update Coupon | `/api/coupons/:id` | PUT | JWT + Admin | Modify coupon details |
 | Delete Coupon | `/api/coupons/:id` | DELETE | JWT + Admin | Remove coupons |
 | Validate Coupon | `/api/coupons/validate` | POST | None | Public validation |
+| Get Active Coupons | `/api/coupons/active` | GET | None | Public active coupon listing |
 
 **Section sources**
-- [couponController.js:53-98](file://backend/controllers/couponController.js#L53-L98)
+- [couponController.js:53-115](file://backend/controllers/couponController.js#L53-L115)
 
 ## Route Configuration
 
@@ -286,32 +327,34 @@ The routing system implements clear access control:
 graph LR
 subgraph "Public Routes"
 R1[POST /api/coupons/validate]
+R2[GET /api/coupons/active]
 end
 subgraph "Protected Routes"
-R2[POST /api/coupons]
-R3[GET /api/coupons]
-R4[PUT /api/coupons/:id]
-R5[DELETE /api/coupons/:id]
+R3[POST /api/coupons]
+R4[GET /api/coupons]
+R5[PUT /api/coupons/:id]
+R6[DELETE /api/coupons/:id]
 end
 subgraph "Middleware Chain"
 M1[JWT Protection]
 M2[Admin Verification]
 end
 R1 --> Public[No Authentication]
-R2 --> M1
+R2 --> Public
 R3 --> M1
 R4 --> M1
 R5 --> M1
+R6 --> M1
 M1 --> M2
 M2 --> AdminOnly[Admin Access Only]
 ```
 
 **Diagram sources**
-- [couponRoutes.js:7-14](file://backend/routes/couponRoutes.js#L7-L14)
+- [couponRoutes.js:7-15](file://backend/routes/couponRoutes.js#L7-L15)
 - [authMiddleware.js:4-20](file://backend/middleware/authMiddleware.js#L4-L20)
 
 **Section sources**
-- [couponRoutes.js:1-17](file://backend/routes/couponRoutes.js#L1-L17)
+- [couponRoutes.js:1-18](file://backend/routes/couponRoutes.js#L1-L18)
 - [authMiddleware.js:1-20](file://backend/middleware/authMiddleware.js#L1-L20)
 
 ## Frontend Integration
@@ -339,7 +382,7 @@ Note over User,Checkout : Real-time coupon validation
 
 **Diagram sources**
 - [Checkout.jsx:1-301](file://frontend/src/pages/Checkout.jsx#L1-L301)
-- [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
+- [axios.js:1-29](file://frontend/src/api/axios.js#L1-L29)
 
 ### State Management Integration
 
@@ -355,7 +398,81 @@ The system integrates with React's state management for seamless user experience
 
 **Section sources**
 - [Checkout.jsx:1-301](file://frontend/src/pages/Checkout.jsx#L1-L301)
-- [api.js:1-8](file://frontend/src/services/api.js#L1-L8)
+- [axios.js:1-29](file://frontend/src/api/axios.js#L1-L29)
+
+## New Coupons Page
+
+**New** The system now features a dedicated Coupons page with enhanced user experience:
+
+### Page Features and Functionality
+
+The Coupons page provides a comprehensive interface for coupon browsing and application:
+
+```mermaid
+flowchart TD
+CouponsPage[Coupons Page] --> FetchCoupons[Fetch Active Coupons]
+CouponsPage --> FetchCart[Fetch Cart Subtotal]
+FetchCoupons --> DisplayCoupons[Display Coupon Cards]
+FetchCart --> CheckEligibility[Check Minimum Order]
+DisplayCoupons --> EligibilityCheck[Smart Applicability Checks]
+EligibilityCheck --> ApplyCoupon[Apply Coupon Process]
+ApplyCoupon --> ValidateCoupon[Validate Coupon]
+ValidateCoupon --> NavigateBack[Navigate to Cart]
+NavigateBack --> Success[Show Success Toast]
+Success --> UpdateCart[Update Cart Context]
+```
+
+**Diagram sources**
+- [Coupons.jsx:13-73](file://frontend/src/pages/Coupons.jsx#L13-L73)
+
+### Coupon Card Interface
+
+The page displays coupons in an elegant card layout with smart eligibility indicators:
+
+| Feature | Implementation | Purpose |
+|---------|----------------|---------|
+| Scrollable Interface | Responsive grid layout | Handle multiple coupons efficiently |
+| Smart Applicability | Dynamic eligibility checking | Show only applicable coupons |
+| Visual Indicators | Color-coded borders and badges | Immediate user feedback |
+| Loading States | Skeleton loading animations | Better user experience |
+| Error Handling | Comprehensive error notifications | Clear error communication |
+
+### Navigation Integration
+
+**New** Seamless integration with existing navigation system:
+
+```mermaid
+sequenceDiagram
+participant User as "Customer"
+participant Coupons as "Coupons Page"
+participant Cart as "Cart Page"
+participant Router as "React Router"
+User->>Coupons : Browse Coupons
+Coupons->>Coupons : Check cart eligibility
+Coupons->>Cart : Navigate with coupon data
+Cart->>Router : Update route state
+Router-->>Cart : Pass applied coupon info
+Cart->>User : Display coupon applied
+Note over User,Cart : Smooth navigation experience
+```
+
+**Diagram sources**
+- [Coupons.jsx:57-66](file://frontend/src/pages/Coupons.jsx#L57-L66)
+- [App.jsx:237](file://frontend/src/App.jsx#L237)
+
+### Enhanced User Experience Features
+
+| Feature | Description | Technical Implementation |
+|---------|-------------|-------------------------|
+| Real-time Eligibility | Automatic minimum order checks | Frontend calculation and conditional rendering |
+| Visual Feedback | Animated apply buttons and loading states | CSS animations and React state management |
+| Smart Filtering | Only shows applicable coupons | Conditional styling and button states |
+| Error Messaging | Detailed error notifications | Toast notifications with specific error messages |
+| Responsive Design | Mobile-first responsive layout | Tailwind CSS responsive utilities |
+
+**Section sources**
+- [Coupons.jsx:1-222](file://frontend/src/pages/Coupons.jsx#L1-L222)
+- [App.jsx:237](file://frontend/src/App.jsx#L237)
 
 ## Admin Management
 
@@ -384,7 +501,7 @@ ExportData --> Success
 ```
 
 **Diagram sources**
-- [couponController.js:53-98](file://backend/controllers/couponController.js#L53-L98)
+- [couponController.js:53-115](file://backend/controllers/couponController.js#L53-L115)
 
 ### Security Implementation
 
@@ -436,9 +553,10 @@ The system implements several optimization techniques:
 | Caching | In-memory cache for frequently used coupons | Reduced database queries |
 | Validation Pipeline | Early exit conditions | Minimized processing time |
 | Batch Operations | Bulk coupon creation | Efficient data initialization |
+| Smart Filtering | Frontend eligibility checks | Reduced unnecessary API calls |
 
 **Section sources**
-- [seedCoupons.js:19-63](file://backend/seedCoupons.js#L19-L63)
+- [seedCoupons.js:19-94](file://backend/seedCoupons.js#L19-L94)
 
 ## Security Considerations
 
@@ -502,6 +620,7 @@ The coupon system is designed for high-performance operation:
 | Throughput | 1000+ requests/second | Load balancing and horizontal scaling |
 | Memory Usage | 50MB average per instance | Connection pooling and optimization |
 | Database Queries | 1-2 per validation | Index optimization and query tuning |
+| Frontend Rendering | Efficient virtual scrolling | Handle large coupon collections |
 
 ### Cost Optimization
 
@@ -552,6 +671,8 @@ OS4 --> B4
 | Minimum Order Not Met | Error about minimum order value | Ensure cart total meets minOrderValue requirement |
 | Authentication Failed | 401 errors on admin operations | Verify JWT token and admin role |
 | Database Connection Issues | Server startup failures | Check MONGO_URI and database connectivity |
+| Coupons Page Loading | Infinite loading spinner | Check network connectivity and API availability |
+| Navigation Issues | Cannot access Coupons page | Verify route configuration in App.jsx |
 
 ### Debugging Tools
 
@@ -582,6 +703,10 @@ Monitor --> Resolution[Issue Resolved]
 
 The Coupon System represents a robust, scalable solution for e-commerce discount management. Its architecture balances security, performance, and usability while providing comprehensive administrative controls. The system's modular design enables easy maintenance and future enhancements.
 
-Key strengths include real-time validation capabilities, comprehensive administrative features, and seamless frontend integration. The implementation demonstrates best practices in modern web development, including proper security measures, error handling, and performance optimization.
+**Updated** Key enhancements include the new Coupons page with intelligent applicability checks, improved user experience through scrollable interfaces, and seamless navigation integration. The addition of the GET /api/coupons/active endpoint provides better public access to coupon information while maintaining security through proper authentication for administrative operations.
 
-Future enhancements could include advanced analytics, automated coupon generation, and integration with external marketing platforms. The current foundation provides excellent scalability for enterprise-level deployment while maintaining simplicity for smaller implementations.
+The implementation demonstrates best practices in modern web development, including proper security measures, error handling, performance optimization, and responsive design. The enhanced frontend integration with real-time eligibility checking and visual feedback significantly improves the user experience.
+
+The comprehensive coupon seeding script with expanded offerings ensures immediate functionality upon deployment, while the bidirectional navigation between Cart and Coupons pages creates a seamless shopping experience.
+
+Future enhancements could include advanced analytics, automated coupon generation, integration with external marketing platforms, and enhanced coupon recommendation algorithms. The current foundation provides excellent scalability for enterprise-level deployment while maintaining simplicity for smaller implementations.

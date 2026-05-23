@@ -5,13 +5,14 @@
 - [CartContext.jsx](file://frontend/src/context/CartContext.jsx)
 - [Cart.jsx](file://frontend/src/pages/Cart.jsx)
 - [Checkout.jsx](file://frontend/src/pages/Checkout.jsx)
+- [Coupons.jsx](file://frontend/src/pages/Coupons.jsx)
 - [ProductDetails.jsx](file://frontend/src/pages/ProductDetails.jsx)
 - [axios.js](file://frontend/src/api/axios.js)
 - [cartController.js](file://backend/controllers/cartController.js)
 - [cartRoutes.js](file://backend/routes/cartRoutes.js)
-- [Cart.js](file://backend/models/Cart.js)
 - [couponController.js](file://backend/controllers/couponController.js)
 - [couponRoutes.js](file://backend/routes/couponRoutes.js)
+- [Cart.js](file://backend/models/Cart.js)
 - [Coupon.js](file://backend/models/Coupon.js)
 - [shippingRoutes.js](file://backend/routes/shippingRoutes.js)
 - [shipping.js](file://backend/config/shipping.js)
@@ -20,10 +21,11 @@
 
 ## Update Summary
 **Changes Made**
-- Enhanced cart item removal functionality with handleRemoveItem function that integrates with existing removeFromCart and updateCartUI functions
-- Added immediate UI updates and proper error handling with toast notifications for seamless user experience
-- Implemented asynchronous operation handling for item removal from cart page
-- Improved cart state synchronization with dual-layer approach (backend + frontend)
+- Enhanced Cart page with 'Browse All' link directing users to the new Coupons page for improved coupon discovery and application
+- Added comprehensive Coupons page with coupon listing, validation, and application functionality
+- Improved integration between Cart and Coupons pages with bidirectional navigation and state passing
+- Enhanced coupon system with real-time validation, discount calculations, and user feedback
+- Added coupon application flow from Coupons page back to Cart with success notifications
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -32,7 +34,7 @@
 4. [Architecture Overview](#architecture-overview)
 5. [Detailed Component Analysis](#detailed-component-analysis)
 6. [Enhanced Cart Item Removal](#enhanced-cart-item-removal)
-7. [Coupon System Integration](#coupon-system-integration)
+7. [Enhanced Coupon System Integration](#enhanced-coupon-system-integration)
 8. [Dependency Analysis](#dependency-analysis)
 9. [Performance Considerations](#performance-considerations)
 10. [Troubleshooting Guide](#troubleshooting-guide)
@@ -41,11 +43,11 @@
 ## Introduction
 This document explains the shopping cart functionality end-to-end. It covers the cart page implementation with item listing, quantity adjustment, and price calculation, the CartContext provider for global cart state management, item removal with enhanced user experience, cart persistence across sessions, quantity modification controls with validation and inventory checking, cart totals including subtotal, taxes, shipping estimates, and coupon discounts, empty cart state handling, cart item synchronization with backend storage, examples of cart state updates, local storage integration, cart item validation, and user experience patterns for cart management and checkout initiation.
 
-**Updated** Enhanced with comprehensive cart item removal functionality featuring immediate UI updates, proper error handling, and seamless integration with existing cart management system.
+**Updated** Enhanced with comprehensive cart item removal functionality featuring immediate UI updates, proper error handling, and seamless integration with the new Coupons page for improved coupon discovery and application.
 
 ## Project Structure
 The cart system spans frontend React components and backend APIs with integrated coupon management:
-- Frontend: Cart page with enhanced item removal, checkout page, cart context provider, API client with interceptors
+- Frontend: Cart page with enhanced item removal, Coupons page for coupon discovery, checkout page, cart context provider, API client with interceptors
 - Backend: Cart controller and model, coupon controller and model, shipping calculation utilities, cart and coupon routes
 
 ```mermaid
@@ -53,6 +55,7 @@ graph TB
 subgraph "Frontend"
 CC["CartContext.jsx"]
 CART["Cart.jsx"]
+COUPONS["Coupons.jsx"]
 CHECKOUT["Checkout.jsx"]
 AXIOS["axios.js"]
 PD["ProductDetails.jsx"]
@@ -69,6 +72,7 @@ UTIL_SHIP["shipping.js"]
 END
 PD --> AXIOS
 CART --> AXIOS
+COUPONS --> AXIOS
 CHECKOUT --> AXIOS
 CC --> AXIOS
 AXIOS --> ROUTES_CART
@@ -83,28 +87,30 @@ ROUTES_SHIP --> UTIL_SHIP
 
 **Diagram sources**
 - [CartContext.jsx:1-52](file://frontend/src/context/CartContext.jsx#L1-L52)
-- [Cart.jsx:1-265](file://frontend/src/pages/Cart.jsx#L1-L265)
+- [Cart.jsx:1-313](file://frontend/src/pages/Cart.jsx#L1-L313)
+- [Coupons.jsx:1-222](file://frontend/src/pages/Coupons.jsx#L1-L222)
 - [Checkout.jsx:1-301](file://frontend/src/pages/Checkout.jsx#L1-L301)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [cartRoutes.js:1-12](file://backend/routes/cartRoutes.js#L1-L12)
 - [cartController.js:1-38](file://backend/controllers/cartController.js#L1-L38)
 - [Cart.js:1-12](file://backend/models/Cart.js#L1-L12)
-- [couponRoutes.js:1-17](file://backend/routes/couponRoutes.js#L1-L17)
-- [couponController.js:1-98](file://backend/controllers/couponController.js#L1-L98)
+- [couponRoutes.js:1-18](file://backend/routes/couponRoutes.js#L1-L18)
+- [couponController.js:1-115](file://backend/controllers/couponController.js#L1-L115)
 - [Coupon.js:1-36](file://backend/models/Coupon.js#L1-L36)
 - [shippingRoutes.js:1-32](file://backend/routes/shippingRoutes.js#L1-L32)
 - [shipping.js:1-73](file://backend/config/shipping.js#L1-L73)
 
 **Section sources**
 - [CartContext.jsx:1-52](file://frontend/src/context/CartContext.jsx#L1-L52)
-- [Cart.jsx:1-265](file://frontend/src/pages/Cart.jsx#L1-L265)
+- [Cart.jsx:1-313](file://frontend/src/pages/Cart.jsx#L1-L313)
+- [Coupons.jsx:1-222](file://frontend/src/pages/Coupons.jsx#L1-L222)
 - [Checkout.jsx:1-301](file://frontend/src/pages/Checkout.jsx#L1-L301)
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [cartRoutes.js:1-12](file://backend/routes/cartRoutes.js#L1-L12)
 - [cartController.js:1-38](file://backend/controllers/cartController.js#L1-L38)
 - [Cart.js:1-12](file://backend/models/Cart.js#L1-L12)
-- [couponRoutes.js:1-17](file://backend/routes/couponRoutes.js#L1-L17)
-- [couponController.js:1-98](file://backend/controllers/couponController.js#L1-L98)
+- [couponRoutes.js:1-18](file://backend/routes/couponRoutes.js#L1-L18)
+- [couponController.js:1-115](file://backend/controllers/couponController.js#L1-L115)
 - [Coupon.js:1-36](file://backend/models/Coupon.js#L1-L36)
 - [shippingRoutes.js:1-32](file://backend/routes/shippingRoutes.js#L1-L32)
 - [shipping.js:1-73](file://backend/config/shipping.js#L1-L73)
@@ -112,9 +118,10 @@ ROUTES_SHIP --> UTIL_SHIP
 ## Core Components
 - CartContext provider manages global cart state, persists to backend, and exposes actions to add/remove items and compute totals.
 - Cart page lists items with enhanced removal functionality, computes subtotal and total, checks shipping eligibility via pincode, integrates coupon validation and discount application, and navigates to checkout.
+- **New** Coupons page provides comprehensive coupon discovery, validation, and application functionality with real-time discount calculations.
 - Checkout page loads current cart with coupon information, validates address, supports multiple payment methods, and creates orders.
 - Backend cart controller and model manage cart persistence per user, including item addition, updates, and removal.
-- Coupon controller and model handle coupon validation, discount calculations, and administrative management.
+- Backend coupon controller and model handle coupon validation, discount calculations, and administrative management.
 - Shipping utilities calculate charges based on pincode zones and thresholds.
 
 Key capabilities:
@@ -122,14 +129,15 @@ Key capabilities:
 - Enhanced item removal: updates backend and refreshes UI with immediate local state updates.
 - Quantity handling: backend enforces minimum quantity; frontend triggers backend updates.
 - Shipping estimation: frontend requests backend shipping service with cart total and pincode.
-- Coupon integration: real-time coupon validation with discount calculations and styled banners.
+- **Enhanced** Coupon integration: real-time coupon validation with discount calculations, styled banners, and bidirectional navigation between Cart and Coupons pages.
 - Order creation: backend derives items from cart and constructs order records with coupon information.
 
-**Updated** Enhanced with comprehensive cart item removal functionality featuring immediate UI updates and proper error handling.
+**Updated** Enhanced with comprehensive cart item removal functionality and new Coupons page for improved coupon discovery and application.
 
 **Section sources**
 - [CartContext.jsx:7-51](file://frontend/src/context/CartContext.jsx#L7-L51)
-- [Cart.jsx:6-265](file://frontend/src/pages/Cart.jsx#L6-L265)
+- [Cart.jsx:6-313](file://frontend/src/pages/Cart.jsx#L6-L313)
+- [Coupons.jsx:6-222](file://frontend/src/pages/Coupons.jsx#L6-L222)
 - [Checkout.jsx:7-300](file://frontend/src/pages/Checkout.jsx#L7-L300)
 - [cartController.js:3-32](file://backend/controllers/cartController.js#L3-L32)
 - [couponController.js:4-51](file://backend/controllers/couponController.js#L4-L51)
@@ -143,43 +151,51 @@ The cart architecture follows a clear separation of concerns with integrated cou
 - Frontend components call REST endpoints via an Axios instance configured with Authorization headers.
 - Backend routes delegate to controllers that operate on the Cart and Coupon models, ensuring per-user cart isolation and coupon validation.
 - Shipping calculations are handled by a dedicated utility module and exposed via a route.
-- Coupon validation integrates with cart totals to provide real-time discount calculations.
+- **Enhanced** Coupon validation integrates with cart totals to provide real-time discount calculations and bidirectional navigation between Cart and Coupons pages.
 - Enhanced item removal provides immediate UI feedback while maintaining backend synchronization.
 
 ```mermaid
 sequenceDiagram
 participant User as "User"
 participant Page as "Cart.jsx"
+participant Coupons as "Coupons.jsx"
 participant Context as "CartContext.jsx"
 participant API as "axios.js"
 participant Routes as "cartRoutes.js"
+participant CouponRoutes as "couponRoutes.js"
 participant Ctrl as "cartController.js"
+participant CouponCtrl as "couponController.js"
 participant Model as "Cart.js"
-User->>Page : Click "Remove" button
-Page->>Context : removeFromCart(productId)
-Context->>API : PUT /cart/update {productId, quantity : 0}
-API->>Routes : PUT /cart/update
-Routes->>Ctrl : updateCartItem(productId, 0)
-Ctrl->>Model : Remove item from cart
-Model-->>Ctrl : Updated cart
-Ctrl-->>Routes : Populated cart
-Routes-->>API : Cart JSON
-API-->>Context : Cart JSON
-Context->>Context : updateCartUI()
+User->>Page : Click "Browse All" link
+Page->>Coupons : Navigate to Coupons page
+Coupons->>API : GET /coupons/active
+API->>CouponRoutes : GET /coupons/active
+CouponRoutes->>CouponCtrl : getActiveCoupons()
+CouponCtrl-->>API : Active coupons
+API-->>Coupons : Coupon list
+User->>Coupons : Click "Apply Coupon"
+Coupons->>API : POST /coupons/validate
+API->>CouponRoutes : POST /coupons/validate
+CouponRoutes->>CouponCtrl : validateCoupon(code, orderValue)
+CouponCtrl-->>API : Validated coupon with discount
+API-->>Coupons : Coupon validation result
+Coupons->>Page : Navigate to Cart with coupon info
+Page->>Context : updateCartUI()
 Context->>API : GET /cart
 API-->>Context : Cart JSON
 Context-->>Page : Updated cart state
-Page->>Page : Update local state immediately
-Page->>Page : Show success toast
-Page-->>User : Item removed instantly
+Page->>Page : Show success toast with coupon info
+Page-->>User : Coupon applied instantly
 ```
 
 **Diagram sources**
-- [Cart.jsx:99-113](file://frontend/src/pages/Cart.jsx#L99-L113)
-- [CartContext.jsx:39-41](file://frontend/src/context/CartContext.jsx#L39-L41)
-- [cartRoutes.js:9-9](file://backend/routes/cartRoutes.js#L9-L9)
-- [cartController.js:24-32](file://backend/controllers/cartController.js#L24-L32)
-- [Cart.js:7-7](file://backend/models/Cart.js#L7-L7)
+- [Cart.jsx:226-234](file://frontend/src/pages/Cart.jsx#L226-L234)
+- [Coupons.jsx:18-28](file://frontend/src/pages/Coupons.jsx#L18-L28)
+- [Coupons.jsx:42-73](file://frontend/src/pages/Coupons.jsx#L42-L73)
+- [Coupons.jsx:57-66](file://frontend/src/pages/Coupons.jsx#L57-L66)
+- [Cart.jsx:21-34](file://frontend/src/pages/Cart.jsx#L21-L34)
+- [couponRoutes.js:8-9](file://backend/routes/couponRoutes.js#L8-L9)
+- [couponController.js:4-51](file://backend/controllers/couponController.js#L4-L51)
 
 ## Detailed Component Analysis
 
@@ -225,8 +241,9 @@ The cart page renders items with enhanced removal functionality, computes totals
 - Integrates coupon validation with real-time discount calculations.
 - Shows order summary with subtotal, shipping, coupon discount, and total.
 - Disables checkout until shipping info is available.
+- **Enhanced** Includes 'Browse All' link that navigates users to the new Coupons page for improved coupon discovery.
 
-**Updated** Enhanced with comprehensive cart item removal functionality including immediate UI updates and proper error handling.
+**Updated** Enhanced with comprehensive cart item removal functionality including immediate UI updates, proper error handling, and new 'Browse All' link for improved coupon discovery.
 
 ```mermaid
 flowchart TD
@@ -248,13 +265,31 @@ UpdateTotals --> RenderSummary["Render order summary"]
 RenderSummary --> ReadyToCheckout{"Shipping ready?"}
 ReadyToCheckout --> |Yes| EnableCheckout["Enable checkout button"]
 ReadyToCheckout --> |No| DisableCheckout["Disable checkout button"]
+BrowseAll["User clicks 'Browse All'"] --> NavigateCoupons["Navigate to Coupons page"]
 ```
 
 **Diagram sources**
-- [Cart.jsx:13-265](file://frontend/src/pages/Cart.jsx#L13-L265)
+- [Cart.jsx:13-313](file://frontend/src/pages/Cart.jsx#L13-L313)
 
 **Section sources**
-- [Cart.jsx:6-265](file://frontend/src/pages/Cart.jsx#L6-L265)
+- [Cart.jsx:6-313](file://frontend/src/pages/Cart.jsx#L6-L313)
+
+### Coupons Page Implementation
+**New** The Coupons page provides comprehensive coupon discovery and application functionality:
+- Fetches active coupons from backend with real-time validation.
+- Displays coupon information including discount type, minimum order value, and validity period.
+- Allows users to apply coupons directly from the page with immediate feedback.
+- Integrates with cart subtotal for contextual coupon applicability.
+- Provides bidirectional navigation with Cart page for seamless user experience.
+
+Key features:
+- Real-time coupon validation with discount calculations.
+- Visual indicators for applicable coupons based on cart subtotal.
+- Loading states and error handling for robust user experience.
+- Success notifications and seamless navigation back to Cart page.
+
+**Section sources**
+- [Coupons.jsx:6-222](file://frontend/src/pages/Coupons.jsx#L6-L222)
 
 ### Checkout Page and Order Creation
 The checkout page validates address, computes totals with coupon information, and processes payments:
@@ -377,12 +412,12 @@ Page-->>User : Item removed instantly
 ```
 
 **Diagram sources**
-- [Cart.jsx:99-113](file://frontend/src/pages/Cart.jsx#L99-L113)
+- [Cart.jsx:124-138](file://frontend/src/pages/Cart.jsx#L124-L138)
 - [CartContext.jsx:39-41](file://frontend/src/context/CartContext.jsx#L39-L41)
 - [cartController.js:24-32](file://backend/controllers/cartController.js#L24-L32)
 
 **Section sources**
-- [Cart.jsx:99-113](file://frontend/src/pages/Cart.jsx#L99-L113)
+- [Cart.jsx:124-138](file://frontend/src/pages/Cart.jsx#L124-L138)
 - [CartContext.jsx:39-41](file://frontend/src/context/CartContext.jsx#L39-L41)
 
 ### Shipping Estimation and Calculation
@@ -405,12 +440,12 @@ Charge --> Result2["Return {charge, isFree=false}"]
 ```
 
 **Diagram sources**
-- [Cart.jsx:42-69](file://frontend/src/pages/Cart.jsx#L42-L69)
+- [Cart.jsx:59-91](file://frontend/src/pages/Cart.jsx#L59-L91)
 - [shippingRoutes.js:8-30](file://backend/routes/shippingRoutes.js#L8-L30)
 - [shipping.js:31-73](file://backend/config/shipping.js#L31-L73)
 
 **Section sources**
-- [Cart.jsx:42-69](file://frontend/src/pages/Cart.jsx#L42-L69)
+- [Cart.jsx:59-91](file://frontend/src/pages/Cart.jsx#L59-L91)
 - [shippingRoutes.js:8-30](file://backend/routes/shippingRoutes.js#L8-L30)
 - [shipping.js:31-73](file://backend/config/shipping.js#L31-L73)
 
@@ -488,10 +523,12 @@ Ctx-->>App : Provide cart state
 ### Empty Cart State Handling and User Guidance
 Empty cart state:
 - Cart page shows a centered message and a "Continue Shopping" link.
+- **Enhanced** Coupons page provides guidance for coupon discovery when cart is empty.
 - Checkout page redirects to login if user is not authenticated.
 
 **Section sources**
-- [Cart.jsx:121-126](file://frontend/src/pages/Cart.jsx#L121-L126)
+- [Cart.jsx:146-150](file://frontend/src/pages/Cart.jsx#L146-L150)
+- [Coupons.jsx:107-116](file://frontend/src/pages/Coupons.jsx#L107-L116)
 - [Checkout.jsx:22-31](file://frontend/src/pages/Checkout.jsx#L22-L31)
 
 ### Cart Item Synchronization with Backend Storage
@@ -502,37 +539,42 @@ Synchronization occurs through:
 
 **Section sources**
 - [CartContext.jsx:22-29](file://frontend/src/context/CartContext.jsx#L22-L29)
-- [Cart.jsx:23-32](file://frontend/src/pages/Cart.jsx#L23-L32)
+- [Cart.jsx:36-49](file://frontend/src/pages/Cart.jsx#L36-L49)
 - [cartController.js:24-32](file://backend/controllers/cartController.js#L24-L32)
 
 ### Examples of Cart State Updates, Local Storage Integration, and Validation
 - Local storage integration: Authorization interceptor reads token; logout on 401 response.
 - State updates: CartContext manages items and computed totals; Cart page recomputes subtotal, shipping, and total with coupon discounts.
 - Validation: ProductDetails disables add-to-cart when stock is zero; Cart page validates pincode length and coupon codes.
+- **Enhanced** Coupon validation: Coupons page validates coupon applicability based on cart subtotal; Cart page receives coupon information from Coupons page with success notifications.
 - Enhanced removal: handleRemoveItem provides immediate UI feedback while maintaining backend synchronization.
 
-**Updated** Enhanced with cart item removal examples and immediate UI update demonstrations.
+**Updated** Enhanced with coupon validation examples and bidirectional navigation between Cart and Coupons pages.
 
 **Section sources**
 - [axios.js:4-16](file://frontend/src/api/axios.js#L4-L16)
 - [CartContext.jsx:43-43](file://frontend/src/context/CartContext.jsx#L43-L43)
 - [Cart.jsx:34-40](file://frontend/src/pages/Cart.jsx#L34-L40)
+- [Coupons.jsx:42-73](file://frontend/src/pages/Coupons.jsx#L42-L73)
 - [ProductDetails.jsx:130-134](file://frontend/src/pages/ProductDetails.jsx#L130-L134)
-- [Cart.jsx:99-113](file://frontend/src/pages/Cart.jsx#L99-L113)
+- [Cart.jsx:124-138](file://frontend/src/pages/Cart.jsx#L124-L138)
 
 ### User Experience Patterns for Cart Management and Checkout Initiation
 - Immediate feedback: toasts for add/remove actions and coupon validation.
 - Progressive disclosure: shipping estimator appears after pincode submission; coupon banner shows discount details.
 - Clear CTAs: "Proceed to Checkout" enabled only when shipping info is available.
+- **Enhanced** Coupon discovery: 'Browse All' link provides easy access to coupon catalog; Coupons page offers contextual coupon recommendations.
 - Multi-method checkout: online, COD, and manual UPI options with appropriate UX.
 - Styled coupon banners: green success banners with discount information and remove functionality.
 - Instant item removal: immediate UI updates with proper error handling for seamless cart management.
+- **Enhanced** Bidirectional navigation: seamless flow between Cart and Coupons pages for improved user experience.
 
-**Updated** Enhanced with comprehensive cart item removal UX patterns including instant feedback and error handling.
+**Updated** Enhanced with comprehensive cart item removal UX patterns, coupon discovery features, and improved navigation between Cart and Coupons pages.
 
 **Section sources**
 - [CartContext.jsx:30-41](file://frontend/src/context/CartContext.jsx#L30-L41)
 - [Cart.jsx:129-150](file://frontend/src/pages/Cart.jsx#L129-L150)
+- [Coupons.jsx:176-198](file://frontend/src/pages/Coupons.jsx#L176-L198)
 - [Checkout.jsx:238-295](file://frontend/src/pages/Checkout.jsx#L238-L295)
 
 ## Enhanced Cart Item Removal
@@ -557,10 +599,17 @@ The handleRemoveItem function provides seamless item removal from the cart page:
 - Handles edge cases and error scenarios gracefully.
 
 **Section sources**
-- [Cart.jsx:99-113](file://frontend/src/pages/Cart.jsx#L99-L113)
+- [Cart.jsx:124-138](file://frontend/src/pages/Cart.jsx#L124-L138)
 - [CartContext.jsx:39-41](file://frontend/src/context/CartContext.jsx#L39-L41)
 
-## Coupon System Integration
+## Enhanced Coupon System Integration
+
+### Coupon Discovery and Application Flow
+**New** The enhanced coupon system provides comprehensive coupon management with improved user experience:
+- **Cart Page Enhancement**: Added 'Browse All' link that navigates users to the new Coupons page for improved coupon discovery.
+- **Coupons Page**: Dedicated page for coupon listing, validation, and application with real-time discount calculations.
+- **Bidirectional Navigation**: Seamless flow between Cart and Coupons pages with state passing and success notifications.
+- **Real-time Validation**: Coupons page validates coupon applicability based on cart subtotal and provides immediate feedback.
 
 ### Coupon Validation Logic
 The coupon validation system provides comprehensive discount management:
@@ -598,19 +647,24 @@ The system includes pre-seeded coupons for demonstration:
 - FREESHIP: ₹50 off with free shipping on orders above ₹199
 
 **Section sources**
+- [Cart.jsx:226-234](file://frontend/src/pages/Cart.jsx#L226-L234)
+- [Coupons.jsx:18-28](file://frontend/src/pages/Coupons.jsx#L18-L28)
+- [Coupons.jsx:42-73](file://frontend/src/pages/Coupons.jsx#L42-L73)
+- [Coupons.jsx:57-66](file://frontend/src/pages/Coupons.jsx#L57-L66)
 - [couponController.js:4-51](file://backend/controllers/couponController.js#L4-L51)
 - [Coupon.js:3-36](file://backend/models/Coupon.js#L3-L36)
-- [couponRoutes.js:1-17](file://backend/routes/couponRoutes.js#L1-L17)
+- [couponRoutes.js:1-18](file://backend/routes/couponRoutes.js#L1-L18)
 - [seedCoupons.js:20-62](file://backend/seedCoupons.js#L20-L62)
 
 ## Dependency Analysis
-Frontend-backend dependencies with enhanced cart item removal:
+Frontend-backend dependencies with enhanced cart item removal and coupon system:
 - Cart page depends on cart, shipping, and coupon routes.
+- **Enhanced** Coupons page depends on coupon routes for validation and active coupon listing.
 - Checkout depends on order and shipping routes.
 - CartContext depends on cart routes.
 - Backend routes depend on controllers and models.
 - Shipping routes depend on shipping utilities.
-- Coupon routes depend on coupon controller and model.
+- **Enhanced** Coupon routes depend on coupon controller and model.
 
 ```mermaid
 graph LR
@@ -623,6 +677,7 @@ CART_CTRL --> CART_MODEL["Cart.js"]
 COUPON_CTRL --> COUPON_MODEL["Coupon.js"]
 SHIP_ROUTES --> SHIP_UTIL["shipping.js"]
 CART_PAGE["Cart.jsx"] --> AXIOS
+COUPONS_PAGE["Coupons.jsx"] --> AXIOS
 CHECKOUT_PAGE["Checkout.jsx"] --> AXIOS
 CART_CONTEXT["CartContext.jsx"] --> AXIOS
 ```
@@ -630,28 +685,30 @@ CART_CONTEXT["CartContext.jsx"] --> AXIOS
 **Diagram sources**
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [cartRoutes.js:1-12](file://backend/routes/cartRoutes.js#L1-L12)
-- [couponRoutes.js:1-17](file://backend/routes/couponRoutes.js#L1-L17)
+- [couponRoutes.js:1-18](file://backend/routes/couponRoutes.js#L1-L18)
 - [cartController.js:1-38](file://backend/controllers/cartController.js#L1-L38)
-- [couponController.js:1-98](file://backend/controllers/couponController.js#L1-L98)
+- [couponController.js:1-115](file://backend/controllers/couponController.js#L1-L115)
 - [Cart.js:1-12](file://backend/models/Cart.js#L1-L12)
 - [Coupon.js:1-36](file://backend/models/Coupon.js#L1-L36)
 - [shippingRoutes.js:1-32](file://backend/routes/shippingRoutes.js#L1-L32)
 - [shipping.js:1-73](file://backend/config/shipping.js#L1-L73)
-- [Cart.jsx:1-265](file://frontend/src/pages/Cart.jsx#L1-L265)
+- [Cart.jsx:1-313](file://frontend/src/pages/Cart.jsx#L1-L313)
+- [Coupons.jsx:1-222](file://frontend/src/pages/Coupons.jsx#L1-L222)
 - [Checkout.jsx:1-301](file://frontend/src/pages/Checkout.jsx#L1-L301)
 - [CartContext.jsx:1-52](file://frontend/src/context/CartContext.jsx#L1-L52)
 
 **Section sources**
 - [axios.js:1-17](file://frontend/src/api/axios.js#L1-L17)
 - [cartRoutes.js:1-12](file://backend/routes/cartRoutes.js#L1-L12)
-- [couponRoutes.js:1-17](file://backend/routes/couponRoutes.js#L1-L17)
+- [couponRoutes.js:1-18](file://backend/routes/couponRoutes.js#L1-L18)
 - [cartController.js:1-38](file://backend/controllers/cartController.js#L1-L38)
-- [couponController.js:1-98](file://backend/controllers/couponController.js#L1-L98)
+- [couponController.js:1-115](file://backend/controllers/couponController.js#L1-L115)
 - [Cart.js:1-12](file://backend/models/Cart.js#L1-L12)
 - [Coupon.js:1-36](file://backend/models/Coupon.js#L1-L36)
 - [shippingRoutes.js:1-32](file://backend/routes/shippingRoutes.js#L1-L32)
 - [shipping.js:1-73](file://backend/config/shipping.js#L1-L73)
-- [Cart.jsx:1-265](file://frontend/src/pages/Cart.jsx#L1-L265)
+- [Cart.jsx:1-313](file://frontend/src/pages/Cart.jsx#L1-L313)
+- [Coupons.jsx:1-222](file://frontend/src/pages/Coupons.jsx#L1-L222)
 - [Checkout.jsx:1-301](file://frontend/src/pages/Checkout.jsx#L1-L301)
 - [CartContext.jsx:1-52](file://frontend/src/context/CartContext.jsx#L1-L52)
 
@@ -660,11 +717,12 @@ CART_CONTEXT["CartContext.jsx"] --> AXIOS
 - Debounce shipping estimation: avoid repeated requests while user types pincode.
 - Efficient backend queries: ensure cart population, coupon validation, and shipping zone lookups are indexed.
 - Lazy loading: defer heavy images in cart items until visible.
-- Coupon caching: consider caching frequently used coupon validations to reduce database queries.
+- **Enhanced** Coupon caching: consider caching frequently used coupon validations to reduce database queries.
 - Real-time validation: debounce coupon input to prevent excessive API calls during typing.
 - Enhanced item removal: immediate UI updates reduce perceived latency while maintaining backend synchronization.
+- **Enhanced** Bidirectional navigation: optimize navigation between Cart and Coupons pages to minimize unnecessary re-renders.
 
-**Updated** Enhanced performance considerations for cart item removal functionality including immediate UI updates and backend synchronization strategies.
+**Updated** Enhanced performance considerations for cart item removal functionality, coupon system integration, and bidirectional navigation between Cart and Coupons pages.
 
 ## Troubleshooting Guide
 Common issues and resolutions:
@@ -672,20 +730,22 @@ Common issues and resolutions:
 - Empty cart on reload: ensure token is present and cart fetch succeeds.
 - Shipping calculation errors: verify pincode format and backend availability.
 - Payment failures: confirm address validation and payment method selection.
-- Coupon validation errors: check coupon code format, expiration dates, and minimum order requirements.
+- **Enhanced** Coupon validation errors: check coupon code format, expiration dates, and minimum order requirements; verify bidirectional navigation between Cart and Coupons pages.
 - Discount calculation issues: verify coupon type (percentage/fixed) and maximum discount limits.
 - Coupon usage limits: ensure coupon hasn't exceeded usage count or daily limits.
 - Item removal failures: verify network connectivity and backend response status.
 - UI desynchronization: ensure updateCartUI is called after successful backend operations.
+- **Enhanced** Coupons page loading: verify active coupon endpoint availability and proper error handling for empty coupon states.
 
-**Updated** Enhanced troubleshooting guide with cart item removal specific issues and resolutions.
+**Updated** Enhanced troubleshooting guide with coupon system specific issues, bidirectional navigation problems, and Coupons page loading issues.
 
 **Section sources**
 - [axios.js:10-16](file://frontend/src/api/axios.js#L10-L16)
 - [CartContext.jsx:11-20](file://frontend/src/context/CartContext.jsx#L11-L20)
 - [shippingRoutes.js:12-29](file://backend/routes/shippingRoutes.js#L12-L29)
 - [couponController.js:10-22](file://backend/controllers/couponController.js#L10-L22)
-- [Cart.jsx:99-113](file://frontend/src/pages/Cart.jsx#L99-L113)
+- [Cart.jsx:124-138](file://frontend/src/pages/Cart.jsx#L124-L138)
+- [Coupons.jsx:18-28](file://frontend/src/pages/Coupons.jsx#L18-L28)
 
 ## Conclusion
-The cart system provides a cohesive, session-aware shopping experience with robust backend persistence, clear UI patterns, flexible payment options, comprehensive coupon integration, and enhanced cart item removal functionality. Frontend components coordinate with backend APIs to maintain accurate state, while shipping logic offers transparent cost estimation, coupon validation provides dynamic discount calculations, and the enhanced item removal system delivers seamless user experience with immediate feedback. The design emphasizes user feedback, validation, seamless transitions from cart to checkout, and enhanced promotional capabilities through the integrated coupon system with improved cart management workflows.
+The cart system provides a cohesive, session-aware shopping experience with robust backend persistence, clear UI patterns, flexible payment options, comprehensive coupon integration, and enhanced cart item removal functionality. **Enhanced** with the new Coupons page and improved bidirectional navigation, the system now offers superior coupon discovery and application capabilities. Frontend components coordinate with backend APIs to maintain accurate state, while shipping logic offers transparent cost estimation, coupon validation provides dynamic discount calculations, and the enhanced item removal system delivers seamless user experience with immediate feedback. The design emphasizes user feedback, validation, seamless transitions from cart to checkout, and enhanced promotional capabilities through the integrated coupon system with improved cart management workflows and streamlined coupon discovery process.

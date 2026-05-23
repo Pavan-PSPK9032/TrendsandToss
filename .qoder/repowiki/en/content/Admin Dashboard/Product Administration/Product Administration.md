@@ -2,6 +2,9 @@
 
 <cite>
 **Referenced Files in This Document**
+- [ProductsManagement.jsx](file://frontend/src/components/admin/ProductsManagement.jsx)
+- [AdminDashboard.jsx](file://frontend/src/pages/AdminDashboard.jsx)
+- [CategoryManagement.jsx](file://frontend/src/components/admin/CategoryManagement.jsx)
 - [productController.js](file://backend/controllers/productController.js)
 - [Product.js](file://backend/models/Product.js)
 - [productRoutes.js](file://backend/routes/productRoutes.js)
@@ -11,8 +14,6 @@
 - [uploadMiddleware.js](file://backend/middleware/uploadMiddleware.js)
 - [cloudinary.js](file://backend/config/cloudinary.js)
 - [authMiddleware.js](file://backend/middleware/authMiddleware.js)
-- [AdminDashboard.jsx](file://frontend/src/pages/AdminDashboard.jsx)
-- [CategoryManagement.jsx](file://frontend/src/components/admin/CategoryManagement.jsx)
 - [imageHelper.js](file://frontend/src/utils/imageHelper.js)
 - [db.js](file://backend/config/db.js)
 - [server.js](file://backend/server.js)
@@ -21,11 +22,12 @@
 
 ## Update Summary
 **Changes Made**
-- Added comprehensive categories management system with dedicated tab in admin dashboard
-- Enhanced product creation workflow with dynamic category selection
-- Implemented CategoryManagement component for full CRUD operations on categories
-- Integrated category data fetching into product management interface
-- Added category-based product filtering and organization capabilities
+- **Major Restructuring**: Migrated from integrated product management within AdminDashboard.jsx to dedicated ProductsManagement.jsx component
+- **Enhanced Pagination**: Added pagination support with 10 products per page in the new ProductsManagement component
+- **MRP Support**: Added originalPrice field for MRP (Maximum Retail Price) alongside selling price
+- **Improved Form Handling**: Enhanced form validation with MRP support, category selection, and multi-image upload capabilities
+- **Component Organization**: Better separation of concerns with dedicated components for different admin functions
+- **Maintained Functionality**: All existing product management features preserved while improving organization and user experience
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -40,12 +42,12 @@
 10. [Appendices](#appendices)
 
 ## Introduction
-This document provides comprehensive documentation for the admin product management system. It covers product CRUD operations (create, read, update, delete), form validation, image upload handling, category management, and the product listing table with search, filtering, and pagination. The system now includes an enhanced categories management feature with a dedicated admin tab, dynamic category selection in product forms, and improved product creation workflow with automatic category population.
+This document provides comprehensive documentation for the admin product management system. The system has undergone a major restructuring with the migration from integrated product management within AdminDashboard.jsx to dedicated ProductsManagement.jsx component. It covers product CRUD operations (create, read, update, delete), form validation, image upload handling, category management, and the product listing table with search, filtering, and pagination. The enhanced system now includes pagination support (10 products per page), MRP (Maximum Retail Price) support, and improved form handling with enhanced category selection and multi-image upload capabilities.
 
 ## Project Structure
-The product administration system spans backend and frontend layers with enhanced category management capabilities:
-- Backend: Express routes, controllers, Mongoose models, authentication middleware, and Cloudinary upload middleware.
-- Frontend: Admin dashboard UI for managing products and categories, including forms, image previews, and listing tables.
+The product administration system now features a restructured architecture with dedicated components for different administrative functions:
+- **Frontend**: Admin dashboard with tabbed interface, dedicated ProductsManagement component, CategoryManagement component, and shared utilities
+- **Backend**: Express routes, controllers, Mongoose models, authentication middleware, and Cloudinary upload middleware
 
 ```mermaid
 graph TB
@@ -64,10 +66,16 @@ CLOUD["cloudinary.js"]
 end
 subgraph "Frontend"
 ADMIN["AdminDashboard.jsx"]
+PROD_MAN["ProductsManagement.jsx"]
 CAT_MANAGEMENT["CategoryManagement.jsx"]
 IMGHELP["imageHelper.js"]
 HOME["Home.jsx"]
 end
+ADMIN --> PROD_MAN
+ADMIN --> CAT_MANAGEMENT
+PROD_MAN --> PROD_ROUTES
+CAT_MANAGEMENT --> CAT_ROUTES
+ADMIN --> IMGHELP
 SRV --> PROD_ROUTES
 SRV --> CAT_ROUTES
 PROD_ROUTES --> PROD_CTRL
@@ -79,11 +87,6 @@ PROD_ROUTES --> UPLOAD
 CAT_ROUTES --> AUTH
 UPLOAD --> CLOUD
 SRV --> DB
-ADMIN --> PROD_ROUTES
-ADMIN --> CAT_ROUTES
-ADMIN --> IMGHELP
-CAT_MANAGEMENT --> CAT_ROUTES
-HOME --> PROD_ROUTES
 ```
 
 **Diagram sources**
@@ -92,12 +95,13 @@ HOME --> PROD_ROUTES
 - [categoryRoutes.js:1-27](file://backend/routes/categoryRoutes.js#L1-L27)
 - [productController.js:1-137](file://backend/controllers/productController.js#L1-L137)
 - [categoryController.js:1-134](file://backend/controllers/categoryController.js#L1-L134)
-- [Product.js:1-12](file://backend/models/Product.js#L1-L12)
+- [Product.js:1-13](file://backend/models/Product.js#L1-L13)
 - [Category.js:1-46](file://backend/models/Category.js#L1-L46)
 - [authMiddleware.js:4-20](file://backend/middleware/authMiddleware.js#L4-L20)
 - [uploadMiddleware.js:1-56](file://backend/middleware/uploadMiddleware.js#L1-L56)
 - [cloudinary.js:1-13](file://backend/config/cloudinary.js#L1-L13)
-- [AdminDashboard.jsx:1-465](file://frontend/src/pages/AdminDashboard.jsx#L1-L465)
+- [AdminDashboard.jsx:1-283](file://frontend/src/pages/AdminDashboard.jsx#L1-L283)
+- [ProductsManagement.jsx:1-418](file://frontend/src/components/admin/ProductsManagement.jsx#L1-L418)
 - [CategoryManagement.jsx:1-224](file://frontend/src/components/admin/CategoryManagement.jsx#L1-L224)
 - [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
 - [Home.jsx:19-28](file://frontend/src/pages/Home.jsx#L19-L28)
@@ -106,43 +110,44 @@ HOME --> PROD_ROUTES
 - [server.js:58-63](file://backend/server.js#L58-L63)
 - [productRoutes.js:12-22](file://backend/routes/productRoutes.js#L12-L22)
 - [categoryRoutes.js:1-27](file://backend/routes/categoryRoutes.js#L1-L27)
-- [AdminDashboard.jsx:1-465](file://frontend/src/pages/AdminDashboard.jsx#L1-L465)
+- [AdminDashboard.jsx:1-283](file://frontend/src/pages/AdminDashboard.jsx#L1-L283)
+- [ProductsManagement.jsx:1-418](file://frontend/src/components/admin/ProductsManagement.jsx#L1-L418)
 
 ## Core Components
-- Product model defines the schema for product data, including name, description, price, images, category, and stock.
-- Product controller implements CRUD endpoints with search, filtering, and pagination.
-- Category model defines the schema for category data, including name, slug, description, icon, and display order.
-- Category controller implements CRUD endpoints for category management with activation/deactivation capabilities.
-- Product routes define protected admin endpoints with Cloudinary image uploads.
-- Category routes define protected admin endpoints for category CRUD operations.
-- Upload middleware handles Cloudinary integration for image storage, file size limits, and allowed image types.
-- Authentication middleware enforces admin-only access.
-- Admin dashboard frontend provides tabs for products, categories, orders, and admins, with forms for adding/editing products and categories.
-- Category management component provides a dedicated interface for category CRUD operations.
+- **ProductsManagement Component**: Dedicated component for product CRUD operations with pagination, MRP support, and enhanced form handling
+- **AdminDashboard**: Main admin interface with tabbed navigation for products, categories, orders, and admins
+- **CategoryManagement Component**: Dedicated interface for category CRUD operations with full admin functionality
+- **Product Model**: Enhanced schema with MRP (originalPrice) support alongside existing fields
+- **Product Controller**: CRUD endpoints with search, filtering, and pagination support
+- **Category Controller**: Full CRUD operations for category management with activation/deactivation capabilities
+- **Upload Middleware**: Cloudinary integration for image storage with multi-image support
+- **Authentication Middleware**: Admin-only access enforcement
+- **Image Helper**: Utility for resolving Cloudinary image URLs
 
 **Section sources**
-- [Product.js:3-10](file://backend/models/Product.js#L3-L10)
-- [Category.js:3-35](file://backend/models/Category.js#L3-L35)
+- [ProductsManagement.jsx:8-418](file://frontend/src/components/admin/ProductsManagement.jsx#L8-L418)
+- [AdminDashboard.jsx:11-283](file://frontend/src/pages/AdminDashboard.jsx#L11-L283)
+- [CategoryManagement.jsx:5-224](file://frontend/src/components/admin/CategoryManagement.jsx#L5-L224)
+- [Product.js:3-13](file://backend/models/Product.js#L3-L13)
+- [Product.js:7](file://backend/models/Product.js#L7)
 - [productController.js:4-137](file://backend/controllers/productController.js#L4-L137)
 - [categoryController.js:4-134](file://backend/controllers/categoryController.js#L4-L134)
-- [productRoutes.js:14-21](file://backend/routes/productRoutes.js#L14-L21)
-- [categoryRoutes.js:15-24](file://backend/routes/categoryRoutes.js#L15-L24)
 - [uploadMiddleware.js:5-56](file://backend/middleware/uploadMiddleware.js#L5-L56)
 - [authMiddleware.js:17-20](file://backend/middleware/authMiddleware.js#L17-L20)
-- [AdminDashboard.jsx:14-465](file://frontend/src/pages/AdminDashboard.jsx#L14-L465)
-- [CategoryManagement.jsx:5-224](file://frontend/src/components/admin/CategoryManagement.jsx#L5-L224)
+- [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
 
 ## Architecture Overview
-The system follows a layered architecture with enhanced category management:
-- HTTP requests reach routes, which delegate to controllers.
-- Controllers interact with Mongoose models for persistence.
-- Authentication middleware ensures only admins can modify products and categories.
-- Upload middleware manages Cloudinary image uploads with automatic optimization.
-- Frontend communicates via Axios to the backend API with dedicated tabs for different administrative functions.
+The system follows a restructured layered architecture with dedicated components for different administrative functions:
+- HTTP requests reach routes, which delegate to controllers
+- Controllers interact with Mongoose models for persistence
+- Authentication middleware ensures only admins can modify products and categories
+- Upload middleware manages Cloudinary image uploads with automatic optimization
+- Frontend communicates via Axios to the backend API with dedicated components for different administrative functions
 
 ```mermaid
 sequenceDiagram
 participant Admin as "AdminDashboard.jsx"
+participant ProdComp as "ProductsManagement.jsx"
 participant ProdAPI as "Product Routes"
 participant CatAPI as "Category Routes"
 participant ProdCtrl as "productController.js"
@@ -150,25 +155,35 @@ participant CatCtrl as "categoryController.js"
 participant ProdModel as "Product.js"
 participant CatModel as "Category.js"
 participant Cloud as "Cloudinary"
-Admin->>CatAPI : GET "/categories/all" (admin)
-CatAPI->>CatCtrl : getAllCategories
-CatCtrl->>CatModel : Category.find()
+Admin->>ProdComp : Render Products Tab
+ProdComp->>CatAPI : GET "/categories" (public)
+CatAPI->>CatCtrl : getCategories
+CatCtrl->>CatModel : Category.find({isActive : true})
 CatModel-->>CatCtrl : categories
 CatCtrl-->>CatAPI : JSON {categories}
-CatAPI-->>Admin : categories data
-Admin->>ProdAPI : POST "/products" (multipart/form-data)
+CatAPI-->>ProdComp : categories data
+ProdComp->>ProdAPI : GET "/products?page=1&limit=10"
+ProdAPI->>ProdCtrl : getProducts
+ProdCtrl->>ProdModel : Product.find().sort().skip().limit()
+ProdModel-->>ProdCtrl : products
+ProdCtrl-->>ProdAPI : JSON {products, totalPages, ...}
+ProdAPI-->>ProdComp : paginated products
+ProdComp->>ProdAPI : POST "/products" (multipart/form-data)
 ProdAPI->>ProdCtrl : createProduct
 ProdCtrl->>Cloud : upload images
 Cloud-->>ProdCtrl : secure_url
 ProdCtrl->>ProdModel : Product.create()
 ProdModel-->>ProdCtrl : saved product
 ProdCtrl-->>ProdAPI : JSON response
-ProdAPI-->>Admin : success/error
+ProdAPI-->>ProdComp : success/error
 ```
 
 **Diagram sources**
-- [AdminDashboard.jsx:101-108](file://frontend/src/pages/AdminDashboard.jsx#L101-L108)
-- [AdminDashboard.jsx:126-152](file://frontend/src/pages/AdminDashboard.jsx#L126-L152)
+- [AdminDashboard.jsx:262-264](file://frontend/src/pages/AdminDashboard.jsx#L262-L264)
+- [ProductsManagement.jsx:33-68](file://frontend/src/components/admin/ProductsManagement.jsx#L33-L68)
+- [ProductsManagement.jsx:48-59](file://frontend/src/components/admin/ProductsManagement.jsx#L48-L59)
+- [ProductsManagement.jsx:70-74](file://frontend/src/components/admin/ProductsManagement.jsx#L70-L74)
+- [ProductsManagement.jsx:92-121](file://frontend/src/components/admin/ProductsManagement.jsx#L92-L121)
 - [categoryRoutes.js:19-24](file://backend/routes/categoryRoutes.js#L19-L24)
 - [productRoutes.js:19-21](file://backend/routes/productRoutes.js#L19-L21)
 - [productController.js:52-83](file://backend/controllers/productController.js#L52-L83)
@@ -177,15 +192,48 @@ ProdAPI-->>Admin : success/error
 
 ## Detailed Component Analysis
 
-### Product Model
-The Product model defines the shape of product documents stored in MongoDB. It includes:
-- name: required string
-- description: required string
-- price: required number
-- images: array of strings (Cloudinary secure URLs)
-- category: required string
-- stock: required number (default 0)
-- timestamps: createdAt and updatedAt
+### ProductsManagement Component
+The dedicated ProductsManagement component provides comprehensive product management functionality with enhanced features:
+- **Pagination**: 10 products per page with navigation controls
+- **MRP Support**: Original price field for Maximum Retail Price alongside selling price
+- **Enhanced Form**: Multi-image upload with preview and removal capabilities
+- **Category Selection**: Dynamic category loading with icons and real-time updates
+- **Stock Management**: Color-coded stock indicators with low-stock alerts
+- **Admin Validation**: Automatic admin access verification
+
+```mermaid
+flowchart TD
+Start(["ProductsManagement.jsx"]) --> CheckAdmin["checkAdmin()"]
+CheckAdmin --> FetchData["fetchProducts() & fetchCategories()"]
+FetchData --> Paginate["Calculate Pagination<br/>10 products/page"]
+Paginate --> RenderTable["Render Products Table"]
+RenderTable --> Form["Product Form with MRP"]
+Form --> ImageUpload["Multi-Image Upload<br/>Max 3 images"]
+ImageUpload --> Submit["Submit to Backend"]
+Submit --> Success["Toast Success & Refresh"]
+Success --> FetchData
+```
+
+**Diagram sources**
+- [ProductsManagement.jsx:39-46](file://frontend/src/components/admin/ProductsManagement.jsx#L39-L46)
+- [ProductsManagement.jsx:48-68](file://frontend/src/components/admin/ProductsManagement.jsx#L48-L68)
+- [ProductsManagement.jsx:70-74](file://frontend/src/components/admin/ProductsManagement.jsx#L70-L74)
+- [ProductsManagement.jsx:92-121](file://frontend/src/components/admin/ProductsManagement.jsx#L92-L121)
+- [ProductsManagement.jsx:158-161](file://frontend/src/components/admin/ProductsManagement.jsx#L158-L161)
+
+**Section sources**
+- [ProductsManagement.jsx:8-418](file://frontend/src/components/admin/ProductsManagement.jsx#L8-L418)
+
+### Product Model Enhancement
+The Product model has been enhanced to support MRP (Maximum Retail Price) alongside existing fields:
+- **name**: required string
+- **description**: required string  
+- **price**: required number (selling price)
+- **originalPrice**: optional number (MRP - Maximum Retail Price)
+- **images**: array of strings (Cloudinary secure URLs)
+- **category**: required string
+- **stock**: required number (default 0)
+- **timestamps**: createdAt and updatedAt
 
 ```mermaid
 erDiagram
@@ -193,6 +241,7 @@ PRODUCT {
 string name
 string description
 number price
+number originalPrice
 string[] images
 string category
 number stock
@@ -202,20 +251,20 @@ date updatedAt
 ```
 
 **Diagram sources**
-- [Product.js:3-10](file://backend/models/Product.js#L3-L10)
+- [Product.js:3-13](file://backend/models/Product.js#L3-L13)
 
 **Section sources**
-- [Product.js:3-10](file://backend/models/Product.js#L3-L10)
+- [Product.js:3-13](file://backend/models/Product.js#L3-L13)
 
 ### Category Model
 The Category model defines the schema for category documents with enhanced features:
-- name: required unique string
-- slug: required unique string (auto-generated from name)
-- description: optional string
-- icon: optional string (emoji or URL)
-- isActive: boolean flag for category visibility
-- displayOrder: number for sorting categories
-- timestamps: createdAt and updatedAt
+- **name**: required unique string
+- **slug**: required unique string (auto-generated from name)
+- **description**: optional string
+- **icon**: optional string (emoji or URL)
+- **isActive**: boolean flag for category visibility
+- **displayOrder**: number for sorting categories
+- **timestamps**: createdAt and updatedAt
 
 ```mermaid
 erDiagram
@@ -238,13 +287,13 @@ date updatedAt
 - [Category.js:3-35](file://backend/models/Category.js#L3-L35)
 
 ### Product Routes and Middleware
-- GET /api/products: Public listing with search and category filters, pagination.
-- GET /api/products/:id: Public single product retrieval.
-- POST /api/products: Admin-only creation with Cloudinary image upload (max 3 images).
-- PUT /api/products/:id: Admin-only update with optional image replacement.
-- DELETE /api/products/:id: Admin-only deletion.
-- Authentication: protect and admin middleware enforce JWT and admin role.
-- Upload: upload.array('images', 3) enforces up to three images per request with Cloudinary integration.
+- **GET /api/products**: Public listing with search and category filters, pagination (default 12 per page)
+- **GET /api/products/:id**: Public single product retrieval
+- **POST /api/products**: Admin-only creation with Cloudinary image upload (max 3 images)
+- **PUT /api/products/:id**: Admin-only update with optional image replacement
+- **DELETE /api/products/:id**: Admin-only deletion
+- **Authentication**: protect and admin middleware enforce JWT and admin role
+- **Upload**: upload.array('images', 3) enforces up to three images per request with Cloudinary integration
 
 ```mermaid
 flowchart TD
@@ -271,14 +320,13 @@ Delete --> Resp
 - [uploadMiddleware.js:50-56](file://backend/middleware/uploadMiddleware.js#L50-L56)
 
 ### Category Routes and Management
-- GET /api/categories: Public listing of active categories (for frontend display).
-- GET /api/categories/all: Admin-only listing of all categories (active/inactive).
-- GET /api/categories/:id: Admin-only retrieval of specific category.
-- POST /api/categories: Admin-only creation of new category.
-- PUT /api/categories/:id: Admin-only update of category settings.
-- DELETE /api/categories/:id: Admin-only deletion of category.
-- Authentication: protect and admin middleware enforce JWT and admin role.
-- Enhanced features: category activation/deactivation, display ordering, icon support.
+- **GET /api/categories**: Public listing of active categories (for frontend display)
+- **GET /api/categories/all**: Admin-only listing of all categories (active/inactive)
+- **GET /api/categories/:id**: Admin-only retrieval of specific category
+- **POST /api/categories**: Admin-only creation of new category
+- **PUT /api/categories/:id**: Admin-only update of category settings
+- **DELETE /api/categories/:id**: Admin-only deletion of category
+- **Enhanced Features**: Category activation/deactivation, display ordering, icon support
 
 ```mermaid
 flowchart TD
@@ -306,15 +354,15 @@ Delete --> Resp
 - [categoryController.js:4-98](file://backend/controllers/categoryController.js#L4-L98)
 
 ### Product Controller: CRUD and Search
-- getProducts: Builds a query with optional search (name/description regex) and category filter, sorts by newest first, paginates results, and returns metadata.
-- getProductById: Retrieves a single product by ID.
-- createProduct: Creates a product with validated numeric fields and Cloudinary image URLs.
-- updateProduct: Updates product fields, merges existing and new images, enforces a maximum of three images, and runs validators.
-- deleteProduct: Removes a product by ID.
+- **getProducts**: Builds a query with optional search (name/description regex) and category filter, sorts by newest first, paginates results, and returns metadata
+- **getProductById**: Retrieves a single product by ID
+- **createProduct**: Creates a product with validated numeric fields and Cloudinary image URLs
+- **updateProduct**: Updates product fields, merges existing and new images, enforces a maximum of three images, and runs validators
+- **deleteProduct**: Removes a product by ID
 
 ```mermaid
 sequenceDiagram
-participant Client as "AdminDashboard.jsx"
+participant Client as "ProductsManagement.jsx"
 participant Route as "productRoutes.js"
 participant Ctrl as "productController.js"
 participant Model as "Product.js"
@@ -330,7 +378,7 @@ Route-->>Client : success
 ```
 
 **Diagram sources**
-- [AdminDashboard.jsx:126-152](file://frontend/src/pages/AdminDashboard.jsx#L126-L152)
+- [ProductsManagement.jsx:107-111](file://frontend/src/components/admin/ProductsManagement.jsx#L107-L111)
 - [productRoutes.js:19](file://backend/routes/productRoutes.js#L19)
 - [productController.js:52-83](file://backend/controllers/productController.js#L52-L83)
 - [uploadMiddleware.js:11-27](file://backend/middleware/uploadMiddleware.js#L11-L27)
@@ -339,13 +387,13 @@ Route-->>Client : success
 - [productController.js:4-137](file://backend/controllers/productController.js#L4-L137)
 
 ### Category Controller: CRUD Operations
-- getCategories: Returns only active categories, sorted by display order and name.
-- getAllCategories: Returns all categories (active/inactive) for admin management.
-- getCategoryById: Retrieves a single category by ID.
-- createCategory: Creates a new category with auto-generated slug and optional icon.
-- updateCategory: Updates category properties including activation status and display order.
-- deleteCategory: Removes a category by ID.
-- getProductsByCategory: Returns products filtered by category slug with pagination.
+- **getCategories**: Returns only active categories, sorted by display order and name
+- **getAllCategories**: Returns all categories (active/inactive) for admin management
+- **getCategoryById**: Retrieves a single category by ID
+- **createCategory**: Creates a new category with auto-generated slug and optional icon
+- **updateCategory**: Updates category properties including activation status and display order
+- **deleteCategory**: Removes a category by ID
+- **getProductsByCategory**: Returns products filtered by category slug with pagination
 
 ```mermaid
 sequenceDiagram
@@ -370,44 +418,47 @@ Route-->>Admin : success
 - [categoryController.js:4-134](file://backend/controllers/categoryController.js#L4-L134)
 
 ### Form Validation and User Experience
-- Admin dashboard form enforces required fields for name, description, price, stock, and category.
-- Price input uses numeric type with decimal support.
-- Stock input uses numeric type.
-- Category dropdown dynamically loads from available categories with icons.
-- Image upload allows up to three images, with previews and removal capability.
-- Submission uses FormData with multipart encoding.
-- Category management form includes name, description, icon, and display order fields.
-- Category status toggles between active/inactive states.
+- **Enhanced Product Form**: Supports MRP (originalPrice), category selection, multi-image upload, and stock management
+- **Admin Validation**: Automatic admin access verification with redirect to login
+- **Image Upload**: Allows up to three images with previews and removal capability
+- **Category Loading**: Dynamic category loading from available categories with icons
+- **Form States**: Separate states for editing and creating products
+- **Pagination Controls**: Smooth scrolling and page navigation
 
 ```mermaid
 flowchart TD
-Start(["Open Form"]) --> LoadCats["Load available categories"]
-LoadCats --> Fill["Fill required fields"]
-Fill --> Images["Select up to 3 images"]
-Images --> Submit{"Submit?"}
-Submit --> |Yes| Send["Send FormData to backend"]
-Submit --> |No| Edit["Continue editing"]
-Send --> Result{"Success?"}
-Result --> |Yes| Reset["Reset form and refresh list"]
-Result --> |No| Alert["Show error toast"]
+Start(["Open ProductsManagement"]) --> CheckAdmin["Check Admin Access"]
+CheckAdmin --> LoadCats["Load Categories"]
+LoadCats --> LoadProducts["Load Products with Pagination"]
+LoadProducts --> Form{"Show Form?"}
+Form --> |Yes| EditCreate["Edit/Create Product Form"]
+Form --> |No| View["View Products Table"]
+EditCreate --> MRP["MRP Field Support"]
+EditCreate --> Images["Multi-Image Upload"]
+EditCreate --> Submit["Submit to Backend"]
+Submit --> Success["Toast Success & Refresh"]
+Success --> LoadProducts
 ```
 
 **Diagram sources**
-- [AdminDashboard.jsx:14-465](file://frontend/src/pages/AdminDashboard.jsx#L14-L465)
-- [CategoryManagement.jsx:5-224](file://frontend/src/components/admin/CategoryManagement.jsx#L5-L224)
+- [ProductsManagement.jsx:39-46](file://frontend/src/components/admin/ProductsManagement.jsx#L39-L46)
+- [ProductsManagement.jsx:61-68](file://frontend/src/components/admin/ProductsManagement.jsx#L61-L68)
+- [ProductsManagement.jsx:48-59](file://frontend/src/components/admin/ProductsManagement.jsx#L48-L59)
+- [ProductsManagement.jsx:92-121](file://frontend/src/components/admin/ProductsManagement.jsx#L92-L121)
 
 **Section sources**
-- [AdminDashboard.jsx:14-465](file://frontend/src/pages/AdminDashboard.jsx#L14-L465)
+- [ProductsManagement.jsx:15-418](file://frontend/src/components/admin/ProductsManagement.jsx#L15-L418)
 - [CategoryManagement.jsx:5-224](file://frontend/src/components/admin/CategoryManagement.jsx#L5-L224)
 
 ### Image Upload Handling
-- Cloudinary integration configured with automatic optimization and quality enhancement.
-- Storage: Cloudinary CDN with secure HTTPS URLs.
-- Filename: Generated automatically by Cloudinary (public_id).
-- Size limit: 5 MB.
-- Allowed types: jpg, jpeg, png, webp, gif.
-- Backend stores secure Cloudinary URLs in the database.
-- Frontend resolves image URLs via imageHelper utility.
+- **Cloudinary Integration**: Configured with automatic optimization and quality enhancement
+- **Storage**: Cloudinary CDN with secure HTTPS URLs
+- **Filename**: Generated automatically by Cloudinary (public_id)
+- **Size Limit**: 5 MB
+- **Allowed Types**: jpg, jpeg, png, webp, gif
+- **Multi-Image Support**: Up to three images per product with preview capability
+- **Backend Storage**: Secure Cloudinary URLs in the database
+- **Frontend Resolution**: Image URLs via imageHelper utility
 
 ```mermaid
 flowchart TD
@@ -422,48 +473,53 @@ Store --> Respond["Respond with saved product"]
 **Diagram sources**
 - [uploadMiddleware.js:5-56](file://backend/middleware/uploadMiddleware.js#L5-L56)
 - [cloudinary.js:6-11](file://backend/config/cloudinary.js#L6-L11)
-- [AdminDashboard.jsx:110-124](file://frontend/src/pages/AdminDashboard.jsx#L110-L124)
+- [ProductsManagement.jsx:76-90](file://frontend/src/components/admin/ProductsManagement.jsx#L76-L90)
 - [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
 
 **Section sources**
 - [uploadMiddleware.js:5-56](file://backend/middleware/uploadMiddleware.js#L5-L56)
 - [cloudinary.js:6-11](file://backend/config/cloudinary.js#L6-L11)
-- [AdminDashboard.jsx:110-124](file://frontend/src/pages/AdminDashboard.jsx#L110-L124)
+- [ProductsManagement.jsx:76-90](file://frontend/src/components/admin/ProductsManagement.jsx#L76-L90)
 - [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
 
-### Product Listing Table, Sorting, Filtering, and Search
-- Sorting: Results sorted by newest first.
-- Filtering: Category filter applied when a category is selected.
-- Search: Full-text search across name and description using regex with case-insensitive option.
-- Pagination: Page and limit query parameters control offset and batch size.
-- Frontend table displays product image preview, name, description, category, price, stock, and action buttons.
+### Product Listing Table, Pagination, and Enhanced Features
+- **Pagination**: 10 products per page with navigation controls and page information
+- **Enhanced Display**: Shows product image, name, description, category, price, stock with color-coded indicators
+- **Action Buttons**: Edit and Delete functionality with confirmation dialogs
+- **Empty State**: Friendly message when no products are found
+- **Stock Indicators**: Color-coded badges (green for >10, yellow for 1-10, red for 0)
+- **Responsive Design**: Grid layout for image previews and responsive table
 
 ```mermaid
 sequenceDiagram
-participant UI as "AdminDashboard.jsx"
+participant UI as "ProductsManagement.jsx"
 participant API as "productController.js"
 participant DB as "MongoDB"
-UI->>API : GET /api/products?search=...&category=...&page=...&limit=...
-API->>DB : Product.find(query).sort(...).skip(...).limit(...)
-DB-->>API : products
+UI->>API : GET /api/products?page=1&limit=10
+API->>DB : Product.find(query).sort({createdAt : -1}).skip().limit()
+DB-->>API : products (10 per page)
 API-->>UI : { products, totalPages, currentPage, totalProducts }
+UI->>UI : Calculate Pagination<br/>Slice products array
+UI->>UI : Render Table with Actions
 ```
 
 **Diagram sources**
-- [AdminDashboard.jsx:90-99](file://frontend/src/pages/AdminDashboard.jsx#L90-L99)
+- [ProductsManagement.jsx:70-74](file://frontend/src/components/admin/ProductsManagement.jsx#L70-L74)
+- [ProductsManagement.jsx:312-374](file://frontend/src/components/admin/ProductsManagement.jsx#L312-L374)
+- [ProductsManagement.jsx:376-414](file://frontend/src/components/admin/ProductsManagement.jsx#L376-L414)
 - [productController.js:4-37](file://backend/controllers/productController.js#L4-L37)
 
 **Section sources**
 - [productController.js:4-37](file://backend/controllers/productController.js#L4-L37)
-- [AdminDashboard.jsx:348-386](file://frontend/src/pages/AdminDashboard.jsx#L348-L386)
+- [ProductsManagement.jsx:312-414](file://frontend/src/components/admin/ProductsManagement.jsx#L312-L414)
 
 ### Category Management Interface
-- Dedicated categories tab in admin dashboard with comprehensive CRUD operations.
-- Dynamic category loading from backend with real-time updates.
-- Category form supports name, description, icon, and display order fields.
-- Status indicators show active/inactive state with color coding.
-- Category list displays icon, name, slug, display order, and status.
-- Real-time category availability checking in product forms.
+- **Dedicated Component**: Separate CategoryManagement component with comprehensive CRUD operations
+- **Dynamic Loading**: Real-time category updates from backend
+- **Enhanced Form**: Supports name, description, icon, and display order fields
+- **Status Indicators**: Active/inactive state with color coding
+- **Admin Access**: Full CRUD operations accessible only to administrators
+- **Integration**: Seamless integration with product management for category selection
 
 ```mermaid
 sequenceDiagram
@@ -486,120 +542,126 @@ CatUI-->>Admin : Update category list
 ```
 
 **Diagram sources**
-- [AdminDashboard.jsx:247-249](file://frontend/src/pages/AdminDashboard.jsx#L247-L249)
+- [AdminDashboard.jsx:264-266](file://frontend/src/pages/AdminDashboard.jsx#L264-L266)
 - [CategoryManagement.jsx:21-30](file://frontend/src/components/admin/CategoryManagement.jsx#L21-L30)
 - [categoryController.js:16-24](file://backend/controllers/categoryController.js#L16-L24)
 
 **Section sources**
-- [AdminDashboard.jsx:452-456](file://frontend/src/pages/AdminDashboard.jsx#L452-L456)
+- [AdminDashboard.jsx:262-274](file://frontend/src/pages/AdminDashboard.jsx#L262-L274)
 - [CategoryManagement.jsx:5-224](file://frontend/src/components/admin/CategoryManagement.jsx#L5-L224)
 
 ### Inventory Management, Stock Tracking, and Low-Stock Alerts
-- Stock field is required and defaults to zero.
-- Frontend renders stock counts with color-coded badges indicating availability.
-- Out-of-stock items disable add-to-cart actions in the storefront.
-- Category-based organization enables better inventory management across product groups.
+- **Enhanced Stock Display**: Color-coded badges with improved visual indicators
+- **Stock Levels**: Green for >10 units, Yellow for 1-10 units, Red for 0 units
+- **Category Organization**: Better inventory management across product groups
+- **Real-time Updates**: Stock changes reflected immediately in the admin interface
+- **Low Stock Alerts**: Visual indicators help identify products needing restocking
 
 ```mermaid
 flowchart TD
-Stock["Product.stock"] --> Zero{"stock == 0?"}
-Zero --> |Yes| Red["Display red badge<br/>Disable add-to-cart"]
-Zero --> |No| Green["Display green badge"]
+Stock["Product.stock"] --> Check{"stock level?"}
+Check --> |>10| Green["Display green badge<br/>Good stock level"]
+Check --> |1-10| Yellow["Display yellow badge<br/>Low stock alert"]
+Check --> |0| Red["Display red badge<br/>Out of stock"]
 Category["Product.category"] --> Organize["Organize by category<br/>for better management"]
 ```
 
 **Diagram sources**
-- [Product.js:9](file://backend/models/Product.js#L9)
-- [AdminDashboard.jsx:373-375](file://frontend/src/pages/AdminDashboard.jsx#L373-L375)
+- [Product.js:10](file://backend/models/Product.js#L10)
+- [ProductsManagement.jsx:338-346](file://frontend/src/components/admin/ProductsManagement.jsx#L338-L346)
 - [Home.jsx:64-70](file://frontend/src/pages/Home.jsx#L64-L70)
 
 **Section sources**
-- [Product.js:9](file://backend/models/Product.js#L9)
-- [AdminDashboard.jsx:373-375](file://frontend/src/pages/AdminDashboard.jsx#L373-L375)
+- [Product.js:10](file://backend/models/Product.js#L10)
+- [ProductsManagement.jsx:338-346](file://frontend/src/components/admin/ProductsManagement.jsx#L338-L346)
 - [Home.jsx:64-70](file://frontend/src/pages/Home.jsx#L64-L70)
 
 ### Extending Product Attributes, Custom Fields, and Advanced Filtering
-- Extend Product model by adding new fields to the schema. Ensure required/optional constraints and defaults are defined.
-- Update controllers to accept new fields from requests and apply validation.
-- Adjust frontend forms to collect and submit new fields.
-- For advanced filtering, add new query parameters in controllers and build appropriate MongoDB queries.
-- For bulk actions, implement batch endpoints (e.g., delete multiple by IDs) and corresponding frontend UI controls.
-- Category-based filtering can be extended to include sub-category hierarchies and category-specific attributes.
-
-[No sources needed since this section provides general guidance]
+- **MRP Support**: OriginalPrice field enables pricing with discounts and promotional pricing
+- **Enhanced Schema**: Easy extension of Product model with new fields
+- **Controller Updates**: Controllers handle new fields with validation and type conversion
+- **Frontend Integration**: Forms automatically adapt to schema changes
+- **Advanced Filtering**: Controllers support complex queries with multiple filter criteria
+- **Bulk Operations**: Controllers support batch operations for improved efficiency
+- **Category Extensions**: Category hierarchies and attributes can be extended
 
 ## Dependency Analysis
-Key dependencies and relationships:
-- Routes depend on controllers and middleware.
-- Controllers depend on the Product and Category models.
-- Frontend depends on backend routes and image helper utilities.
-- Category management is tightly coupled with product management for dynamic category selection.
-- Cloudinary integration provides centralized image management.
+Key dependencies and relationships have been restructured for better organization:
+- **ProductsManagement** depends on backend routes and image helper utilities
+- **AdminDashboard** serves as orchestrator for different admin components
+- **CategoryManagement** operates independently with its own API integration
+- **Controllers** depend on Product and Category models
+- **Frontend components** share common utilities and styling
+- **Cloudinary integration** provides centralized image management
 
 ```mermaid
 graph LR
-ProdRoutes["productRoutes.js"] --> ProdController["productController.js"]
-CatRoutes["categoryRoutes.js"] --> CatController["categoryController.js"]
-ProdController --> ProductModel["Product.js"]
-CatController --> CategoryModel["Category.js"]
-ProdRoutes --> Auth["authMiddleware.js"]
-CatRoutes --> Auth
-ProdRoutes --> Upload["uploadMiddleware.js"]
+AdminDashboard["AdminDashboard.jsx"] --> ProductsManagement["ProductsManagement.jsx"]
+AdminDashboard --> CategoryManagement["CategoryManagement.jsx"]
+ProductsManagement --> ProductRoutes["productRoutes.js"]
+CategoryManagement --> CategoryRoutes["categoryRoutes.js"]
+ProductRoutes --> ProductController["productController.js"]
+CategoryRoutes --> CategoryController["categoryController.js"]
+ProductController --> ProductModel["Product.js"]
+CategoryController --> CategoryModel["Category.js"]
+ProductRoutes --> Auth["authMiddleware.js"]
+CategoryRoutes --> Auth
+ProductRoutes --> Upload["uploadMiddleware.js"]
 Upload --> Cloudinary["cloudinary.js"]
-AdminUI["AdminDashboard.jsx"] --> ProdRoutes
-AdminUI --> CatRoutes
-AdminUI --> ImgHelper["imageHelper.js"]
-CatUI["CategoryManagement.jsx"] --> CatRoutes
-Server["server.js"] --> ProdRoutes
-Server --> CatRoutes
+ProductsManagement --> ImgHelper["imageHelper.js"]
+AdminDashboard --> ImgHelper
+Server["server.js"] --> ProductRoutes
+Server --> CategoryRoutes
 Server --> DB["db.js"]
 Server --> Upload
 ```
 
 **Diagram sources**
+- [AdminDashboard.jsx:1-283](file://frontend/src/pages/AdminDashboard.jsx#L1-L283)
+- [ProductsManagement.jsx:1-418](file://frontend/src/components/admin/ProductsManagement.jsx#L1-L418)
+- [CategoryManagement.jsx:1-224](file://frontend/src/components/admin/CategoryManagement.jsx#L1-L224)
 - [productRoutes.js:12-22](file://backend/routes/productRoutes.js#L12-L22)
 - [categoryRoutes.js:1-27](file://backend/routes/categoryRoutes.js#L1-L27)
 - [productController.js:1-137](file://backend/controllers/productController.js#L1-L137)
 - [categoryController.js:1-134](file://backend/controllers/categoryController.js#L1-L134)
-- [Product.js:1-12](file://backend/models/Product.js#L1-L12)
+- [Product.js:1-13](file://backend/models/Product.js#L1-L13)
 - [Category.js:1-46](file://backend/models/Category.js#L1-L46)
 - [authMiddleware.js:4-20](file://backend/middleware/authMiddleware.js#L4-L20)
 - [uploadMiddleware.js:1-56](file://backend/middleware/uploadMiddleware.js#L1-L56)
 - [cloudinary.js:1-13](file://backend/config/cloudinary.js#L1-L13)
-- [AdminDashboard.jsx:1-465](file://frontend/src/pages/AdminDashboard.jsx#L1-L465)
-- [CategoryManagement.jsx:1-224](file://frontend/src/components/admin/CategoryManagement.jsx#L1-L224)
 - [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
 - [server.js:54-55](file://backend/server.js#L54-L55)
 - [db.js:5-13](file://backend/config/db.js#L5-L13)
 
 **Section sources**
+- [AdminDashboard.jsx:1-283](file://frontend/src/pages/AdminDashboard.jsx#L1-L283)
+- [ProductsManagement.jsx:1-418](file://frontend/src/components/admin/ProductsManagement.jsx#L1-L418)
+- [CategoryManagement.jsx:1-224](file://frontend/src/components/admin/CategoryManagement.jsx#L1-L224)
 - [productRoutes.js:12-22](file://backend/routes/productRoutes.js#L12-L22)
 - [categoryRoutes.js:1-27](file://backend/routes/categoryRoutes.js#L1-L27)
 - [productController.js:1-137](file://backend/controllers/productController.js#L1-L137)
 - [categoryController.js:1-134](file://backend/controllers/categoryController.js#L1-L134)
-- [AdminDashboard.jsx:1-465](file://frontend/src/pages/AdminDashboard.jsx#L1-L465)
-- [CategoryManagement.jsx:1-224](file://frontend/src/components/admin/CategoryManagement.jsx#L1-L224)
 
 ## Performance Considerations
-- Indexing: Consider adding indexes on frequently queried fields (e.g., category, name, description) to improve search performance.
-- Pagination: Use reasonable page sizes and avoid very large limits to prevent heavy payloads.
-- Cloudinary optimization: Automatic compression and format optimization reduces bandwidth usage.
-- Category caching: Cache category lists in frontend to reduce API calls during product creation.
-- Image optimization: Leverage Cloudinary's automatic optimization features for better performance.
-- Caching: Implement caching for product listings if data changes infrequently.
-- Validation: Keep validation close to the controller to fail fast and reduce unnecessary database writes.
-
-[No sources needed since this section provides general guidance]
+- **Pagination Optimization**: 10 products per page reduces initial load time and improves responsiveness
+- **Component Separation**: Dedicated components improve code organization and maintainability
+- **Indexing**: Consider adding indexes on frequently queried fields (e.g., category, name, description)
+- **Cloudinary Optimization**: Automatic compression and format optimization reduces bandwidth usage
+- **Category Caching**: Cache category lists in frontend to reduce API calls during product creation
+- **Image Optimization**: Leverage Cloudinary's automatic optimization features for better performance
+- **Validation**: Keep validation close to the controller to fail fast and reduce unnecessary database writes
+- **State Management**: Efficient state management in ProductsManagement component prevents unnecessary re-renders
 
 ## Troubleshooting Guide
 Common issues and resolutions:
-- Authentication errors: Ensure Authorization header is present and valid; admin role is required.
-- Cloudinary upload errors: Verify Cloudinary credentials are configured correctly; check network connectivity.
-- Product not found: Confirm product ID validity and endpoint correctness.
-- Validation failures: Ensure required fields are provided and numeric fields are valid numbers.
-- Category not found: Verify category exists and is active; check category slug generation.
-- Image URLs: Confirm Cloudinary configuration and secure URL resolution.
-- Category dropdown empty: Ensure categories are created and active before creating products.
+- **Authentication Errors**: Ensure Authorization header is present and valid; admin role is required
+- **Cloudinary Upload Errors**: Verify Cloudinary credentials are configured correctly; check network connectivity
+- **Product Not Found**: Confirm product ID validity and endpoint correctness
+- **Validation Failures**: Ensure required fields are provided and numeric fields are valid numbers
+- **Category Not Found**: Verify category exists and is active; check category slug generation
+- **Image URLs**: Confirm Cloudinary configuration and secure URL resolution
+- **Pagination Issues**: Check page parameter and limit values; verify totalProducts calculation
+- **MRP Field Errors**: Ensure originalPrice is a valid number when provided
 
 **Section sources**
 - [authMiddleware.js:4-20](file://backend/middleware/authMiddleware.js#L4-L20)
@@ -607,75 +669,79 @@ Common issues and resolutions:
 - [productController.js:40-48](file://backend/controllers/productController.js#L40-L48)
 - [categoryController.js:30-37](file://backend/controllers/categoryController.js#L30-L37)
 - [imageHelper.js:1-5](file://frontend/src/utils/imageHelper.js#L1-L5)
+- [ProductsManagement.jsx:70-74](file://frontend/src/components/admin/ProductsManagement.jsx#L70-L74)
 
 ## Conclusion
-The admin product management system provides a robust foundation for managing products and categories, including secure CRUD operations, Cloudinary-powered image handling, and comprehensive category management. The enhanced system now features a dedicated categories tab, dynamic category selection in product forms, and improved product creation workflow with automatic category population. The schema and controllers are straightforward to extend for additional attributes and advanced features. Following the guidance in this document will help maintain consistency and scalability as requirements evolve.
+The admin product management system has undergone a major restructuring that significantly improves organization and user experience. The migration from integrated product management within AdminDashboard.jsx to dedicated ProductsManagement.jsx component provides better separation of concerns and maintainability. Key enhancements include pagination support (10 products per page), MRP (Maximum Retail Price) support, enhanced form handling with multi-image upload capabilities, and improved component organization. The system maintains all existing functionality while providing a more scalable and user-friendly interface for managing products and categories. The enhanced architecture supports future extensions and provides a solid foundation for additional administrative features.
 
 ## Appendices
 
 ### API Endpoints Summary
-- GET /api/products: List products with search, category filter, pagination.
-- GET /api/products/:id: Retrieve a single product.
-- POST /api/products: Admin-only creation with Cloudinary images.
-- PUT /api/products/:id: Admin-only update with Cloudinary images.
-- DELETE /api/products/:id: Admin-only deletion.
-- GET /api/categories: List active categories for frontend display.
-- GET /api/categories/all: Admin-only list of all categories.
-- GET /api/categories/:id: Admin-only category retrieval.
-- POST /api/categories: Admin-only category creation.
-- PUT /api/categories/:id: Admin-only category update.
-- DELETE /api/categories/:id: Admin-only category deletion.
+- **GET /api/products**: List products with search, category filter, pagination (default 12 per page)
+- **GET /api/products/:id**: Retrieve a single product
+- **POST /api/products**: Admin-only creation with Cloudinary images (max 3)
+- **PUT /api/products/:id**: Admin-only update with Cloudinary images
+- **DELETE /api/products/:id**: Admin-only deletion
+- **GET /api/categories**: List active categories for frontend display
+- **GET /api/categories/all**: Admin-only list of all categories
+- **GET /api/categories/:id**: Admin-only category retrieval
+- **POST /api/categories**: Admin-only category creation
+- **PUT /api/categories/:id**: Admin-only category update
+- **DELETE /api/categories/:id**: Admin-only category deletion
 
 **Section sources**
 - [productRoutes.js:14-21](file://backend/routes/productRoutes.js#L14-L21)
 - [categoryRoutes.js:15-24](file://backend/routes/categoryRoutes.js#L15-L24)
 
 ### Product Data Structure
-- name: string (required)
-- description: string (required)
-- price: number (required)
-- images: string[] (Cloudinary secure URLs)
-- category: string (required)
-- stock: number (required, default 0)
-- timestamps: createdAt, updatedAt
+- **name**: string (required)
+- **description**: string (required)
+- **price**: number (required, selling price)
+- **originalPrice**: number (optional, MRP)
+- **images**: string[] (Cloudinary secure URLs, up to 3)
+- **category**: string (required)
+- **stock**: number (required, default 0)
+- **timestamps**: createdAt, updatedAt
 
 **Section sources**
-- [Product.js:3-10](file://backend/models/Product.js#L3-L10)
+- [Product.js:3-13](file://backend/models/Product.js#L3-L13)
 
 ### Category Data Structure
-- name: string (required, unique)
-- slug: string (required, unique, auto-generated)
-- description: string (optional)
-- icon: string (optional, emoji or URL)
-- isActive: boolean (default true)
-- displayOrder: number (default 0)
-- timestamps: createdAt, updatedAt
+- **name**: string (required, unique)
+- **slug**: string (required, unique, auto-generated)
+- **description**: string (optional)
+- **icon**: string (optional, emoji or URL)
+- **isActive**: boolean (default true)
+- **displayOrder**: number (default 0)
+- **timestamps**: createdAt, updatedAt
 
 **Section sources**
 - [Category.js:3-35](file://backend/models/Category.js#L3-L35)
 
 ### Validation Rules
-- Required fields: name, description, price, category, stock.
-- Numeric fields: price and stock must be numbers.
-- Image constraints: up to 3 images, allowed types jpg/jpeg/png/webp/gif, max 5 MB.
-- Category constraints: name unique, slug auto-generated, displayOrder numeric.
+- **Required Fields**: name, description, price, category, stock
+- **Numeric Fields**: price, originalPrice, stock must be numbers
+- **Image Constraints**: up to 3 images, allowed types jpg/jpeg/png/webp/gif, max 5 MB
+- **Category Constraints**: name unique, slug auto-generated, displayOrder numeric
+- **Pagination**: Default 10 products per page, configurable via query parameters
 
 **Section sources**
 - [productController.js:52-83](file://backend/controllers/productController.js#L52-L83)
 - [uploadMiddleware.js:50-56](file://backend/middleware/uploadMiddleware.js#L50-L56)
 - [Category.js:4-32](file://backend/models/Category.js#L4-L32)
-- [AdminDashboard.jsx:161,165,170,174,180](file://frontend/src/pages/AdminDashboard.jsx#L161,L165,L170,L174,L180)
+- [ProductsManagement.jsx:15-22](file://frontend/src/components/admin/ProductsManagement.jsx#L15-L22)
 
 ### Enhanced Features
-- Categories tab in admin dashboard for dedicated category management.
-- Dynamic category selection in product forms with real-time category loading.
-- Category management component with full CRUD operations.
-- Category activation/deactivation for controlling visibility.
-- Category display ordering for custom organization.
-- Category icons for visual identification.
-- Category-based product filtering and organization.
+- **Dedicated Products Management Component**: Separate component with comprehensive functionality
+- **Pagination Support**: 10 products per page with navigation controls
+- **MRP (Maximum Retail Price)**: OriginalPrice field for promotional pricing
+- **Enhanced Form Handling**: Multi-image upload with preview and removal
+- **Improved User Experience**: Better organization and streamlined workflows
+- **Admin Validation**: Automatic access verification and redirection
+- **Color-Coded Stock Display**: Visual indicators for stock levels
+- **Category Integration**: Seamless category selection and management
 
 **Section sources**
-- [AdminDashboard.jsx:247-249](file://frontend/src/pages/AdminDashboard.jsx#L247-L249)
-- [CategoryManagement.jsx:5-224](file://frontend/src/components/admin/CategoryManagement.jsx#L5-L224)
-- [categoryController.js:26-98](file://backend/controllers/categoryController.js#L26-L98)
+- [ProductsManagement.jsx:8-418](file://frontend/src/components/admin/ProductsManagement.jsx#L8-L418)
+- [Product.js:7](file://backend/models/Product.js#L7)
+- [AdminDashboard.jsx:262-274](file://frontend/src/pages/AdminDashboard.jsx#L262-L274)

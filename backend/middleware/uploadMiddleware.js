@@ -1,3 +1,4 @@
+import { Readable } from 'stream';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import '../config/cloudinary.js'; // Import and configure Cloudinary
@@ -32,7 +33,6 @@ const cloudinaryStorage = {
       if (file.stream) {
         file.stream.pipe(uploadStream);
       } else if (file.buffer) {
-        const { Readable } = require('stream');
         Readable.from(file.buffer).pipe(uploadStream);
       } else {
         cb(new Error('No file data available'));

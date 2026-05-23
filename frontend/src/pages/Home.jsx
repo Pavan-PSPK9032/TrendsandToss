@@ -10,9 +10,9 @@ const ProductCard = lazy(() => import('../components/ProductCard'))
 function ProductSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="bg-gray-200 rounded-xl aspect-[3/4] mb-3"></div>
-      <div className="h-4 bg-gray-200 rounded mb-2"></div>
-      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+      <div className="bg-navy/10 aspect-[3/4] mb-3"></div>
+      <div className="h-4 bg-navy/10 mb-2"></div>
+      <div className="h-3 bg-navy/10 w-2/3"></div>
     </div>
   )
 }
@@ -20,7 +20,7 @@ function ProductSkeleton() {
 function CategorySkeleton() {
   return (
     <div className="mb-12">
-      <div className="h-8 bg-gray-200 rounded w-48 mb-6 animate-pulse"></div>
+      <div className="h-8 bg-navy/10 w-48 mb-6 animate-pulse"></div>
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
         {[...Array(4)].map((_, i) => (
           <ProductSkeleton key={i} />
@@ -95,10 +95,10 @@ export default function Home() {
       <div className="mb-8">
         <input
           type="text"
-          placeholder="🔍 Search products..."
+          placeholder="Search jewellery..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-4 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:outline-none transition text-gray-800 placeholder-gray-400"
+          className="w-full p-4 bg-white border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none transition text-navy placeholder-navy/40 text-sm tracking-wide"
         />
       </div>
 
@@ -121,15 +121,14 @@ export default function Home() {
             if (categoryProducts.length === 0) return null
 
             return (
-              <div key={category._id} className="mb-12">
+              <div key={category._id} className="mb-14">
                 {/* Category Header */}
-                <div className="flex items-center gap-3 mb-6">
-                  {category.icon && <span className="text-3xl">{category.icon}</span>}
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900">{category.name}</h2>
-                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
+                <div className="flex items-center gap-4 mb-6">
+                  <h2 className="font-playfair text-2xl md:text-3xl font-semibold text-navy">{category.name}</h2>
+                  <div className="flex-1 h-px bg-gold/30"></div>
                 </div>
 
-                {/* Products - 2-column grid on mobile, responsive on desktop */}
+                {/* Products Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
                   <Suspense fallback={<ProductSkeleton />}>
                     {categoryProducts.map(product => (
@@ -144,8 +143,8 @@ export default function Home() {
           })}
 
           {filteredCategories.length === 0 && (
-            <div className="text-center mt-20 text-gray-500">
-              <p className="text-xl font-light">No products found</p>
+            <div className="text-center mt-20 text-navy/40">
+              <p className="text-xl font-light tracking-wide">No products found</p>
             </div>
           )}
         </>

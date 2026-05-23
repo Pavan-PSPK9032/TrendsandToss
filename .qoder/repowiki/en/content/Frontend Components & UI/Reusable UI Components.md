@@ -20,11 +20,10 @@
 
 ## Update Summary
 **Changes Made**
-- Enhanced ProductCard component with native touch swipe functionality for mobile devices
-- Replaced hover-based image navigation system with touch gesture support
-- Updated styling optimizations for mobile responsiveness including reduced padding
-- Simplified stock badges for better mobile experience
-- Improved lazy loading implementation with better image handling
+- **BannerSlider**: Significantly simplified to focus purely on visual presentation without text overlays or interactive elements
+- **ProductCard**: Enhanced with MRP strike-through pricing and automatic discount percentage calculation
+- **Mobile Responsiveness**: Improved across all components with better touch handling and responsive design patterns
+- **Component Simplification**: Removed complex interactive elements from BannerSlider for cleaner visual experience
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -40,12 +39,12 @@
 
 ## Introduction
 This document describes the reusable React UI components used across the e-commerce application's frontend. It focuses on:
-- ProductCard for displaying product tiles with enhanced mobile touch swipe functionality
-- Navbar for navigation
-- Footer for site footer
-- BannerSlider for hero sections
-- ImageCarousel for product galleries
-- ManualUPI for payment methods
+- ProductCard for displaying product tiles with enhanced pricing display and mobile touch swipe functionality
+- Navbar for navigation with glassmorphism design
+- Footer for site footer with responsive multi-column layout
+- BannerSlider for hero sections with simplified visual presentation
+- ImageCarousel for product galleries with smooth transitions
+- ManualUPI for payment methods with QR code generation
 
 For each component, we explain props, event handlers, styling patterns using TailwindCSS, reusability across pages, accessibility features, responsive design, and performance considerations. We also provide usage examples with code snippet paths and show how components integrate with context providers and page layouts.
 
@@ -105,42 +104,42 @@ ProductDetails --> Cart
 ## Core Components
 This section summarizes each component's purpose, props, events, styling patterns, and reusability.
 
-- ProductCard
-  - Purpose: Render a single product tile with enhanced mobile touch swipe functionality, image gallery, pricing, and action buttons.
-  - Props: product (object with images[], name, price, _id, stock).
+- **ProductCard**
+  - Purpose: Render a single product tile with enhanced mobile touch swipe functionality, image gallery, pricing display with MRP and discount calculation, and action buttons.
+  - Props: product (object with images[], name, price, _id, stock, originalPrice).
   - Events: "Details" link navigates to product route; "Add to Cart" button triggers cart action; touch gestures enable image navigation on mobile devices.
   - Styling: Tailwind utilities for borders, shadows, hover effects, transitions, and opacity/visibility toggles with mobile-optimized padding and simplified stock badges.
   - Reusability: Used inside Home page product grid and ProductDetails page promotional cards.
 
-- Navbar
-  - Purpose: Site navigation bar with brand identity, links, and auth-aware actions.
+- **Navbar**
+  - Purpose: Glassmorphism navigation bar with brand identity, links, and auth-aware actions.
   - Props: none (consumes AuthContext).
   - Events: Logout handler via AuthContext; conditional rendering for logged-in/admin users.
-  - Styling: Tailwind for layout, spacing, hover states, and color accents.
-  - Reusability: Included at the top of the main App shell.
+  - Styling: Tailwind for layout, spacing, hover states, and color accents with backdrop blur effect.
+  - Reusability: Included at the top of the main App shell with responsive desktop and mobile designs.
 
-- Footer
+- **Footer**
   - Purpose: Multi-column footer with branding, quick links, customer service, and contact info.
   - Props: none.
   - Events: External links open in new tabs; internal links via React Router.
   - Styling: Responsive grid layout with Tailwind; hover transitions and accent colors.
   - Reusability: Included at the bottom of the main App shell.
 
-- BannerSlider
-  - Purpose: Auto-rotating hero banner with overlay content, CTA, arrows, dots, and progress indicator.
+- **BannerSlider**
+  - Purpose: Simplified hero banner focusing purely on visual presentation with auto-rotation and minimal interactive elements.
   - Props: none.
-  - Events: Previous/next navigation; dot selection; pause/resume on hover.
-  - Styling: Gradient overlays, centered content, backdrop blur, transitions, and hover-triggered visibility.
-  - Reusability: Used on Home page hero area.
+  - Events: Auto-advance every 5 seconds; manual navigation via arrow buttons and dot indicators; pause/resume on hover.
+  - Styling: Pure visual presentation with gradient overlays, centered content, backdrop blur, transitions, and hover-triggered visibility.
+  - Reusability: Used on Home page hero area with simplified design.
 
-- ImageCarousel
+- **ImageCarousel**
   - Purpose: Single-product image viewer with navigation arrows, indicators, and lazy image resolution.
   - Props: images (array), alt (string), height (Tailwind height class).
   - Events: Previous/next navigation; dot selection.
   - Styling: Tailwind for container sizing, transitions, and hover-triggered controls.
   - Reusability: Used on Home and ProductDetails pages.
 
-- ManualUPI
+- **ManualUPI**
   - Purpose: UPI-based manual payment method with QR toggle, transaction ID capture, and help link.
   - Props: amount (number), onPaymentComplete(transactionId) callback.
   - Events: Copy UPI ID; show/hide QR; confirm payment; open WhatsApp help.
@@ -188,29 +187,31 @@ Detail->>Carousel : Render ImageCarousel(images)
 ## Detailed Component Analysis
 
 ### ProductCard
-- Purpose: Display a product card with enhanced mobile touch swipe functionality, image gallery, pricing, and actions.
-- Props:
-  - product: object with images[], name, price, _id, stock.
-- State:
+- **Purpose**: Display a product card with enhanced mobile touch swipe functionality, image gallery, pricing display with MRP and automatic discount calculation, and actions.
+- **Props**:
+  - product: object with images[], name, price, _id, stock, originalPrice (optional).
+- **State**:
   - currentImg: index of currently visible image.
   - touchStart: initial touch position for swipe detection.
   - touchEnd: current touch position during swipe movement.
-- Interactions:
+- **Interactions**:
   - **Enhanced**: Native touch swipe functionality for mobile devices with horizontal gesture detection.
   - **Legacy**: Hover group reveals navigation dots; clicking a dot switches the image.
   - "Details" navigates to product route; "Add to Cart" triggers cart action.
   - Touch swipe gestures: left swipe advances to next image, right swipe goes to previous image.
-- Styling:
+  - Automatic discount calculation: MRP strike-through pricing with percentage off display.
+- **Styling**:
   - Tailwind classes for border, padding, shadow, hover elevation, transitions, and opacity-based image switching.
   - **Mobile Optimized**: Reduced padding (p-3) for better mobile screen utilization.
   - **Simplified Stock Badges**: Compact badge design with reduced font size (text-[10px]) for better mobile readability.
-- Accessibility:
+  - **Enhanced Pricing Display**: MRP strike-through pricing with automatic discount percentage calculation.
+- **Accessibility**:
   - Images use descriptive alt text derived from product name with slide number indication.
   - Touch targets sized appropriately for mobile interaction.
-- Reusability:
+- **Reusability**:
   - Used in Home page product grid and ProductDetails promotional cards.
 
-**Updated** Enhanced with native touch swipe functionality for mobile devices, replacing hover-based image navigation system. Added mobile-optimized styling with reduced padding and simplified stock badges.
+**Updated** Enhanced with MRP strike-through pricing and automatic discount percentage calculation. Improved mobile responsiveness with better touch handling and simplified pricing display.
 
 ```mermaid
 flowchart TD
@@ -224,7 +225,10 @@ CheckSwipe --> |Left > 50px| NextImg["setCurrentImg(currentImg + 1)<br/>if not l
 CheckSwipe --> |Right < -50px| PrevImg["setCurrentImg(currentImg - 1)<br/>if not first image"]
 NextImg --> Reset["Reset touch positions"]
 PrevImg --> Reset
-Reset --> Render["Render with new currentImg"]
+Reset --> CheckDiscount["Check if originalPrice > price"]
+CheckDiscount --> |Yes| ShowDiscount["Display MRP strike-through<br/>and discount percentage"]
+CheckDiscount --> |No| Render["Render with new currentImg"]
+ShowDiscount --> Render
 Render --> End(["Idle"])
 ```
 
@@ -237,18 +241,21 @@ Render --> End(["Idle"])
 - [ProductDetails.jsx](file://frontend/src/pages/ProductDetails.jsx)
 
 ### Navbar
-- Purpose: Provide primary navigation and auth-aware actions.
-- Props: none.
-- State: Consumes AuthContext (user, login, logout).
-- Interactions:
+- **Purpose**: Provide primary navigation with glassmorphism design and auth-aware actions.
+- **Props**: none.
+- **State**: Consumes AuthContext (user, login, logout).
+- **Interactions**:
   - Conditional links for anonymous/logged-in users.
   - Admin-only "Admin" link when user.role === 'admin'.
   - Logout handler clears local storage and updates context.
-- Styling:
+  - **Enhanced**: Glassmorphism design with backdrop blur effect that responds to scroll.
+- **Styling**:
   - Tailwind for layout, spacing, hover accents, and responsive alignment.
-- Accessibility:
+  - **Desktop**: Fixed translucent navigation with backdrop blur.
+  - **Mobile**: Floating bottom dock with animated cart counter.
+- **Accessibility**:
   - Uses semantic Link components for navigation.
-- Reusability:
+- **Reusability**:
   - Included in App shell and can be extended per-page.
 
 ```mermaid
@@ -272,17 +279,17 @@ Auth-->>Nav : user = null
 - [App.jsx](file://frontend/src/App.jsx)
 
 ### Footer
-- Purpose: Multi-column footer with branding, links, and contact info.
-- Props: none.
-- Interactions:
+- **Purpose**: Multi-column footer with branding, links, and contact info.
+- **Props**: none.
+- **Interactions**:
   - External links open in new tabs with rel="noopener noreferrer".
   - Internal links via React Router.
-- Styling:
+- **Styling**:
   - Responsive grid (1 column on small screens, 4 on large).
   - Hover transitions for links and social icons.
-- Accessibility:
+- **Accessibility**:
   - Semantic headings and lists; external links include appropriate attributes.
-- Reusability:
+- **Reusability**:
   - Included at the bottom of the main App shell.
 
 ```mermaid
@@ -305,20 +312,24 @@ Contact --> Tel["Phone/WhatsApp/Email/Address"]
 - [App.jsx](file://frontend/src/App.jsx)
 
 ### BannerSlider
-- Purpose: Hero banner with auto-rotation, manual controls, and progress indicator.
-- Props: none.
-- State:
+- **Purpose**: Simplified hero banner focusing purely on visual presentation with auto-rotation and minimal interactive elements.
+- **Props**: none.
+- **State**:
   - currentIndex: active slide index.
   - isAutoPlaying: pause/resume flag.
-- Interactions:
+- **Interactions**:
   - Previous/Next buttons; dot indicators; mouse enter/leave pauses/resumes.
   - Auto-advance every 5 seconds; resumes after user interaction delay.
-- Styling:
-  - Gradient overlay, centered content, backdrop blur, transitions, and hover-triggered controls.
-- Accessibility:
+  - **Enhanced**: Simplified design without text overlays or complex interactive elements.
+- **Styling**:
+  - Pure visual presentation with gradient overlays, centered content, backdrop blur, transitions, and hover-triggered controls.
+  - **Mobile Optimized**: Reduced complexity for better mobile performance.
+- **Accessibility**:
   - Buttons include aria-label attributes.
-- Reusability:
+- **Reusability**:
   - Used on Home page hero area.
+
+**Updated** Significantly simplified to focus purely on visual presentation without text overlays or interactive elements, improving performance and user experience.
 
 ```mermaid
 flowchart TD
@@ -341,21 +352,21 @@ Render --> End(["Idle"])
 - [Home.jsx](file://frontend/src/pages/Home.jsx)
 
 ### ImageCarousel
-- Purpose: Single-product image carousel with navigation and indicators.
-- Props:
+- **Purpose**: Single-product image carousel with navigation and indicators.
+- **Props**:
   - images: array of image paths/URLs.
   - alt: string for alt text.
   - height: Tailwind height class (default h-64).
-- State:
+- **State**:
   - currentIndex: current slide index.
-- Interactions:
+- **Interactions**:
   - Previous/Next buttons; dot indicators; safe wrap-around.
   - Uses imageHelper to resolve image URLs.
-- Styling:
+- **Styling**:
   - Tailwind for container sizing, transitions, and hover-triggered controls.
-- Accessibility:
+- **Accessibility**:
   - Buttons include aria-label; alt text includes slide number.
-- Reusability:
+- **Reusability**:
   - Used on Home and ProductDetails pages.
 
 ```mermaid
@@ -383,23 +394,23 @@ IC->>IC : Re-render with transition
 - [ProductDetails.jsx](file://frontend/src/pages/ProductDetails.jsx)
 
 ### ManualUPI
-- Purpose: Manual UPI payment method with QR toggle, transaction ID capture, and help link.
-- Props:
+- **Purpose**: Manual UPI payment method with QR toggle, transaction ID capture, and help link.
+- **Props**:
   - amount: number (payment amount).
   - onPaymentComplete(transactionId): callback invoked on confirm.
-- State:
+- **State**:
   - showQR: boolean to toggle QR display.
   - transactionId: string input for UTR.
-- Interactions:
+- **Interactions**:
   - Copy UPI ID to clipboard with toast feedback.
   - Generate QR via third-party API; fallback on error.
   - Validate transaction ID before confirming.
   - Open WhatsApp help with prefilled message.
-- Styling:
+- **Styling**:
   - Card layout with Tailwind; disabled states; feedback via toast.
-- Accessibility:
+- **Accessibility**:
   - Input has label semantics; buttons include aria-labels.
-- Reusability:
+- **Reusability**:
   - Used on Checkout and Order Confirmation pages.
 
 ```mermaid
@@ -427,14 +438,14 @@ UPI->>Parent : onPaymentComplete(transactionId)
 - [App.jsx](file://frontend/src/App.jsx)
 
 ## Dependency Analysis
-- Component coupling:
-  - ProductCard depends on product shape; used in Home and ProductDetails.
+- **Component coupling**:
+  - ProductCard depends on product shape with optional originalPrice; used in Home and ProductDetails.
   - ImageCarousel depends on imageHelper for URL normalization.
   - Navbar depends on AuthContext for user state and logout.
   - ManualUPI depends on react-hot-toast for notifications and external QR API.
-- Cohesion:
+- **Cohesion**:
   - Each component encapsulates its own state and styling, promoting high cohesion.
-- External dependencies:
+- **External dependencies**:
   - TailwindCSS for styling.
   - react-router-dom for navigation.
   - react-hot-toast for notifications.
@@ -473,27 +484,31 @@ UPI --> PD
 - [ProductDetails.jsx](file://frontend/src/pages/ProductDetails.jsx)
 
 ## Performance Considerations
-- Lazy image resolution:
+- **Lazy image resolution**:
   - ImageCarousel resolves image URLs via imageHelper, avoiding broken paths and enabling CDN-friendly URLs.
   - **Enhanced**: ProductCard uses lazy loading attribute (loading="lazy") for improved mobile performance.
-- Minimal re-renders:
+- **Minimal re-renders**:
   - Components rely on local state and props; avoid unnecessary context subscriptions where not needed.
-- Transitions and animations:
+- **Transitions and animations**:
   - Use short durations and hardware-accelerated properties (opacity, transform) to keep animations smooth.
   - **Optimized**: ProductCard uses efficient CSS transitions with duration-300 for smooth image switching.
-- Auto-play pausing:
+- **Auto-play pausing**:
   - BannerSlider pauses on hover and after user interaction to reduce CPU usage and improve UX.
-- Mobile touch optimization:
+- **Mobile touch optimization**:
   - **New**: Native touch swipe functionality reduces reliance on hover events, improving mobile user experience.
   - Touch gesture detection uses threshold-based approach (50px minimum swipe distance) for reliable interaction.
-- Accessibility and responsiveness:
+- **Accessibility and responsiveness**:
   - Tailwind utilities provide responsive breakpoints; ensure sufficient contrast and touch targets.
   - **Improved**: Reduced padding and simplified stock badges enhance mobile readability.
-- Cross-browser compatibility:
+  - **Enhanced**: Glassmorphism design with backdrop blur improves visual performance on mobile.
+- **Cross-browser compatibility**:
   - Tailwind's default theme and unprefixed transitions offer broad support; test on target browsers.
+- **Component optimization**:
+  - **New**: BannerSlider simplified to reduce DOM complexity and improve rendering performance.
+  - **Enhanced**: ProductCard optimized with automatic discount calculation to reduce client-side computation.
 
 ## Troubleshooting Guide
-- ImageCarousel shows placeholder or fails to load:
+- **ImageCarousel shows placeholder or fails to load**:
   - Verify images array is passed and imageHelper resolves valid URLs.
   - Ensure images are served from the expected origin/path.
 - **ProductCard touch swipe not working**:
@@ -503,15 +518,19 @@ UPI --> PD
 - **ProductCard mobile styling issues**:
   - Verify mobile-optimized padding (p-3) is applied correctly.
   - Check that simplified stock badges (text-[10px]) display properly on smaller screens.
-- BannerSlider does not auto-advance:
+- **BannerSlider does not auto-advance**:
   - Confirm isAutoPlaying is true and useEffect cleanup runs properly.
   - Check for hover interactions that pause the slider.
-- ManualUPI QR fails to render:
+  - **Updated**: Verify simplified design is not interfering with auto-play functionality.
+- **ManualUPI QR fails to render**:
   - The component hides the image and shows an error toast on error; retry or use UPI ID copy.
-- Navbar logout not working:
+- **Navbar logout not working**:
   - Ensure AuthContext provider wraps the app and logout clears local storage keys.
-- Toast notifications not appearing:
+- **Toast notifications not appearing**:
   - Confirm react-hot-toast Toaster is rendered at the root level.
+- **Glassmorphism design issues**:
+  - **New**: Verify backdrop blur and transparency effects work correctly on target browsers.
+  - Check that scroll behavior is properly handled for desktop and mobile views.
 
 **Section sources**
 - [ProductCard.jsx](file://frontend/src/components/ProductCard.jsx)
@@ -528,9 +547,9 @@ These reusable components form the backbone of the e-commerce UI. They are:
 - Styled with TailwindCSS for consistency and responsiveness
 - Integrated with context providers for authentication and cart state
 - Designed with accessibility and performance in mind
-- **Enhanced** with native mobile touch swipe functionality for improved user experience
+- **Enhanced** with native mobile touch swipe functionality, simplified BannerSlider design, and automatic discount calculation
 
-By composing these components thoughtfully across pages, teams can maintain a cohesive, scalable, and user-friendly interface that works seamlessly across desktop and mobile devices.
+By composing these components thoughtfully across pages, teams can maintain a cohesive, scalable, and user-friendly interface that works seamlessly across desktop and mobile devices with improved visual performance and user experience.
 
 ## Appendices
 
@@ -551,18 +570,23 @@ By composing these components thoughtfully across pages, teams can maintain a co
   - [App.jsx](file://frontend/src/App.jsx)
 
 ### Styling Patterns with TailwindCSS
-- Spacing and layout:
+- **Spacing and layout**:
   - Use gap, p, m utilities for consistent spacing; flex/grid for layout.
   - **Mobile Optimized**: Reduced padding (p-3) for better mobile screen utilization.
-- Responsive design:
+- **Responsive design**:
   - Apply sm:, md:, lg: prefixes to adjust layout and typography across breakpoints.
   - **Enhanced**: ProductCard uses mobile-first design with reduced padding and simplified badges.
-- Transitions and animations:
+  - **New**: Glassmorphism design with backdrop blur for modern visual appeal.
+- **Transitions and animations**:
   - Utilize transition-* and hover:* variants for smooth interactions.
   - **Optimized**: Duration-300 transitions for smooth image switching and hover effects.
-- Accessibility:
+  - **Enhanced**: Cart animation with bounce effect for better user feedback.
+- **Accessibility**:
   - Provide aria-labels for interactive elements; ensure sufficient color contrast.
   - **Improved**: Touch targets sized appropriately for mobile interaction.
+- **Visual Effects**:
+  - **New**: Backdrop blur and glassmorphism effects for modern UI design.
+  - **Enhanced**: Automatic discount calculation with MRP strike-through pricing.
 
 **Section sources**
 - [index.css](file://frontend/src/index.css)

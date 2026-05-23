@@ -37,10 +37,10 @@ export default function ProductCard({ product }) {
       to={`/product/${product._id}`} 
       className="group block"
     >
-      <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 active:scale-95">
-        {/* Image Container with Swipe Support */}
+      <div className="bg-white overflow-hidden border border-navy/10 hover:border-gold transition-all duration-300 active:scale-95 group-hover:shadow-lg">
+        {/* Image Container */}
         <div 
-          className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100"
+          className="relative aspect-square overflow-hidden bg-gray-50"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -59,7 +59,7 @@ export default function ProductCard({ product }) {
           
           {/* Stock Badge */}
           {product.stock === 0 && (
-            <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
+            <div className="absolute top-2 left-2 bg-navy text-white px-2 py-1 text-[10px] font-bold uppercase tracking-widest">
               Sold Out
             </div>
           )}
@@ -70,10 +70,10 @@ export default function ProductCard({ product }) {
               {product.images.map((_, i) => (
                 <div 
                   key={i} 
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                  className={`h-1 transition-all duration-300 ${
                     i === currentImg 
-                      ? 'bg-indigo-600 w-4' 
-                      : 'bg-gray-400 w-1.5'
+                      ? 'bg-gold w-4' 
+                      : 'bg-navy/30 w-1.5'
                   }`} 
                 />
               ))}
@@ -81,26 +81,24 @@ export default function ProductCard({ product }) {
           )}
         </div>
         
-        {/* Product Info - Mobile Optimized */}
-        <div className="p-3">
-          {/* Product Name */}
-          <h3 className="font-medium text-gray-900 text-sm mb-1.5 line-clamp-2 group-hover:text-indigo-600 transition-colors leading-snug">
+        {/* Product Info */}
+        <div className="p-3 border-t border-navy/5">
+          <h3 className="font-medium text-navy text-sm mb-1.5 line-clamp-2 group-hover:text-gold transition-colors leading-snug">
             {product.name}
           </h3>
           
-          {/* Price & Stock */}
           <div className="flex items-start justify-between gap-1">
             <div className="flex flex-col gap-0.5 min-w-0 flex-1">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-base sm:text-lg font-bold text-gray-900">
+                <span className="text-base sm:text-lg font-bold text-navy">
                   ₹{product.price}
                 </span>
                 {product.originalPrice && product.originalPrice > product.price && (
                   <>
-                    <span className="text-xs sm:text-sm text-gray-400 line-through">
+                    <span className="text-xs sm:text-sm text-navy/40 line-through">
                       ₹{product.originalPrice}
                     </span>
-                    <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1 sm:px-1.5 py-0.5 rounded whitespace-nowrap">
+                    <span className="text-[9px] sm:text-[10px] font-bold text-white bg-gold px-1 sm:px-1.5 py-0.5 whitespace-nowrap">
                       {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                     </span>
                   </>
@@ -108,11 +106,11 @@ export default function ProductCard({ product }) {
               </div>
             </div>
             {product.stock > 0 ? (
-              <span className="text-[9px] sm:text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+              <span className="text-[9px] sm:text-[10px] font-medium text-gold border border-gold/40 px-1.5 sm:px-2 py-0.5 whitespace-nowrap flex-shrink-0">
                 In Stock
               </span>
             ) : (
-              <span className="text-[9px] sm:text-[10px] font-medium text-red-600 bg-red-50 px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+              <span className="text-[9px] sm:text-[10px] font-medium text-red-600 border border-red-200 px-1.5 sm:px-2 py-0.5 whitespace-nowrap flex-shrink-0">
                 Sold Out
               </span>
             )}

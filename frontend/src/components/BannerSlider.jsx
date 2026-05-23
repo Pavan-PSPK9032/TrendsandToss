@@ -51,7 +51,7 @@ export default function BannerSlider() {
 
   return (
     <div 
-      className="relative rounded-2xl overflow-hidden mb-10 shadow-2xl min-h-[450px] group"
+      className="relative overflow-hidden mb-10 min-h-[450px] group"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
@@ -75,14 +75,14 @@ export default function BannerSlider() {
       {/* Navigation Arrows - Only show on hover */}
       <button
         onClick={goToPrevious}
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 backdrop-blur text-white p-3 rounded-full transition opacity-0 group-hover:opacity-100 z-10"
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-navy/50 hover:bg-navy/80 backdrop-blur text-white p-3 transition opacity-0 group-hover:opacity-100 z-10"
         aria-label="Previous slide"
       >
         ←
       </button>
       <button
         onClick={goToNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 backdrop-blur text-white p-3 rounded-full transition opacity-0 group-hover:opacity-100 z-10"
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-navy/50 hover:bg-navy/80 backdrop-blur text-white p-3 transition opacity-0 group-hover:opacity-100 z-10"
         aria-label="Next slide"
       >
         →
@@ -94,9 +94,9 @@ export default function BannerSlider() {
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
+            className={`h-1 transition-all duration-300 ${
               index === currentIndex
-                ? 'bg-white w-8'
+                ? 'bg-gold w-8'
                 : 'bg-white/50 hover:bg-white/80 w-2'
             }`}
             aria-label={`Go to slide ${index + 1}`}

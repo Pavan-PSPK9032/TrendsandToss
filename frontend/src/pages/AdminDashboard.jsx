@@ -5,7 +5,6 @@ import toast from 'react-hot-toast';
 import AdminOrders from '../components/admin/AdminOrders';
 import CategoryManagement from '../components/admin/CategoryManagement';
 import ProductsManagement from '../components/admin/ProductsManagement';
-import { getImageUrl } from '../utils/imageHelper';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminDashboard() {
