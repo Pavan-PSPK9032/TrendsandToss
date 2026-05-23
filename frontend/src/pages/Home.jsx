@@ -15,6 +15,19 @@ function ProductSkeleton() {
   )
 }
 
+function CategorySkeleton() {
+  return (
+    <div className="animate-pulse grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-16">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="bg-navy/5 p-6 flex flex-col items-center gap-3">
+          <div className="w-8 h-8 bg-navy/10 rounded-full"></div>
+          <div className="h-3 bg-navy/10 w-16"></div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 const CATEGORY_ICONS = {
   'Necklaces': 'M12 2C8 2 4 5 4 9c0 3 2 5.5 4 7l4 6 4-6c2-1.5 4-4 4-7 0-4-4-7-8-7z',
   'Earrings': 'M12 1a3 3 0 00-3 3v2H7a2 2 0 000 4h2v2a3 3 0 006 0v-2h2a2 2 0 000-4h-2V4a3 3 0 00-3-3z',
