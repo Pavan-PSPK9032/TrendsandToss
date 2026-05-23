@@ -18,9 +18,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config();
-connectDB();
-
 const app = express();
+
+// MongoDB connection status
+let dbConnected = false;
+
+connectDB().then((ok) => { dbConnected = ok; });
+
+// Wait for DB before accepting requests
+app.use((req, res, next) => {
+  if (req.path === '/api/health') return next();
+  if (!dbConnected) {
+    return res.status(503).json({ error: 'Server is starting up, please retry in a few seconds' });
+  }
+  next();
+});
 
 // 🔥 CORS CONFIGURATION - PRODUCTION READY 🔥
 const allowedOrigins = [
