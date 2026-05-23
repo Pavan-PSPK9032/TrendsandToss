@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import { useState, useEffect } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import Home from './pages/Home'
+import Products from './pages/Products'
 import ProductDetails from './pages/ProductDetails'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
@@ -192,7 +193,7 @@ function App() {
             <main className="flex-grow pt-16 pb-20 md:pb-0">
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/products" element={<Home />} />
+                <Route path="/products" element={<Products />} />
                 <Route path="/product/:id" element={<ProductDetails />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
