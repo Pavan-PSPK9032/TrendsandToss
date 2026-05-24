@@ -268,9 +268,32 @@ export default function Cart() {
                 )}
               </div>
 
+              {/* Order Items */}
+              <div>
+                <h2 className="text-xs font-bold uppercase tracking-widest text-navy mb-4">Items ({cart.items.length})</h2>
+                <div className="space-y-3 mb-4">
+                  {cart.items.map(item => (
+                    <div key={item.productId?._id} className="flex items-center gap-3">
+                      <div className="w-12 h-12 flex-shrink-0 border border-navy/10 overflow-hidden bg-gray-50">
+                        {item.productId?.images?.[0] ? (
+                          <img src={item.productId.images[0]} alt={item.productId.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-navy/20 text-xs">No img</div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-navy font-medium truncate">{item.productId?.name}</p>
+                        <p className="text-[10px] text-navy/40">Qty: {item.quantity} × ₹{item.productId?.price}</p>
+                      </div>
+                      <span className="text-xs font-semibold text-navy whitespace-nowrap">₹{(item.productId?.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Order Summary */}
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-widest text-navy mb-4">Order Summary</h2>
+                <h2 className="text-xs font-bold uppercase tracking-widest text-navy mb-4">Cost Breakdown</h2>
                 <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 text-navy/60 text-xs sm:text-sm">
                   <div className="flex justify-between"><span>Subtotal</span><span className="text-navy font-medium">₹{subtotal.toFixed(2)}</span></div>
                   <div className="flex justify-between">
