@@ -44,7 +44,7 @@ export default function ProductDetails() {
   const buyNow = async () => {
     try {
       await api.post('/cart/add', { productId: id, quantity: 1 })
-      navigate('/checkout')
+      navigate('/cart')
     } catch (err) {
       toast.error('Please login to continue')
     }
