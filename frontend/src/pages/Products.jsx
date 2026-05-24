@@ -22,6 +22,8 @@ function ProductSkeleton() {
   );
 }
 
+const PAGE_SIZE = 12;
+
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -31,6 +33,11 @@ export default function Products() {
   const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
   const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchQuery, selectedCategories, priceRange, sortBy]);
 
   useEffect(() => {
     fetchData();
@@ -96,6 +103,9 @@ export default function Products() {
 
     return result;
   }, [products, searchQuery, selectedCategories, priceRange, sortBy]);
+
+  const visibleProducts = filteredProducts.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredProducts.length;
 
   const hasActiveFilters = searchQuery || selectedCategories.length > 0 ||
     priceRange.min > 0 || priceRange.max < 100000 || sortBy !== 'newest';
@@ -231,7 +241,7 @@ export default function Products() {
               </span>
             </button>
             <p className="text-sm text-navy/40 hidden md:block">
-              Showing <span className="text-navy font-medium">{filteredProducts.length}</span> of <span className="text-navy font-medium">{products.length}</span> pieces
+              Showing <span className="text-navy font-medium">{visibleProducts.length}</span> of <span className="text-navy font-medium">{filteredProducts.length}</span> pieces
             </p>
           </div>
 
@@ -292,11 +302,23 @@ export default function Products() {
                 </button>
               </div>
             ) : (
+              <>
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
-                {filteredProducts.map(product => (
+                {visibleProducts.map(product => (
                   <ProductCard key={product._id} product={product} />
                 ))}
               </div>
+              {hasMore && (
+                <div className="flex justify-center mt-12">
+                  <button
+                    onClick={() => setVisibleCount(p => p + PAGE_SIZE)}
+                    className="border-2 border-navy px-10 py-3 text-xs font-bold uppercase tracking-widest text-navy hover:bg-navy hover:text-white transition-all duration-300"
+                  >
+                    Load More ({filteredProducts.length - visibleCount} remaining)
+                  </button>
+                </div>
+              )}
+              </>
             )}
           </div>
         </div>

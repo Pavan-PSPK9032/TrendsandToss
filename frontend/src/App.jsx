@@ -1,21 +1,22 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import Home from './pages/Home'
-import Products from './pages/Products'
-import ProductDetails from './pages/ProductDetails'
-import Cart from './pages/Cart'
-import Checkout from './pages/Checkout'
-import OrderConfirmation from './pages/OrderConfirmation'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import AdminDashboard from './pages/AdminDashboard'
-import Coupons from './pages/Coupons'
-import Footer from './components/Footer'
 import SplashScreen from './components/SplashScreen'
 import { CartProvider, useCart } from './context/CartContext'
 import { useAuth } from './context/AuthContext'
+
+const Home = lazy(() => import('./pages/Home'))
+const Products = lazy(() => import('./pages/Products'))
+const ProductDetails = lazy(() => import('./pages/ProductDetails'))
+const Cart = lazy(() => import('./pages/Cart'))
+const Checkout = lazy(() => import('./pages/Checkout'))
+const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'))
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+const Coupons = lazy(() => import('./pages/Coupons'))
+const Footer = lazy(() => import('./components/Footer'))
 
 const SHOP_CONFIG = {
   name: "Trends&Toss",
@@ -191,18 +192,20 @@ function App() {
             <GlassNav />
 
             <main className="flex-grow pt-16 pb-20 md:pb-0">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/product/:id" element={<ProductDetails />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/order-confirmation" element={<OrderConfirmation />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/coupons" element={<Coupons />} />
-              </Routes>
+              <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="w-8 h-8 border-2 border-gold border-t-transparent animate-spin"></div></div>}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/product/:id" element={<ProductDetails />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/order-confirmation" element={<OrderConfirmation />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/coupons" element={<Coupons />} />
+                </Routes>
+              </Suspense>
             </main>
 
             <Footer />

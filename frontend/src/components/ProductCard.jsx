@@ -54,13 +54,14 @@ export default function ProductCard({ product, view = 'grid' }) {
           {product.images.map((img, i) => (
             <img
               key={i}
-              src={getImageUrl(img)}
+              src={getImageUrl(img, 400)}
               onLoad={() => i === 0 && setImageLoaded(true)}
               className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${
                 i === currentImg ? 'opacity-100' : 'opacity-0'
               }`}
               alt={`${product.name} - Image ${i + 1}`}
               loading={i === 0 ? 'eager' : 'lazy'}
+              fetchpriority={i === 0 ? 'high' : 'auto'}
             />
           ))}
         </div>

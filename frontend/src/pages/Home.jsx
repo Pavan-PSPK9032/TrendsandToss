@@ -52,7 +52,7 @@ export default function Home() {
       setLoading(true)
       const [catRes, prodRes] = await Promise.all([
         api.get('/categories'),
-        api.get('/products?limit=50')
+        api.get('/products?limit=32')
       ])
       const cats = catRes.data.categories || []
       const products = prodRes.data.products || []
