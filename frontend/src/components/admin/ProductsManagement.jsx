@@ -24,17 +24,12 @@ export default function ProductsManagement() {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [availableCategories, setAvailableCategories] = useState([]);
-  
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalProducts, setTotalProducts] = useState(0);
-  const productsPerPage = 10;
 
   useEffect(() => {
     checkAdmin();
     fetchProducts();
     fetchCategories();
-  }, [currentPage]);
+  }, []);
 
   const checkAdmin = () => {
     if (!user || user.role !== 'admin') {
@@ -50,7 +45,6 @@ export default function ProductsManagement() {
       setLoading(true);
       const { data } = await api.get('/products');
       setProducts(data.products);
-      setTotalProducts(data.products.length);
     } catch (err) {
       toast.error('Failed to fetch products');
     } finally {
@@ -67,11 +61,7 @@ export default function ProductsManagement() {
     }
   };
 
-  // Calculate pagination
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
-  const totalPages = Math.ceil(totalProducts / productsPerPage);
+
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -147,7 +137,7 @@ export default function ProductsManagement() {
   };
 
   const handleDeleteAll = async () => {
-    if (!window.confirm(`Are you sure you want to DELETE ALL ${totalProducts} products? This cannot be undone!`)) return;
+    if (!window.confirm(`Are you sure you want to DELETE ALL ${products.length} products? This cannot be undone!`)) return;
     if (!window.confirm('Final confirmation: This will permanently delete ALL products!')) return;
     try {
       await api.delete('/products/all');
@@ -166,12 +156,6 @@ export default function ProductsManagement() {
     setShowForm(false);
   };
 
-  // Pagination controls
-  const paginate = (pageNumber) => {
-    setCurrentPage(pageNumber);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   if (loading) return <div className="text-center mt-20 text-navy/40 tracking-wide">Loading products...</div>;
 
   return (
@@ -179,7 +163,7 @@ export default function ProductsManagement() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="font-playfair text-3xl font-semibold text-navy">Products Management</h1>
-          <p className="text-navy/50 text-sm mt-1">Total: {totalProducts} products</p>
+          <p className="text-navy/50 text-sm mt-1">Total: {products.length} products</p>
         </div>
         <div className="flex gap-3">
           <button 
@@ -197,6 +181,11 @@ export default function ProductsManagement() {
             </button>
           )}
         </div>
+      </div>
+
+      {/* Products count */}
+      <div className="text-right mb-4 text-sm text-navy/50">
+        Showing all {products.length} products
       </div>
 
       {showForm && (
@@ -344,7 +333,7 @@ export default function ProductsManagement() {
               </tr>
             </thead>
             <tbody>
-              {currentProducts.map(product => (
+              {products.map(product => (
                 <tr key={product._id} className="border-t border-navy/5 hover:bg-navy/[0.02] transition">
                   <td className="p-4">
                     <div className="flex items-center gap-3">
@@ -386,7 +375,7 @@ export default function ProductsManagement() {
           </table>
         </div>
         
-        {currentProducts.length === 0 && (
+        {products.length === 0 && (
           <div className="text-center py-16 text-navy/40">
             <p className="text-xl">No products found</p>
             <p className="text-sm mt-2">Click "Add New Product" to create one</p>
@@ -394,44 +383,6 @@ export default function ProductsManagement() {
         )}
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-8">
-          <button
-            onClick={() => paginate(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-4 py-2 bg-white border border-navy/20 hover:border-gold text-navy disabled:opacity-40 disabled:cursor-not-allowed font-medium text-sm"
-          >
-            Previous
-          </button>
-          
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-            <button
-              key={page}
-              onClick={() => paginate(page)}
-              className={`px-4 py-2 font-medium text-sm transition ${
-                currentPage === page
-                  ? 'bg-navy text-white'
-                  : 'bg-white border border-navy/20 text-navy hover:border-gold'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-          
-          <button
-            onClick={() => paginate(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-white border border-navy/20 hover:border-gold text-navy disabled:opacity-40 disabled:cursor-not-allowed font-medium text-sm"
-          >
-            Next
-          </button>
-        </div>
-      )}
-
-      <div className="text-center mt-4 text-sm text-navy/50">
-        Showing {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, totalProducts)} of {totalProducts} products
-      </div>
     </div>
   );
 }
