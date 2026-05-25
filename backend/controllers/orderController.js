@@ -5,7 +5,7 @@ import User from '../models/User.js';
 import crypto from 'crypto';
 import { razorpay } from '../utils/razorpay.js';
 import { sendOrderConfirmationEmail, sendWelcomeEmail } from '../utils/emailService.js';
-import { sendOrderConfirmationWhatsApp, sendWhatsAppTextMessage } from '../utils/whatsappService.js';
+import { sendOrderConfirmationWhatsApp, sendTrackingUpdateWhatsApp } from '../utils/whatsappService.js';
 
 // GET single order by ID
 export const getOrderById = async (req, res) => {
@@ -34,6 +34,17 @@ export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find().populate('userId', 'name email').sort({ createdAt: -1 }).lean();
     res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// GET order tracking (public - no auth needed)
+export const getOrderTracking = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).select('orderStatus trackingNumber trackingUrl courier estimatedDelivery deliveredAt trackingHistory items totalPrice createdAt shippingAddress.fullName');
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    res.json(order);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -72,11 +83,45 @@ export const verifyPayment = async (req, res) => {
 // UPDATE Order Status (Admin only)
 export const updateOrderStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, trackingNumber, trackingUrl, courier } = req.body;
     const validStatuses = ['Pending', 'Shipped', 'Delivered', 'Cancelled'];
     if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
-    const order = await Order.findByIdAndUpdate(req.params.id, { orderStatus: status }, { new: true, runValidators: true }).populate('userId', 'name email');
+
+    const updateFields = { orderStatus: status };
+
+    if (trackingNumber) updateFields.trackingNumber = trackingNumber;
+    if (trackingUrl) updateFields.trackingUrl = trackingUrl;
+    if (courier) updateFields.courier = courier;
+    if (status === 'Delivered') updateFields.deliveredAt = new Date();
+
+    // Add tracking history entry
+    const historyEntry = {
+      status,
+      description: req.body.trackingNote || '',
+      location: req.body.trackingLocation || '',
+      date: new Date(),
+    };
+    updateFields.$push = { trackingHistory: historyEntry };
+
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      updateFields,
+      { new: true, runValidators: true }
+    ).populate('userId', 'name email phone');
+
     if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    // Send WhatsApp tracking update (async)
+    if (['Shipped', 'Delivered', 'Cancelled'].includes(status)) {
+      sendTrackingUpdateWhatsApp(order).then(result => {
+        if (result.success) {
+          console.log('Tracking WhatsApp sent:', result.messageId);
+        } else {
+          console.error('Tracking WhatsApp failed:', result.error);
+        }
+      }).catch(err => console.error('WhatsApp error:', err));
+    }
+
     res.json({ message: `Order status updated to ${status}`, order });
   } catch (err) {
     res.status(500).json({ error: err.message });

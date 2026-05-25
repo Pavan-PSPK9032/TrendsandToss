@@ -1,5 +1,12 @@
 import mongoose from 'mongoose';
 
+const trackingEntrySchema = new mongoose.Schema({
+  status: { type: String, required: true },
+  location: { type: String },
+  description: { type: String },
+  date: { type: Date, default: Date.now },
+}, { _id: false });
+
 const orderSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   
@@ -11,14 +18,14 @@ const orderSchema = new mongoose.Schema({
   }],
   
   // Pricing breakdown
-  subtotal: { type: Number, required: true },           // Items total only
-  shippingCharge: { type: Number, default: 0 },         // Delivery charge
-  totalPrice: { type: Number, required: true },         // subtotal + shippingCharge
+  subtotal: { type: Number, required: true },
+  shippingCharge: { type: Number, default: 0 },
+  totalPrice: { type: Number, required: true },
   
   // Shipping details
   shippingAddress: { type: Object, required: true },
-  shippingZone: { type: String },                       // 'Local', 'State', 'National'
-  deliveryPincode: { type: String },                    // Customer's pincode
+  shippingZone: { type: String },
+  deliveryPincode: { type: String },
   
   // Payment details
   paymentStatus: { type: String, enum: ['paid', 'pending', 'failed'], default: 'pending' },
@@ -27,7 +34,13 @@ const orderSchema = new mongoose.Schema({
   razorpayOrderId: { type: String },
   
   // Order tracking
-  orderStatus: { type: String, enum: ['Pending', 'Shipped', 'Delivered', 'Cancelled'], default: 'Pending' }
+  orderStatus: { type: String, enum: ['Pending', 'Shipped', 'Delivered', 'Cancelled'], default: 'Pending' },
+  trackingNumber: { type: String },
+  trackingUrl: { type: String },
+  courier: { type: String },
+  estimatedDelivery: { type: Date },
+  deliveredAt: { type: Date },
+  trackingHistory: [trackingEntrySchema],
 }, { timestamps: true });
 
 export default mongoose.model('Order', orderSchema);

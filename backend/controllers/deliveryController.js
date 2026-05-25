@@ -1,3 +1,31 @@
+const DELHIVERY_BASE = 'https://track.delhivery.com/api/kinko/v1/invoice/charges/.json';
+
+async function getDelhiveryRate(pincode, weight = 200) {
+  const apiKey = process.env.DELHIVERY_API_KEY;
+  const pickupPincode = process.env.DELHIVERY_PICKUP_PINCODE || '500001';
+
+  if (!apiKey) return null;
+
+  const params = new URLSearchParams({
+    md: 'E',
+    ss: 'Delivered',
+    d_pin: pincode,
+    o_pin: pickupPincode,
+    cgm: String(weight),
+  });
+
+  try {
+    const res = await fetch(`${DELHIVERY_BASE}?${params}`, {
+      headers: { Authorization: `Token ${apiKey}`, 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) && data.length > 0 ? data[0] : null;
+  } catch {
+    return null;
+  }
+}
+
 function getRuleBasedCharge(pincode) {
   const pincodeNum = parseInt(pincode);
   if (pincodeNum >= 100000 && pincodeNum <= 599999) return 40;
@@ -11,6 +39,18 @@ export const checkDelivery = async (req, res) => {
 
     if (!/^[0-9]{6}$/.test(pincode)) {
       return res.status(400).json({ available: false, message: 'Invalid pincode format. Must be 6 digits.' });
+    }
+
+    const rate = await getDelhiveryRate(pincode);
+
+    if (rate) {
+      return res.json({
+        available: true,
+        pincode,
+        charge: Math.round(rate.total_amount || rate.gross_amount || rate.charge_DL || 50),
+        estimatedDays: '3-5 business days',
+        message: 'Delivery available',
+      });
     }
 
     const charge = getRuleBasedCharge(pincode);
@@ -36,11 +76,19 @@ export const getDeliveryCharges = async (req, res) => {
       return res.status(400).json({ error: 'Pincodes must be an array' });
     }
 
-    const results = pincodes.map((pincode) => {
-      let charge = getRuleBasedCharge(pincode);
-      if (orderValue >= 500) charge = 0;
-      return { pincode, charge, available: true };
-    });
+    const results = await Promise.all(
+      pincodes.map(async (pincode) => {
+        const rate = await getDelhiveryRate(pincode);
+        let charge = 50;
+        if (rate) {
+          charge = Math.round(rate.total_amount || rate.gross_amount || rate.charge_DL || 50);
+        } else {
+          charge = getRuleBasedCharge(pincode);
+        }
+        if (orderValue >= 500) charge = 0;
+        return { pincode, charge, available: true };
+      })
+    );
 
     res.json(results);
   } catch (err) {

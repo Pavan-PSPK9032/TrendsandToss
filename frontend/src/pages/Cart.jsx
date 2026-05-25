@@ -317,10 +317,9 @@ export default function Cart() {
                 </div>
                 <Link to="/checkout" state={{ shippingInfo, pincode, couponInfo }}>
                   <button 
-                    disabled={!shippingInfo}
-                    className="w-full bg-gold text-white py-3 font-semibold hover:bg-gold-dark transition disabled:opacity-40 disabled:cursor-not-allowed text-xs sm:text-sm uppercase tracking-widest"
+                    className="w-full bg-gold text-white py-3 font-semibold hover:bg-gold-dark transition text-xs sm:text-sm uppercase tracking-widest"
                   >
-                    {shippingInfo ? 'Proceed to Checkout' : 'Check Pincode First'}
+                    Proceed to Checkout
                   </button>
                 </Link>
                 <p className="text-[10px] sm:text-xs text-center text-navy/30 mt-3 sm:mt-4 uppercase tracking-widest">Secure SSL Encryption</p>

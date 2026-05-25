@@ -7,6 +7,7 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [trackingInputs, setTrackingInputs] = useState({});
 
   useEffect(() => {
     fetchOrders();
@@ -25,8 +26,22 @@ export default function AdminOrders() {
 
   const updateStatus = async (orderId, newStatus) => {
     try {
-      await api.put(`/orders/${orderId}/status`, { status: newStatus });
+      const payload = { status: newStatus };
+      const inputs = trackingInputs[orderId] || {};
+      if (newStatus === 'Shipped') {
+        if (!inputs.trackingNumber) {
+          toast.error('Please enter a tracking number');
+          return;
+        }
+        payload.trackingNumber = inputs.trackingNumber;
+        if (inputs.trackingUrl) payload.trackingUrl = inputs.trackingUrl;
+        if (inputs.courier) payload.courier = inputs.courier;
+        if (inputs.trackingNote) payload.trackingNote = inputs.trackingNote;
+        if (inputs.trackingLocation) payload.trackingLocation = inputs.trackingLocation;
+      }
+      await api.put(`/orders/${orderId}/status`, payload);
       toast.success(`Order marked as ${newStatus}`);
+      setTrackingInputs(prev => ({ ...prev, [orderId]: {} }));
       fetchOrders();
     } catch (err) {
       toast.error('Failed to update status');
@@ -177,7 +192,7 @@ export default function AdminOrders() {
                               <button
                                 key={status}
                                 onClick={() => updateStatus(order._id, status)}
-                                disabled={order.orderStatus === status}
+                                disabled={order.orderStatus === status || (status === 'Shipped' && !trackingInputs[order._id]?.trackingNumber)}
                                 className={`px-4 py-2 text-sm font-medium transition ${
                                   order.orderStatus === status
                                     ? 'bg-navy/10 text-navy/40 cursor-not-allowed'
@@ -189,6 +204,83 @@ export default function AdminOrders() {
                             ))}
                           </div>
                         </div>
+
+                        {/* Tracking Info Inputs (shown when Shipped is the next logical step) */}
+                        {order.orderStatus === 'Pending' && (
+                          <div className="mt-4 p-4 bg-navy/[0.02] border border-navy/10">
+                            <h5 className="font-semibold text-navy text-xs uppercase tracking-widest mb-3">Tracking Details (required for Shipped)</h5>
+                            <div className="grid sm:grid-cols-2 gap-3">
+                              <input
+                                type="text"
+                                placeholder="Tracking Number *"
+                                value={trackingInputs[order._id]?.trackingNumber || ''}
+                                onChange={(e) => setTrackingInputs(prev => ({
+                                  ...prev,
+                                  [order._id]: { ...prev[order._id], trackingNumber: e.target.value }
+                                }))}
+                                className="w-full p-2.5 text-sm border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Courier Partner (e.g. Delhivery)"
+                                value={trackingInputs[order._id]?.courier || ''}
+                                onChange={(e) => setTrackingInputs(prev => ({
+                                  ...prev,
+                                  [order._id]: { ...prev[order._id], courier: e.target.value }
+                                }))}
+                                className="w-full p-2.5 text-sm border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none"
+                              />
+                              <input
+                                type="url"
+                                placeholder="Tracking URL (optional)"
+                                value={trackingInputs[order._id]?.trackingUrl || ''}
+                                onChange={(e) => setTrackingInputs(prev => ({
+                                  ...prev,
+                                  [order._id]: { ...prev[order._id], trackingUrl: e.target.value }
+                                }))}
+                                className="w-full p-2.5 text-sm border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Location (e.g. Hyderabad)"
+                                value={trackingInputs[order._id]?.trackingLocation || ''}
+                                onChange={(e) => setTrackingInputs(prev => ({
+                                  ...prev,
+                                  [order._id]: { ...prev[order._id], trackingLocation: e.target.value }
+                                }))}
+                                className="w-full p-2.5 text-sm border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none"
+                              />
+                              <div className="sm:col-span-2">
+                                <input
+                                  type="text"
+                                  placeholder="Note (e.g. Package handed over to courier)"
+                                  value={trackingInputs[order._id]?.trackingNote || ''}
+                                  onChange={(e) => setTrackingInputs(prev => ({
+                                    ...prev,
+                                    [order._id]: { ...prev[order._id], trackingNote: e.target.value }
+                                  }))}
+                                  className="w-full p-2.5 text-sm border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Show existing tracking info */}
+                        {(order.trackingNumber || order.courier) && (
+                          <div className="mt-4 pt-4 border-t border-navy/10">
+                            <h5 className="font-semibold text-navy text-xs uppercase tracking-widest mb-2">Tracking Info</h5>
+                            <div className="flex flex-wrap gap-4 text-sm text-navy/60">
+                              {order.trackingNumber && <span>Tracking: <span className="font-mono text-navy">{order.trackingNumber}</span></span>}
+                              {order.courier && <span>Courier: <span className="text-navy">{order.courier}</span></span>}
+                              {order.trackingUrl && (
+                                <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="text-gold hover:text-gold-dark">
+                                  Track
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Order Meta */}
                         <div className="mt-4 pt-4 border-t border-navy/10 flex flex-wrap gap-4 text-xs text-navy/40">

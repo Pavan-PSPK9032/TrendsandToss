@@ -3,6 +3,7 @@ import {
   createOrder, 
   getOrders, 
   getOrderById,
+  getOrderTracking,
   createRazorpayOrder,
   verifyPayment,
   getAllOrders,
@@ -11,6 +12,9 @@ import {
 import { protect, isAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
+
+// Tracking route (public)
+router.get('/track/:id', getOrderTracking);
 
 // User routes
 router.post('/create', protect, createOrder);

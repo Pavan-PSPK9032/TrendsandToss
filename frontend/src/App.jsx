@@ -12,6 +12,8 @@ const ProductDetails = lazy(() => import('./pages/ProductDetails'))
 const Cart = lazy(() => import('./pages/Cart'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'))
+const MyOrders = lazy(() => import('./pages/MyOrders'))
+const TrackOrder = lazy(() => import('./pages/TrackOrder'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
@@ -79,6 +81,10 @@ function GlassNav() {
               <Link to="/" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Home</Link>
               <Link to="/products" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Shop</Link>
               
+              {user && (
+                <Link to="/my-orders" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Orders</Link>
+              )}
+
               <Link to="/cart" className="relative text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">
                 <span className="flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -140,6 +146,14 @@ function GlassNav() {
             </svg>
             <span className="text-[9px] font-medium uppercase tracking-wider">Shop</span>
           </Link>
+          {user && (
+            <Link to="/my-orders" className="flex flex-col items-center gap-1 text-white/70 hover:text-gold transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              <span className="text-[9px] font-medium uppercase tracking-wider">Orders</span>
+            </Link>
+          )}
           <Link to="/cart" className="relative flex flex-col items-center gap-1 text-white/70 hover:text-gold transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -201,6 +215,8 @@ function App() {
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/order-confirmation" element={<OrderConfirmation />} />
+                  <Route path="/my-orders" element={<MyOrders />} />
+                  <Route path="/track-order/:id" element={<TrackOrder />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/admin" element={<AdminDashboard />} />

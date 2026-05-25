@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import ManualUPI from '../components/ManualUPI'
 import api from '../api/axios'
@@ -12,11 +12,14 @@ export default function Checkout() {
   
   // Get shipping info passed from Cart page
   const location = useLocation()
-  const { shippingInfo, pincode: cartPincode } = location.state || {}
+  const { shippingInfo: cartShippingInfo, pincode: cartPincode } = location.state || {}
   
   const [address, setAddress] = useState({
     fullName: '', phone: '', address: '', city: '', state: '', pincode: '', country: 'India'
   })
+  const [checkoutShipping, setCheckoutShipping] = useState(null)
+  const [fetchingShipping, setFetchingShipping] = useState(false)
+  const debounceRef = useRef(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -49,12 +52,49 @@ export default function Checkout() {
     document.body.appendChild(script)
   }
 
+  // Auto-calculate shipping when user types a pincode
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    const p = address.pincode
+    if (!/^[0-9]{6}$/.test(p)) {
+      setCheckoutShipping(null)
+      return
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setFetchingShipping(true)
+      try {
+        const { data } = await api.get(`/shipping/check/${p}`)
+        const isFree = subtotal >= 500
+        setCheckoutShipping({
+          available: data.available,
+          charge: isFree ? 0 : data.charge,
+          shippingCharge: isFree ? 0 : data.charge,
+          isFree,
+          estimatedDays: data.estimatedDays,
+          message: isFree ? 'FREE delivery on this order!' : data.message,
+          pincode: p,
+        })
+      } catch {
+        setCheckoutShipping(null)
+      } finally {
+        setFetchingShipping(false)
+      }
+    }, 500)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [address.pincode, subtotal])
+
   // Calculate subtotal (items only)
   const subtotal = cart.items.reduce((sum, item) => 
     sum + (item.productId?.price || 0) * item.quantity, 0
   )
 
-  // Get shipping charge from passed info or default
+  // Use shipping from checkout address if available, else fall back to Cart-passed info
+  const shippingInfo = checkoutShipping || cartShippingInfo
   const shippingCharge = shippingInfo?.isFree ? 0 : (shippingInfo?.shippingCharge || 0)
   
   // Total = Subtotal + Shipping
@@ -205,11 +245,24 @@ export default function Checkout() {
             <h2 className="font-semibold text-navy text-sm uppercase tracking-widest mb-4">Order Summary</h2>
             
             {/* Shipping Info Display */}
-            {shippingInfo && (
-              <div className={`mb-4 p-3 text-sm ${shippingInfo.isFree ? 'bg-gold/10 text-navy border border-gold/30' : 'bg-gray-50 text-navy/70 border border-navy/10'}`}>
-                <p className="font-medium">{shippingInfo.message}</p>
+            {fetchingShipping && (
+              <div className="mb-4 p-3 text-sm bg-gray-50 text-navy/50 border border-navy/10">
+                <p className="font-medium">Calculating shipping...</p>
+              </div>
+            )}
+            {!fetchingShipping && checkoutShipping && (
+              <div className={`mb-4 p-3 text-sm ${checkoutShipping.isFree ? 'bg-gold/10 text-navy border border-gold/30' : 'bg-gray-50 text-navy/70 border border-navy/10'}`}>
+                <p className="font-medium">{checkoutShipping.message}</p>
                 <p className="text-xs mt-1">
-                  {cartPincode} {String.fromCharCode(8226)} {shippingInfo.estimatedDays}
+                  {checkoutShipping.pincode} {String.fromCharCode(8226)} {checkoutShipping.estimatedDays}
+                </p>
+              </div>
+            )}
+            {!fetchingShipping && !checkoutShipping && cartShippingInfo && (
+              <div className={`mb-4 p-3 text-sm ${cartShippingInfo.isFree ? 'bg-gold/10 text-navy border border-gold/30' : 'bg-gray-50 text-navy/70 border border-navy/10'}`}>
+                <p className="font-medium">{cartShippingInfo.message}</p>
+                <p className="text-xs mt-1">
+                  {cartPincode} {String.fromCharCode(8226)} {cartShippingInfo.estimatedDays}
                 </p>
               </div>
             )}

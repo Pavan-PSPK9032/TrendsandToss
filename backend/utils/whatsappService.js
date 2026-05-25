@@ -84,6 +84,47 @@ export const sendOrderConfirmationWhatsApp = async (order) => {
   }
 };
 
+// Send tracking update via WhatsApp
+export const sendTrackingUpdateWhatsApp = async (order) => {
+  try {
+    const phone = order.shippingAddress?.phone;
+    if (!phone) {
+      console.warn('No phone number for tracking update on order:', order._id);
+      return { success: false, error: 'No phone number available' };
+    }
+
+    const statusEmojis = {
+      'Shipped': 'Your order has been shipped',
+      'Delivered': 'Your order has been delivered',
+      'Cancelled': 'Your order has been cancelled',
+    };
+
+    const label = statusEmojis[order.orderStatus] || `Order ${order.orderStatus}`;
+    const orderId = order._id.toString().slice(-6);
+    const trackingLink = order.trackingUrl
+      ? `Track here: ${order.trackingUrl}`
+      : `Tracking ID: ${order.trackingNumber || 'N/A'}`;
+
+    const message = [
+      `${label}`,
+      ``,
+      `Order #${orderId}`,
+      `Items: ${order.items.map(i => i.name).join(', ')}`,
+      `Total: Rs.${order.totalPrice}`,
+      ``,
+      trackingLink,
+      order.courier ? `Courier: ${order.courier}` : '',
+      ``,
+      `Thank you for shopping at Trends & Toss`,
+    ].filter(Boolean).join('\n');
+
+    return await sendWhatsAppTextMessage(phone, message);
+  } catch (error) {
+    console.error('Tracking WhatsApp notification failed:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 // Simple text message (fallback if templates not set up)
 export const sendWhatsAppTextMessage = async (phoneNumber, text) => {
   try {
