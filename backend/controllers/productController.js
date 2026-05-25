@@ -32,7 +32,8 @@ export const getProducts = async (req, res) => {
     });
   } catch (err) {
     console.error('Get products error:', err);
-    res.status(500).json({ error: 'Failed to fetch products' });
+    console.error('Error stack:', err.stack);
+    res.status(500).json({ error: 'Failed to fetch products', detail: err.message });
   }
 };
 
