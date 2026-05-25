@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
@@ -64,10 +65,20 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MongoDB connection status
+// MongoDB connection status with event listeners for disconnects/reconnects
 let dbConnected = false;
 
 connectDB().then((ok) => { dbConnected = ok; });
+
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected, marking server as unavailable');
+  dbConnected = false;
+});
+
+mongoose.connection.on('connected', () => {
+  console.log('MongoDB reconnected, marking server as available');
+  dbConnected = true;
+});
 
 // Wait for DB before accepting requests
 app.use((req, res, next) => {
