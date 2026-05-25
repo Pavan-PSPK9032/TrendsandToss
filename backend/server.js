@@ -132,6 +132,9 @@ app.get('/', (req, res) => {
 // Global error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.stack || err.message || err);
+  if (err.name === 'MulterError') {
+    return res.status(400).json({ error: `File upload error: ${err.message}` });
+  }
   res.status(err.status || 500).json({ 
     error: err.message || 'Something went wrong!' 
   });

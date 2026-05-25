@@ -49,7 +49,7 @@ const cloudinaryStorage = {
 
 export const upload = multer({ 
   storage: cloudinaryStorage,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 15 * 1024 * 1024 } // 15MB limit for high-res jewellery images
 });
 
 export default upload;
