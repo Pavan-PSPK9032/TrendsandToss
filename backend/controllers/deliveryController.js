@@ -35,7 +35,6 @@ function getRuleBasedCharge(pincode) {
 
 function buildBreakdown(rate) {
   if (!rate) return null;
-  const baseCharges = (rate.charge_DL || 0) + (rate.charge_FOV || 0) + (rate.charge_ODA || 0);
   return {
     base: Math.round(rate.charge_DL || 0),
     fuelSurcharge: Math.round(rate.charge_FOV || 0),
