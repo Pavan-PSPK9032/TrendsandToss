@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import ProductCard from '../components/ProductCard';
 
@@ -23,6 +23,7 @@ function ProductSkeleton() {
 }
 
 export default function Products() {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,14 @@ export default function Products() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Auto-select category from URL query param
+  useEffect(() => {
+    const catFromUrl = searchParams.get('category');
+    if (catFromUrl) {
+      setSelectedCategories([catFromUrl]);
+    }
+  }, [searchParams]);
 
   const fetchData = async () => {
     try {
