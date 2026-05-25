@@ -76,8 +76,6 @@ export default function Home() {
     }
   }
 
-  const featuredProducts = allProducts.filter(p => p.stock > 0).slice(0, 8)
-
   return (
     <div>
       {/* Hero Carousel */}
@@ -133,26 +131,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Featured Products */}
-      {!loading && featuredProducts.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-16">
-          <div className="flex items-center gap-4 mb-8">
-            <h2 className="font-playfair text-2xl md:text-3xl font-semibold text-navy whitespace-nowrap">Featured Pieces</h2>
-            <div className="flex-1 h-px bg-gold/30"></div>
-            <Link to="/products" className="text-xs font-semibold uppercase tracking-widest text-gold hover:text-gold-dark transition-colors whitespace-nowrap">
-              View All
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-            <Suspense fallback={<ProductSkeleton />}>
-              {featuredProducts.map(product => (
-                <ProductCard key={product._id} product={product} />
-              ))}
-            </Suspense>
-          </div>
-        </section>
-      )}
 
       {/* Category Product Sections */}
       {loading ? (
