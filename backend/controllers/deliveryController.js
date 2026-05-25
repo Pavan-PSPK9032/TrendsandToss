@@ -33,6 +33,21 @@ function getRuleBasedCharge(pincode) {
   return 60;
 }
 
+function buildBreakdown(rate) {
+  if (!rate) return null;
+  const baseCharges = (rate.charge_DL || 0) + (rate.charge_FOV || 0) + (rate.charge_ODA || 0);
+  return {
+    base: Math.round(rate.charge_DL || 0),
+    fuelSurcharge: Math.round(rate.charge_FOV || 0),
+    odaSurcharge: Math.round(rate.charge_ODA || 0),
+    rtoCharge: Math.round(rate.charge_RTO || 0),
+    gst: Math.round(rate.gst || 0),
+    total: Math.round(rate.total_amount || rate.gross_amount || 0),
+    zone: rate.zone || 'Unknown',
+    suppliedBy: rate.supply_type || 'Forward',
+  };
+}
+
 export const checkDelivery = async (req, res) => {
   try {
     const { pincode } = req.params;
@@ -44,10 +59,13 @@ export const checkDelivery = async (req, res) => {
     const rate = await getDelhiveryRate(pincode);
 
     if (rate) {
+      const breakdown = buildBreakdown(rate);
       return res.json({
         available: true,
         pincode,
-        charge: Math.round(rate.total_amount || rate.gross_amount || rate.charge_DL || 50),
+        charge: breakdown.total,
+        source: 'delhivery',
+        breakdown,
         estimatedDays: '3-5 business days',
         message: 'Delivery available',
       });
@@ -59,6 +77,7 @@ export const checkDelivery = async (req, res) => {
       available: true,
       pincode,
       charge,
+      source: 'rule',
       estimatedDays: '3-5 business days',
       message: 'Delivery available',
     });
@@ -80,13 +99,15 @@ export const getDeliveryCharges = async (req, res) => {
       pincodes.map(async (pincode) => {
         const rate = await getDelhiveryRate(pincode);
         let charge = 50;
+        let breakdown = null;
         if (rate) {
-          charge = Math.round(rate.total_amount || rate.gross_amount || rate.charge_DL || 50);
+          breakdown = buildBreakdown(rate);
+          charge = breakdown.total;
         } else {
           charge = getRuleBasedCharge(pincode);
         }
         if (orderValue >= 500) charge = 0;
-        return { pincode, charge, available: true };
+        return { pincode, charge, breakdown, available: true };
       })
     );
 

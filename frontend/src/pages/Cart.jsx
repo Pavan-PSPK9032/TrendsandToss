@@ -78,7 +78,10 @@ export default function Cart() {
         shippingCharge: charge,
         isFree: isFree,
         estimatedDays: data.estimatedDays,
-        message: isFree ? 'FREE delivery on this order!' : data.message
+        message: isFree ? 'FREE delivery on this order!' : data.message,
+        source: data.source,
+        breakdown: data.breakdown,
+        zone: data.breakdown?.zone,
       })
       
       toast.success(isFree ? 'You got FREE delivery!' : 'Pincode verified!')
@@ -214,6 +217,23 @@ export default function Cart() {
                     <p className="text-[10px] sm:text-xs mt-1">
                       {shippingInfo.isFree ? 'Free' : `₹${shippingInfo.shippingCharge}`} • Delivery in {shippingInfo.estimatedDays}
                     </p>
+                    {!shippingInfo.isFree && shippingInfo.breakdown && shippingInfo.source === 'delhivery' && (
+                      <div className="mt-2 pt-2 border-t border-navy/10 text-[10px] space-y-0.5">
+                        <div className="flex justify-between"><span>Base</span><span>₹{shippingInfo.breakdown.base}</span></div>
+                        {shippingInfo.breakdown.fuelSurcharge > 0 && (
+                          <div className="flex justify-between"><span>Fuel surcharge</span><span>₹{shippingInfo.breakdown.fuelSurcharge}</span></div>
+                        )}
+                        {shippingInfo.breakdown.odaSurcharge > 0 && (
+                          <div className="flex justify-between"><span>ODA</span><span>₹{shippingInfo.breakdown.odaSurcharge}</span></div>
+                        )}
+                        {shippingInfo.breakdown.gst > 0 && (
+                          <div className="flex justify-between"><span>GST</span><span>₹{shippingInfo.breakdown.gst}</span></div>
+                        )}
+                        <div className="flex justify-between font-semibold text-navy pt-1 border-t border-navy/10">
+                          <span>Total</span><span>₹{shippingInfo.breakdown.total}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

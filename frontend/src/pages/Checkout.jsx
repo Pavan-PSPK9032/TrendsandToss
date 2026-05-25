@@ -75,6 +75,8 @@ export default function Checkout() {
           estimatedDays: data.estimatedDays,
           message: isFree ? 'FREE delivery on this order!' : data.message,
           pincode: p,
+          source: data.source,
+          breakdown: data.breakdown,
         })
       } catch {
         setCheckoutShipping(null)
@@ -256,6 +258,23 @@ export default function Checkout() {
                 <p className="text-xs mt-1">
                   {checkoutShipping.pincode} {String.fromCharCode(8226)} {checkoutShipping.estimatedDays}
                 </p>
+                {!checkoutShipping.isFree && checkoutShipping.breakdown && checkoutShipping.source === 'delhivery' && (
+                  <div className="mt-2 pt-2 border-t border-navy/10 text-[11px] space-y-1">
+                    <div className="flex justify-between"><span>Base charge</span><span>Rs.{checkoutShipping.breakdown.base}</span></div>
+                    {checkoutShipping.breakdown.fuelSurcharge > 0 && (
+                      <div className="flex justify-between"><span>Fuel surcharge</span><span>Rs.{checkoutShipping.breakdown.fuelSurcharge}</span></div>
+                    )}
+                    {checkoutShipping.breakdown.odaSurcharge > 0 && (
+                      <div className="flex justify-between"><span>ODA surcharge</span><span>Rs.{checkoutShipping.breakdown.odaSurcharge}</span></div>
+                    )}
+                    {checkoutShipping.breakdown.gst > 0 && (
+                      <div className="flex justify-between"><span>GST</span><span>Rs.{checkoutShipping.breakdown.gst}</span></div>
+                    )}
+                    <div className="flex justify-between font-semibold text-navy pt-1 border-t border-navy/10">
+                      <span>Total shipping</span><span>Rs.{checkoutShipping.breakdown.total}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             {!fetchingShipping && !checkoutShipping && cartShippingInfo && (
