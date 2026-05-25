@@ -8,7 +8,7 @@ export default function Checkout() {
   const [cart, setCart] = useState({ items: [] })
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('razorpay')
+  const [paymentMethod, setPaymentMethod] = useState('upi')
   
   // Get shipping info passed from Cart page
   const location = useLocation()
@@ -30,7 +30,6 @@ export default function Checkout() {
       return
     }
     fetchCart()
-    loadRazorpayScript()
   }, [navigate])
 
   const fetchCart = async () => {
@@ -44,51 +43,6 @@ export default function Checkout() {
       setLoading(false)
     }
   }
-
-  const loadRazorpayScript = () => {
-    const script = document.createElement('script')
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-    script.async = true
-    document.body.appendChild(script)
-  }
-
-  // Auto-calculate shipping when user types a pincode
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-
-    const p = address.pincode
-    if (!/^[0-9]{6}$/.test(p)) {
-      setCheckoutShipping(null)
-      return
-    }
-
-    debounceRef.current = setTimeout(async () => {
-      setFetchingShipping(true)
-      try {
-        const { data } = await api.get(`/shipping/check/${p}`)
-        const isFree = subtotal >= 500
-        setCheckoutShipping({
-          available: data.available,
-          charge: isFree ? 0 : data.charge,
-          shippingCharge: isFree ? 0 : data.charge,
-          isFree,
-          estimatedDays: data.estimatedDays,
-          message: isFree ? 'FREE delivery on this order!' : data.message,
-          pincode: p,
-          source: data.source,
-          breakdown: data.breakdown,
-        })
-      } catch {
-        setCheckoutShipping(null)
-      } finally {
-        setFetchingShipping(false)
-      }
-    }, 500)
-
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [address.pincode, subtotal])
 
   // Calculate subtotal (items only)
   const subtotal = cart.items.reduce((sum, item) => 
@@ -123,57 +77,6 @@ export default function Checkout() {
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to place order')
     } finally {
-      setProcessing(false)
-    }
-  }
-
-  const handleOnlinePayment = async () => {
-    if (!validateAddress()) return
-    setProcessing(true)
-    try {
-      const { data: orderData } = await api.post('/orders/razorpay/order', { amount: total })
-      
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: orderData.amount,
-        currency: 'INR',
-        name: 'Trends&Toss',
-        description: 'Order Payment',
-        order_id: orderData.orderId,
-        handler: async function (response) {
-          try {
-            await api.post('/orders/razorpay/verify', response)
-            const { data } = await api.post('/orders/create', {
-              shippingAddress: { ...address, pincode: address.pincode || cartPincode },
-              paymentMethod: 'razorpay',
-              paymentId: response.razorpay_payment_id,
-              paymentStatus: 'paid',
-              razorpayOrderId: response.razorpay_order_id,
-              shippingCharge,
-              shippingZone: shippingInfo?.zone,
-              subtotal,
-              total
-            })
-            toast.success('Payment successful!')
-            navigate('/order-confirmation', { state: { order: data.order } })
-          } catch (err) {
-            toast.error('Payment verification failed')
-          } finally {
-            setProcessing(false)
-          }
-        },
-        prefill: {
-          name: address.fullName,
-          email: JSON.parse(localStorage.getItem('user'))?.email || '',
-          contact: address.phone
-        },
-        theme: { color: '#d97706' },
-        modal: { ondismiss: () => setProcessing(false) }
-      }
-      const rzp = new window.Razorpay(options)
-      rzp.open()
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Payment failed')
       setProcessing(false)
     }
   }
@@ -308,25 +211,6 @@ export default function Checkout() {
 
             {/* Payment Method Selection */}
             <div className="space-y-3 mb-6">
-              {/* Razorpay Option */}
-              <label className={`flex items-center gap-3 p-4 border cursor-pointer transition ${paymentMethod === 'razorpay' ? 'border-gold bg-gold/5' : 'border-navy/10 hover:border-gold/40'}`}>
-                <input type="radio" name="payment" value="razorpay" checked={paymentMethod === 'razorpay'} onChange={() => setPaymentMethod('razorpay')} className="text-gold focus:ring-gold" />
-                <div className="flex-1">
-                  <div className="font-medium text-navy flex items-center gap-2">
-                    Online Payment 
-                    <span className="text-[10px] bg-gold/10 text-gold px-2 py-0.5 uppercase tracking-wider">UPI, Cards, Netbanking</span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs text-navy/50">Secure & Instant</span>
-                    <div className="flex gap-1 ml-2">
-                      <span className="text-[10px] bg-white px-2 py-0.5 border border-navy/10 text-navy/60">GPay</span>
-                      <span className="text-[10px] bg-white px-2 py-0.5 border border-navy/10 text-navy/60">PhonePe</span>
-                      <span className="text-[10px] bg-white px-2 py-0.5 border border-navy/10 text-navy/60">Paytm</span>
-                    </div>
-                  </div>
-                </div>
-              </label>
-              
               {/* Direct UPI Option */}
               <label className={`flex items-center gap-3 p-4 border cursor-pointer transition ${paymentMethod === 'upi' ? 'border-gold bg-gold/5' : 'border-navy/10 hover:border-gold/40'}`}>
                 <input type="radio" name="payment" value="upi" checked={paymentMethod === 'upi'} onChange={() => setPaymentMethod('upi')} className="text-gold focus:ring-gold" />
@@ -354,14 +238,14 @@ export default function Checkout() {
             )}
 
             {/* Action Button */}
-            {paymentMethod !== 'upi' && (
+            {paymentMethod === 'cod' && (
               <div className="space-y-3">
               <button 
-                  onClick={paymentMethod === 'cod' ? handleCODOrder : handleOnlinePayment}
+                  onClick={handleCODOrder}
                   disabled={processing || !shippingInfo}
                   className="w-full bg-navy text-white py-3 font-semibold hover:bg-navy-light disabled:opacity-40 disabled:cursor-not-allowed transition text-sm uppercase tracking-widest"
                 >
-                  {processing ? 'Processing...' : paymentMethod === 'cod' ? 'Place Order (COD)' : 'Pay Securely'}
+                  {processing ? 'Processing...' : 'Place Order (COD)'}
                 </button>
                 
                 <p className="text-[10px] text-center text-navy/30 mt-4 uppercase tracking-widest">Secure SSL Encryption - 30-day returns</p>
