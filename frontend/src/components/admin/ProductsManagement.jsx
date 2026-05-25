@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../utils/imageHelper';
@@ -20,6 +21,7 @@ function ConfirmModal({ open, title, message, confirmLabel, onConfirm, onCancel 
 }
 
 export default function ProductsManagement() {
+  const location = useLocation();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -34,6 +36,17 @@ export default function ProductsManagement() {
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => { fetchProducts(); fetchCategories(); }, []);
+
+  // Open edit form for product ID passed via location state (from ProductCard pen icon)
+  useEffect(() => {
+    if (!loading && location.state?.editProductId) {
+      const product = products.find(p => p._id === location.state.editProductId);
+      if (product) {
+        handleEdit(product);
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [loading, location.state?.editProductId]);
 
   const fetchProducts = async () => {
     try {

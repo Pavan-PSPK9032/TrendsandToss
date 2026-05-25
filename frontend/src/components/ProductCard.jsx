@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getImageUrl } from '../utils/imageHelper';
+import { useAuth } from '../context/AuthContext';
 
 function isNewProduct(createdAt) {
   if (!createdAt) return false;
@@ -11,6 +12,8 @@ function isNewProduct(createdAt) {
 }
 
 export default function ProductCard({ product, view = 'grid' }) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentImg, setCurrentImg] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -102,7 +105,19 @@ export default function ProductCard({ product, view = 'grid' }) {
           </div>
         )}
 
-        {product.stock === 0 && (
+          {user?.role === 'admin' && (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate('/admin', { state: { editProductId: product._id } }); }}
+              className="absolute bottom-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-navy/80 hover:bg-navy transition-all duration-300 opacity-0 group-hover:opacity-100"
+              title="Edit product"
+            >
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+          )}
+
+          {product.stock === 0 && (
           <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
             <span className="text-navy font-bold text-sm uppercase tracking-widest border-2 border-navy px-4 py-2">Sold Out</span>
           </div>
