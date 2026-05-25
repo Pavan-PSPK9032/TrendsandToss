@@ -20,20 +20,6 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 const app = express();
 
-// MongoDB connection status
-let dbConnected = false;
-
-connectDB().then((ok) => { dbConnected = ok; });
-
-// Wait for DB before accepting requests
-app.use((req, res, next) => {
-  if (req.path === '/api/health') return next();
-  if (!dbConnected) {
-    return res.status(503).json({ error: 'Server is starting up, please retry in a few seconds' });
-  }
-  next();
-});
-
 // 🔥 CORS CONFIGURATION - PRODUCTION READY 🔥
 const allowedOrigins = [
   'https://trendsand-toss-3lee0a6w9-pavan-pspk9032s-projects.vercel.app',
@@ -77,6 +63,20 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// MongoDB connection status
+let dbConnected = false;
+
+connectDB().then((ok) => { dbConnected = ok; });
+
+// Wait for DB before accepting requests
+app.use((req, res, next) => {
+  if (req.path === '/api/health') return next();
+  if (!dbConnected) {
+    return res.status(503).json({ error: 'Server is starting up, please retry in a few seconds' });
+  }
+  next();
+});
 
 // Serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
