@@ -51,7 +51,7 @@ export default function ProductsManagement() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get('/products');
+      const { data } = await api.get('/products?limit=200');
       setProducts(data.products);
     } catch (err) {
       toast.error('Failed to fetch products');
