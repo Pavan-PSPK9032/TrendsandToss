@@ -11,9 +11,6 @@ export default function Cart() {
   const { removeFromCart, updateCartUI } = useCart()
   const [cart, setCart] = useState({ items: [] })
   const [loading, setLoading] = useState(true)
-  const [pincode, setPincode] = useState('')
-  const [shippingInfo, setShippingInfo] = useState(null)
-  const [checkingShipping, setCheckingShipping] = useState(false)
   const [couponCode, setCouponCode] = useState('')
   const [couponInfo, setCouponInfo] = useState(null)
   const [applyingCoupon, setApplyingCoupon] = useState(false)
@@ -52,46 +49,8 @@ export default function Cart() {
     sum + (item.productId?.price || 0) * item.quantity, 0
   )
 
-  const shippingCharge = shippingInfo?.isFree ? 0 : (shippingInfo?.charge || 0)
   const discountAmount = couponInfo?.discountAmount || 0
-  const total = subtotal + shippingCharge - discountAmount
-
-  const checkShipping = async () => {
-    if (pincode.length !== 6) {
-      toast.error('Please enter a valid 6-digit pincode')
-      return
-    }
-    
-    setCheckingShipping(true)
-    try {
-      console.log('Checking pincode:', pincode)
-      const { data } = await api.get(`/shipping/check/${pincode}`)
-      console.log('Shipping data received:', data)
-      
-      // Check if order qualifies for free delivery (above ₹500)
-      const isFree = subtotal >= 500
-      const charge = isFree ? 0 : data.charge
-      
-      setShippingInfo({
-        available: data.available,
-        charge: charge,
-        shippingCharge: charge,
-        isFree: isFree,
-        estimatedDays: data.estimatedDays,
-        message: isFree ? 'FREE delivery on this order!' : data.message,
-        source: data.source,
-        breakdown: data.breakdown,
-        zone: data.breakdown?.zone,
-      })
-      
-      toast.success(isFree ? 'You got FREE delivery!' : 'Pincode verified!')
-    } catch (err) {
-      console.error('Shipping check error:', err)
-      toast.error('Failed to check delivery. Please try again.')
-    } finally {
-      setCheckingShipping(false)
-    }
-  }
+  const total = subtotal - discountAmount
 
   const applyCoupon = async () => {
     if (!couponCode.trim()) {
@@ -191,53 +150,6 @@ export default function Cart() {
                 </div>
               )}
               
-              {/* Pincode Checker */}
-              <div>
-                <h3 className="font-semibold text-navy mb-3 text-xs uppercase tracking-widest">Check Delivery</h3>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Enter pincode"
-                    maxLength={6}
-                    value={pincode}
-                    onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-                    className="flex-1 p-2 sm:p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:outline-none text-navy text-sm"
-                  />
-                  <button 
-                    onClick={checkShipping}
-                    disabled={checkingShipping || pincode.length !== 6}
-                    className="bg-navy text-white px-3 sm:px-4 py-2 sm:py-3 hover:bg-navy-light disabled:opacity-40 transition text-xs font-semibold uppercase tracking-wider"
-                  >
-                    {checkingShipping ? '...' : 'Check'}
-                  </button>
-                </div>
-                {shippingInfo && (
-                  <div className={`mt-3 p-3 text-xs sm:text-sm ${shippingInfo.isFree ? 'bg-gold/10 text-navy border border-gold/30' : 'bg-gray-50 text-navy/70 border border-navy/10'}`}>
-                    <p className="font-medium">{shippingInfo.message}</p>
-                    <p className="text-[10px] sm:text-xs mt-1">
-                      {shippingInfo.isFree ? 'Free' : `₹${shippingInfo.shippingCharge}`} • Delivery in {shippingInfo.estimatedDays}
-                    </p>
-                    {!shippingInfo.isFree && shippingInfo.breakdown && shippingInfo.source === 'delhivery' && (
-                      <div className="mt-2 pt-2 border-t border-navy/10 text-[10px] space-y-0.5">
-                        <div className="flex justify-between"><span>Base</span><span>₹{shippingInfo.breakdown.base}</span></div>
-                        {shippingInfo.breakdown.fuelSurcharge > 0 && (
-                          <div className="flex justify-between"><span>Fuel surcharge</span><span>₹{shippingInfo.breakdown.fuelSurcharge}</span></div>
-                        )}
-                        {shippingInfo.breakdown.odaSurcharge > 0 && (
-                          <div className="flex justify-between"><span>ODA</span><span>₹{shippingInfo.breakdown.odaSurcharge}</span></div>
-                        )}
-                        {shippingInfo.breakdown.gst > 0 && (
-                          <div className="flex justify-between"><span>GST</span><span>₹{shippingInfo.breakdown.gst}</span></div>
-                        )}
-                        <div className="flex justify-between font-semibold text-navy pt-1 border-t border-navy/10">
-                          <span>Total</span><span>₹{shippingInfo.breakdown.total}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
               {/* Coupon Section */}
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -318,9 +230,7 @@ export default function Cart() {
                   <div className="flex justify-between"><span>Subtotal</span><span className="text-navy font-medium">₹{subtotal.toFixed(2)}</span></div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span className={shippingInfo?.isFree ? 'text-gold font-medium' : ''}>
-                      {shippingInfo ? (shippingInfo.isFree ? 'Free' : `₹${shippingInfo.shippingCharge}`) : '-'}
-                    </span>
+                    <span className="text-navy/40">Calculated at checkout</span>
                   </div>
                   {couponInfo && (
                     <div className="flex justify-between text-gold">
@@ -335,7 +245,7 @@ export default function Cart() {
                     <span className="font-playfair text-2xl font-semibold text-navy">₹{total.toFixed(2)}</span>
                   </div>
                 </div>
-                <Link to="/checkout" state={{ shippingInfo, pincode, couponInfo }}>
+                <Link to="/checkout" state={{ couponInfo }}>
                   <button 
                     className="w-full bg-gold text-white py-3 font-semibold hover:bg-gold-dark transition text-xs sm:text-sm uppercase tracking-widest"
                   >

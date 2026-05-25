@@ -67,6 +67,7 @@ export const checkDelivery = async (req, res) => {
         breakdown,
         estimatedDays: '3-5 business days',
         message: 'Delivery available',
+        codAvailable: true,
       });
     }
 
@@ -79,6 +80,7 @@ export const checkDelivery = async (req, res) => {
       source: 'rule',
       estimatedDays: '3-5 business days',
       message: 'Delivery available',
+      codAvailable: true,
     });
   } catch (err) {
     console.error('Delivery check error:', err);

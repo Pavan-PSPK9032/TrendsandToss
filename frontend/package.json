@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "@react-google-maps/api": "^2.20.8",
     "axios": "^1.14.0",
     "firebase": "^10.12.0",
     "framer-motion": "^12.38.0",
