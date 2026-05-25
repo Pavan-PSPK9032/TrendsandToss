@@ -54,11 +54,12 @@ export default function ProductCard({ product, view = 'grid' }) {
         <div
           className={`absolute inset-0 transition-transform duration-700 group-hover:scale-105 ${imageLoaded ? '' : 'opacity-0'}`}
         >
-          {product.images.map((img, i) => (
+          {product.images.filter(Boolean).map((img, i) => (
             <img
               key={i}
               src={getImageUrl(img, 400)}
               onLoad={() => i === 0 && setImageLoaded(true)}
+              onError={() => i === 0 && setImageLoaded(false)}
               className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${
                 i === currentImg ? 'opacity-100' : 'opacity-0'
               }`}

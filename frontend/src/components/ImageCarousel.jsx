@@ -8,21 +8,27 @@ export default function ImageCarousel({ images = [], alt = 'Product', height = '
     return <div className={`bg-navy/5 ${height} flex items-center justify-center text-navy/30 text-sm`}>No Image</div>
   }
 
-  const goToNext = () => setCurrentIndex((prev) => (prev + 1) % images.length)
-  const goToPrev = () => setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
+  const validImages = images.filter(Boolean)
+  if (validImages.length === 0) {
+    return <div className={`bg-navy/5 ${height} flex items-center justify-center text-navy/30 text-sm`}>No Image</div>
+  }
+
+  const goToNext = () => setCurrentIndex((prev) => (prev + 1) % validImages.length)
+  const goToPrev = () => setCurrentIndex((prev) => (prev - 1 + validImages.length) % validImages.length)
   const goToSlide = (index) => setCurrentIndex(index)
 
   return (
     <div className="relative group">
       <div className={`overflow-hidden bg-white border border-navy/10 ${height}`}>
         <img
-          src={getImageUrl(images[currentIndex])}
+          src={getImageUrl(validImages[currentIndex])}
           alt={`${alt} - ${currentIndex + 1}`}
           className="w-full h-full object-cover transition-all duration-300"
+          onError={(e) => { e.target.style.display = 'none' }}
         />
       </div>
 
-      {images.length > 1 && (
+      {validImages.length > 1 && (
         <>
           <button 
             onClick={goToPrev} 
@@ -38,7 +44,7 @@ export default function ImageCarousel({ images = [], alt = 'Product', height = '
           </button>
 
           <div className="flex justify-center gap-2 mt-3">
-            {images.map((_, idx) => (
+            {validImages.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => goToSlide(idx)}
