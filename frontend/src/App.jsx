@@ -15,6 +15,7 @@ const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+const AdminProducts = lazy(() => import('./pages/AdminProducts'))
 const Coupons = lazy(() => import('./pages/Coupons'))
 const Footer = lazy(() => import('./components/Footer'))
 
@@ -203,6 +204,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/products" element={<AdminProducts />} />
                   <Route path="/coupons" element={<Coupons />} />
                 </Routes>
               </Suspense>

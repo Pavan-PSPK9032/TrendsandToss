@@ -107,7 +107,7 @@ export default function ProductCard({ product, view = 'grid' }) {
 
           {user?.role === 'admin' && (
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate('/admin', { state: { editProductId: product._id } }); }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate('/admin/products', { state: { editProductId: product._id } }); }}
               className="absolute bottom-3 right-3 z-10 w-8 h-8 flex items-center justify-center bg-navy/80 hover:bg-navy transition-all duration-300 opacity-0 group-hover:opacity-100"
               title="Edit product"
             >

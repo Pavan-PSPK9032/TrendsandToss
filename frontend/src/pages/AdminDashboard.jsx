@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 import AdminOrders from '../components/admin/AdminOrders';
 import CategoryManagement from '../components/admin/CategoryManagement';
-import ProductsManagement from '../components/admin/ProductsManagement';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminDashboard() {
@@ -233,10 +233,10 @@ export default function AdminDashboard() {
         <h1 className="font-playfair text-3xl font-semibold text-navy">Admin Dashboard</h1>
         <div className="flex items-center gap-4">
           <div className="flex bg-navy/5 p-1">
-            <button onClick={() => setActiveTab('products')} className={`px-4 py-2 font-medium transition text-sm uppercase tracking-widest ${activeTab === 'products' ? 'bg-white shadow text-gold' : 'text-navy/60 hover:text-navy'}`}>
+            <Link to="/admin/products" className={`px-4 py-2 font-medium transition text-sm uppercase tracking-widest inline-flex items-center bg-white shadow text-gold`}>
               <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
               Products
-            </button>
+            </Link>
             <button onClick={() => setActiveTab('categories')} className={`px-4 py-2 font-medium transition text-sm uppercase tracking-widest ${activeTab === 'categories' ? 'bg-white shadow text-gold' : 'text-navy/60 hover:text-navy'}`}>
               <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
               Categories
@@ -262,9 +262,7 @@ export default function AdminDashboard() {
         </div>
       </div>
       
-      {activeTab === 'products' ? (
-        <ProductsManagement />
-      ) : activeTab === 'categories' ? (
+      {activeTab === 'categories' ? (
         <CategoryManagement />
       ) : activeTab === 'orders' ? (
         <AdminOrders />
