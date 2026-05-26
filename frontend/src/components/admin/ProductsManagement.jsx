@@ -275,9 +275,10 @@ export default function ProductsManagement() {
                     <span className="font-semibold text-navy text-sm">Rs.{product.price}</span>
                     <span className={`text-xs px-2 py-0.5 font-medium border ${
                       product.stock > 10 ? 'bg-green-50 text-green-700 border-green-200' :
-                      product.stock > 0 ? 'bg-gold/10 text-gold border-gold/30' :
+                      product.stock > 3 ? 'bg-gold/10 text-gold border-gold/30' :
+                      product.stock > 0 ? 'bg-orange-50 text-orange-600 border-orange-200' :
                       'bg-red-50 text-red-600 border-red-200'
-                    }`}>{product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}</span>
+                    }`}>{product.stock > 10 ? 'In Stock' : product.stock > 3 ? `${product.stock} in stock` : product.stock > 0 ? 'Low Stock' : 'Out of stock'}</span>
                   </div>
                   <div className="flex gap-2 mt-2">
                     <button onClick={() => handleEdit(product)} className="text-gold hover:text-gold-dark transition p-1" title="Edit">
@@ -339,15 +340,17 @@ export default function ProductsManagement() {
                   <td className="p-4">
                     <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 border ${
                       product.stock > 10 ? 'bg-green-50 text-green-700 border-green-200' :
-                      product.stock > 0 ? 'bg-gold/10 text-gold border-gold/30' :
+                      product.stock > 3 ? 'bg-gold/10 text-gold border-gold/30' :
+                      product.stock > 0 ? 'bg-orange-50 text-orange-600 border-orange-200' :
                       'bg-red-50 text-red-600 border-red-200'
                     }`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${
                         product.stock > 10 ? 'bg-green-500' :
-                        product.stock > 0 ? 'bg-gold' :
+                        product.stock > 3 ? 'bg-gold' :
+                        product.stock > 0 ? 'bg-orange-500' :
                         'bg-red-500'
                       }`}></span>
-                      {product.stock > 10 ? 'In Stock' : product.stock > 0 ? `Only ${product.stock}` : 'Out of Stock'}
+                      {product.stock > 10 ? 'In Stock' : product.stock > 3 ? `${product.stock} in stock` : product.stock > 0 ? `Low Stock (${product.stock})` : 'Out of Stock'}
                     </span>
                   </td>
                   <td className="p-4 text-right">

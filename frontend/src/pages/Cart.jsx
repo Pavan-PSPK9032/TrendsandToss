@@ -49,6 +49,8 @@ export default function Cart() {
     sum + (item.productId?.price || 0) * item.quantity, 0
   )
 
+  const hasOutOfStock = cart.items.some(item => item.productId?.stock === 0)
+
   const discountAmount = couponInfo?.discountAmount || 0
   const total = subtotal - discountAmount
 
@@ -123,6 +125,9 @@ export default function Cart() {
                   <div>
                     <h3 className="font-medium text-navy text-sm sm:text-base">{item.productId?.name}</h3>
                     <p className="text-navy/40 text-xs sm:text-sm mt-1">Qty: {item.quantity}</p>
+                    {item.productId?.stock === 0 && (
+                      <span className="inline-block mt-1 text-[10px] font-bold uppercase tracking-wider text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5">Out of Stock</span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between mt-2">
                     <p className="font-semibold text-navy text-sm sm:text-base">₹{(item.productId?.price * item.quantity).toFixed(2)}</p>
@@ -216,6 +221,9 @@ export default function Cart() {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-navy font-medium truncate">{item.productId?.name}</p>
                         <p className="text-[10px] text-navy/40">Qty: {item.quantity} × ₹{item.productId?.price}</p>
+                        {item.productId?.stock === 0 && (
+                          <span className="text-[9px] font-bold uppercase text-red-500">Out of Stock</span>
+                        )}
                       </div>
                       <span className="text-xs font-semibold text-navy whitespace-nowrap">₹{(item.productId?.price * item.quantity).toFixed(2)}</span>
                     </div>
@@ -245,9 +253,23 @@ export default function Cart() {
                     <span className="font-playfair text-2xl font-semibold text-navy">₹{total.toFixed(2)}</span>
                   </div>
                 </div>
-                <Link to="/checkout" state={{ couponInfo }}>
+                {hasOutOfStock && (
+                  <div className="p-3 bg-red-50 border border-red-200">
+                    <p className="text-xs text-red-600 font-medium text-center">Some items are out of stock. Remove them to proceed.</p>
+                    <div className="mt-2 space-y-1">
+                      {cart.items.filter(i => i.productId?.stock === 0).map(item => (
+                        <div key={item.productId?._id} className="flex items-center justify-between text-xs text-red-500">
+                          <span className="truncate">{item.productId?.name}</span>
+                          <button onClick={() => handleRemoveItem(item.productId?._id)} className="font-semibold hover:text-red-700 ml-2 shrink-0">Remove</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <Link to={hasOutOfStock ? '#' : '/checkout'} state={{ couponInfo }} onClick={hasOutOfStock ? (e) => e.preventDefault() : undefined}>
                   <button 
-                    className="w-full bg-gold text-white py-3 font-semibold hover:bg-gold-dark transition text-xs sm:text-sm uppercase tracking-widest"
+                    disabled={hasOutOfStock}
+                    className="w-full bg-gold text-white py-3 font-semibold hover:bg-gold-dark transition text-xs sm:text-sm uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Proceed to Checkout
                   </button>

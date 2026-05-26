@@ -119,10 +119,10 @@ export default function ProductCard({ product, view = 'grid' }) {
           )}
 
           {product.stock === 0 && (
-          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-            <span className="text-navy font-bold text-sm uppercase tracking-widest border-2 border-navy px-4 py-2">Sold Out</span>
-          </div>
-        )}
+            <div className="absolute inset-0 bg-gray-200/70 flex items-center justify-center">
+              <span className="bg-navy text-white text-xs font-bold uppercase tracking-[0.15em] px-3 py-1.5">Out of Stock</span>
+            </div>
+          )}
 
         {product.images.length > 1 && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">

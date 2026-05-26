@@ -146,6 +146,23 @@ export const createOrder = async (req, res) => {
     const cart = await Cart.findOne({ userId: req.user._id }).populate('items.productId');
     if (!cart?.items?.length) return res.status(400).json({ error: 'Cart is empty' });
 
+    // Check stock availability for all items
+    const outOfStockItems = [];
+    for (const item of cart.items) {
+      const product = item.productId;
+      if (!product) {
+        outOfStockItems.push({ name: 'Unknown product', available: 0 });
+        continue;
+      }
+      if (product.stock < item.quantity) {
+        outOfStockItems.push({ name: product.name, available: product.stock });
+      }
+    }
+    if (outOfStockItems.length > 0) {
+      const msg = outOfStockItems.map(i => `${i.name} (only ${i.available} left)`).join(', ');
+      return res.status(400).json({ error: `Some items are out of stock: ${msg}` });
+    }
+
     // Build items array
     const items = cart.items.map(item => ({
       productId: item.productId._id,
@@ -179,6 +196,11 @@ export const createOrder = async (req, res) => {
       razorpayOrderId: isCOD ? null : razorpayOrderId,
       orderStatus: finalOrderStatus
     });
+
+    // Reduce stock for each product in the order
+    for (const item of order.items) {
+      await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } });
+    }
 
     // Clear cart after successful order
     await Cart.findOneAndDelete({ userId: req.user._id });

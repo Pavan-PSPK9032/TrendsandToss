@@ -63,9 +63,20 @@ export default function AdminDashboard() {
     return () => clearTimeout(sessionTimer);
   }, [activeTab]);
 
+  const [productStockMap, setProductStockMap] = useState({});
+
   const fetchPendingOrders = async (playSound = false) => {
     try {
-      const { data } = await api.get('/orders');
+      const [ordersRes, productsRes] = await Promise.all([
+        api.get('/orders'),
+        api.get('/products?limit=200')
+      ]);
+      const data = ordersRes.data;
+      const products = productsRes.data.products || [];
+      const stockMap = {};
+      products.forEach(p => { stockMap[p._id] = p.stock; });
+      setProductStockMap(stockMap);
+
       const pending = data.filter(o => o.orderStatus === 'Pending');
       const filtered = pendingFilter === 'all'
         ? data.filter(o => ['Pending', 'Packed'].includes(o.orderStatus))
@@ -425,7 +436,9 @@ export default function AdminDashboard() {
                             )}
                             <div className="flex-1 min-w-0">
                               <p className="text-sm text-navy/80 font-medium truncate">{item.name}</p>
-                              <p className="text-[10px] text-navy/30">Jewellery</p>
+                              {productStockMap[item.productId] === 0 && (
+                                <span className="inline-block mt-0.5 text-[9px] font-bold uppercase tracking-wider text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 leading-none">Last Piece Sold</span>
+                              )}
                             </div>
                             <span className="text-navy font-bold text-sm shrink-0 bg-white px-2 py-0.5 border border-navy/10">x{item.quantity}</span>
                           </div>
