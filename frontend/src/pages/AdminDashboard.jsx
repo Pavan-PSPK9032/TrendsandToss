@@ -63,14 +63,19 @@ export default function AdminDashboard() {
     return () => clearTimeout(sessionTimer);
   }, [activeTab]);
 
-  const fetchPendingOrders = async () => {
+  const fetchPendingOrders = async (playSound = false) => {
     try {
       const { data } = await api.get('/orders');
+      const pending = data.filter(o => o.orderStatus === 'Pending');
       const filtered = pendingFilter === 'all'
         ? data.filter(o => ['Pending', 'Packed'].includes(o.orderStatus))
         : data.filter(o => o.orderStatus === pendingFilter);
       setPendingOrders(filtered);
-      setPendingCount(data.filter(o => o.orderStatus === 'Pending').length);
+      setPendingCount(pending.length);
+      if (playSound && pending.length > 0) {
+        playPendingOrderAlert();
+        toast(`${pending.length} pending order${pending.length > 1 ? 's' : ''} need attention`, { icon: '🔔', duration: 5000 });
+      }
     } catch {
       // silently fail
     }
@@ -129,7 +134,7 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchPendingOrders();
+    fetchPendingOrders(true);
   }, []);
 
   useEffect(() => {
