@@ -13,6 +13,9 @@ export default function CategoryManagement() {
     icon: '',
     displayOrder: ''
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -32,17 +35,31 @@ export default function CategoryManagement() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setUploading(true);
+      const fd = new FormData();
+      fd.append('name', formData.name);
+      fd.append('description', formData.description);
+      fd.append('icon', formData.icon);
+      fd.append('displayOrder', formData.displayOrder || '0');
+      if (imageFile) fd.append('image', imageFile);
+
       if (editingCategory) {
-        await api.put(`/categories/${editingCategory._id}`, formData);
+        await api.put(`/categories/${editingCategory._id}`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
         toast.success('Category updated successfully!');
       } else {
-        await api.post('/categories', formData);
+        await api.post('/categories', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
         toast.success('Category created successfully!');
       }
       resetForm();
       fetchCategories();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to save category');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -54,6 +71,8 @@ export default function CategoryManagement() {
       icon: category.icon || '',
       displayOrder: category.displayOrder || ''
     });
+    setImagePreview(category.image || null);
+    setImageFile(null);
     setShowForm(true);
   };
 
@@ -70,6 +89,8 @@ export default function CategoryManagement() {
 
   const resetForm = () => {
     setFormData({ name: '', description: '', icon: '', displayOrder: '' });
+    setImageFile(null);
+    setImagePreview(null);
     setEditingCategory(null);
     setShowForm(false);
   };
@@ -128,12 +149,33 @@ export default function CategoryManagement() {
               />
             </div>
 
+            <div>
+              <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">Category Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  setImageFile(file);
+                  setImagePreview(URL.createObjectURL(file));
+                }}
+                className="w-full p-3 border border-navy/20 text-navy text-sm file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-navy file:text-white file:text-xs file:font-semibold file:uppercase file:tracking-wider"
+              />
+              {imagePreview && (
+                <div className="mt-3 flex items-center gap-3">
+                  <img src={imagePreview} alt="Preview" className="w-16 h-16 object-cover border border-navy/10" />
+                  <span className="text-xs text-navy/40">Preview</span>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-3">
               <button
                 type="submit"
-                className="flex-1 bg-gold text-white py-3 hover:bg-gold-dark transition font-medium text-sm uppercase tracking-widest"
+                disabled={uploading}
+                className="flex-1 bg-gold text-white py-3 hover:bg-gold-dark transition font-medium text-sm uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {editingCategory ? 'Update Category' : 'Create Category'}
+                {uploading ? 'Uploading...' : (editingCategory ? 'Update Category' : 'Create Category')}
               </button>
               <button
                 type="button"

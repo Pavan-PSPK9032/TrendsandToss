@@ -9,6 +9,7 @@ import {
   getProductsByCategory
 } from '../controllers/categoryController.js';
 import { protect, isAdmin } from '../middleware/authMiddleware.js';
+import { upload } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -19,8 +20,8 @@ router.get('/slug/:slug/products', getProductsByCategory);
 // Protected admin routes
 router.get('/all', protect, isAdmin, getAllCategories);
 router.get('/:id', protect, isAdmin, getCategoryById);
-router.post('/', protect, isAdmin, createCategory);
-router.put('/:id', protect, isAdmin, updateCategory);
+router.post('/', protect, isAdmin, upload.single('image'), createCategory);
+router.put('/:id', protect, isAdmin, upload.single('image'), updateCategory);
 router.delete('/:id', protect, isAdmin, deleteCategory);
 
 export default router;

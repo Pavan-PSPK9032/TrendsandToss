@@ -40,6 +40,7 @@ export const getCategoryById = async (req, res) => {
 export const createCategory = async (req, res) => {
   try {
     const { name, description, icon, displayOrder } = req.body;
+    const image = req.file?.path || '';
     
     // Generate slug from name
     const slug = name.toLowerCase()
@@ -51,6 +52,7 @@ export const createCategory = async (req, res) => {
       slug,
       description,
       icon,
+      image,
       displayOrder: Number(displayOrder) || 0
     });
     
@@ -65,10 +67,14 @@ export const createCategory = async (req, res) => {
 export const updateCategory = async (req, res) => {
   try {
     const { name, description, icon, isActive, displayOrder } = req.body;
+    const image = req.file?.path || undefined;
+    
+    const updateData = { name, description, icon, isActive, displayOrder };
+    if (image) updateData.image = image;
     
     const category = await Category.findByIdAndUpdate(
       req.params.id,
-      { name, description, icon, isActive, displayOrder },
+      updateData,
       { new: true, runValidators: true }
     );
     

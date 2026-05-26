@@ -23,14 +23,14 @@ const FALLBACK_ICONS = {
 
 function CategoryCard({ cat }) {
   const [imgError, setImgError] = useState(false)
-  const imgUrl = CATEGORY_IMAGES[cat.name]
+  const imgUrl = cat.image || CATEGORY_IMAGES[cat.name]
 
   return (
     <Link
       to={`/products?category=${encodeURIComponent(cat.name)}`}
       className="group relative block overflow-hidden bg-white border border-navy/10 hover:border-gold hover:shadow-xl transition-all duration-500"
     >
-      <div className="aspect-[4/5] overflow-hidden">
+      <div className="aspect-[5/6] overflow-hidden">
         {!imgError && imgUrl ? (
           <img
             src={imgUrl}
@@ -92,7 +92,7 @@ export default function Home() {
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-navy/5 animate-pulse aspect-[4/5]" />
+              <div key={i} className="bg-navy/5 animate-pulse aspect-[5/6]" />
             ))}
           </div>
         ) : (
