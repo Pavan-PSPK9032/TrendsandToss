@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { getImageUrl } from '../utils/imageHelper'
 
 export default function ImageCarousel({ images = [], alt = 'Product', height = 'h-64' }) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [zoom, setZoom] = useState(false)
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 })
+  const imgRef = useRef(null)
 
   if (!images || images.length === 0) {
     return <div className={`bg-navy/5 ${height} flex items-center justify-center text-navy/30 text-sm`}>No Image</div>
@@ -13,20 +16,44 @@ export default function ImageCarousel({ images = [], alt = 'Product', height = '
     return <div className={`bg-navy/5 ${height} flex items-center justify-center text-navy/30 text-sm`}>No Image</div>
   }
 
+  const handleMouseMove = (e) => {
+    if (!imgRef.current) return
+    const rect = imgRef.current.getBoundingClientRect()
+    const x = ((e.clientX - rect.left) / rect.width) * 100
+    const y = ((e.clientY - rect.top) / rect.height) * 100
+    setZoomPos({ x, y })
+  }
+
   const goToNext = () => setCurrentIndex((prev) => (prev + 1) % validImages.length)
   const goToPrev = () => setCurrentIndex((prev) => (prev - 1 + validImages.length) % validImages.length)
   const goToSlide = (index) => setCurrentIndex(index)
 
   return (
     <div className="relative group">
-      <div className={`overflow-hidden bg-white border border-navy/10 ${height}`}>
+      <div
+        ref={imgRef}
+        className={`overflow-hidden bg-white border border-navy/10 ${height} cursor-zoom-in`}
+        onMouseEnter={() => setZoom(true)}
+        onMouseLeave={() => setZoom(false)}
+        onMouseMove={handleMouseMove}
+      >
         <img
           src={getImageUrl(validImages[currentIndex])}
           alt={`${alt} - ${currentIndex + 1}`}
-          className="w-full h-full object-cover transition-all duration-300"
+          className="w-full h-full object-cover transition-transform duration-100"
+          style={{
+            transform: zoom ? 'scale(2)' : 'scale(1)',
+            transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`
+          }}
           onError={(e) => { e.target.style.display = 'none' }}
         />
       </div>
+
+      {zoom && (
+        <div className="absolute top-3 right-3 bg-navy/70 text-white text-xs font-semibold uppercase tracking-wider px-2.5 py-1 pointer-events-none">
+          Zoom
+        </div>
+      )}
 
       {validImages.length > 1 && (
         <>

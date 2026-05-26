@@ -21,6 +21,15 @@ export default function ImageModal({ images, currentIndex, onClose }) {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
+  // Mouse wheel zoom
+  const handleWheel = (e) => {
+    if (e.deltaY < 0) {
+      setScale(prev => Math.min(prev + 0.25, 3));
+    } else {
+      setScale(prev => Math.max(prev - 0.25, 1));
+    }
+  };
+
   // Touch handlers for swipe
   const handleTouchStart = (e) => {
     setTouchStart(e.targetTouches[0].clientX);
@@ -128,6 +137,7 @@ export default function ImageModal({ images, currentIndex, onClose }) {
       <div
         className="w-full h-full flex items-center justify-center p-4"
         onClick={(e) => e.stopPropagation()}
+        onWheel={handleWheel}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
