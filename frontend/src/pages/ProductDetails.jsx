@@ -100,12 +100,17 @@ export default function ProductDetails() {
               {product.originalPrice && product.originalPrice > product.price && (
                 <>
                   <p className="text-xl text-navy/30 line-through">₹{product.originalPrice}</p>
-                  <span className="text-sm font-bold text-white bg-gold px-3 py-1">
+                  <span className="text-[11px] font-bold text-white bg-red-500 px-2.5 py-1 leading-none">
                     {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                   </span>
                 </>
               )}
             </div>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <p className="text-xs text-navy/40 -mt-4 mb-6">
+                MRP <span className="line-through">₹{product.originalPrice}</span> | You save <span className="font-semibold text-green-700">₹{product.originalPrice - product.price}</span>
+              </p>
+            )}
             
             {/* Description */}
             <div className="mb-6">

@@ -25,8 +25,11 @@ export default function Navbar() {
 
   return (
     <nav className="bg-navy text-white px-6 py-4 flex justify-between items-center border-b border-gold/20">
-      <Link to="/" className="font-playfair text-2xl font-semibold tracking-widest text-white hover:text-gold transition-colors">
-        Trends&amp;Toss
+      <Link to="/" className="flex items-center gap-3 group">
+        <img src="/logo.png" alt="Trends & Toss" className="h-8 w-auto object-contain group-hover:opacity-80 transition-opacity" />
+        <span className="font-playfair text-2xl font-semibold tracking-widest text-white group-hover:text-gold transition-colors">
+          Trends&amp;Toss
+        </span>
       </Link>
       <div className="flex items-center gap-6 text-sm font-medium tracking-wide">
         <Link to="/" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Home</Link>

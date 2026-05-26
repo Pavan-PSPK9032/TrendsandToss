@@ -39,7 +39,6 @@ export default function ProductCard({ product, view = 'grid' }) {
     : 0;
 
   const badges = [];
-  if (discount > 0) badges.push({ label: `${discount}% OFF`, type: 'sale' });
   if (isNewProduct(product.createdAt)) badges.push({ label: 'NEW', type: 'new' });
   if (product.stock > 20) badges.push({ label: 'TRENDING', type: 'trending' });
 
@@ -149,7 +148,7 @@ export default function ProductCard({ product, view = 'grid' }) {
         }`}>
           {product.name}
         </h3>
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-baseline gap-2 mt-2 flex-wrap">
           <span className="font-bold text-navy text-sm md:text-base">
             Rs.{product.price}
           </span>
@@ -158,7 +157,20 @@ export default function ProductCard({ product, view = 'grid' }) {
               Rs.{product.originalPrice}
             </span>
           )}
+          {discount > 0 && (
+            <span className="text-[10px] font-bold text-white bg-red-500 px-1.5 py-0.5 leading-none">
+              {discount}% OFF
+            </span>
+          )}
         </div>
+        {product.stock > 0 && product.stock <= 3 && (
+          <p className="mt-1.5 text-[10px] font-semibold text-orange-600 flex items-center gap-1">
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            Only {product.stock} left
+          </p>
+        )}
       </div>
     </Link>
   );

@@ -28,7 +28,7 @@ function CategoryCard({ cat }) {
   return (
     <Link
       to={`/products?category=${encodeURIComponent(cat.name)}`}
-      className="group relative block overflow-hidden bg-white border border-navy/10 hover:border-gold hover:shadow-xl transition-all duration-500"
+      className="group relative block overflow-hidden bg-white border border-navy/10 hover:border-gold hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
     >
       <div className="aspect-[3/4] overflow-hidden">
         {!imgError && imgUrl ? (
@@ -55,7 +55,7 @@ function CategoryCard({ cat }) {
         </span>
       </div>
 
-      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
         </svg>
@@ -88,7 +88,13 @@ export default function Home() {
     <div>
       <BannerSlider />
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 -mt-10 relative z-10 mb-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 mb-20 md:mb-28">
+        <div className="flex items-center justify-between mb-8 md:mb-10">
+          <h2 className="font-playfair text-2xl md:text-3xl text-navy font-semibold tracking-tight">Shop by Category</h2>
+          <Link to="/products" className="text-xs font-semibold uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors">
+            View All
+          </Link>
+        </div>
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
             {[...Array(6)].map((_, i) => (
