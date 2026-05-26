@@ -53,7 +53,8 @@ export default function AdminOrders() {
   const getStatusColor = (status) => {
     const colors = {
       'Pending': 'bg-gold/10 text-gold border border-gold/30',
-      'Shipped': 'bg-navy/10 text-navy border border-navy/30',
+      'Packed': 'bg-navy/10 text-navy border border-navy/30',
+      'Shipped': 'bg-blue-50 text-blue-600 border border-blue-200',
       'Delivered': 'bg-gold/10 text-gold border border-gold/30',
       'Cancelled': 'bg-red-50 text-red-600 border border-red-200'
     };
@@ -80,7 +81,7 @@ export default function AdminOrders() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="font-playfair text-2xl font-semibold text-navy">Orders Management</h2>
         <div className="flex gap-2 flex-wrap">
-          {['all', 'Pending', 'Shipped', 'Delivered', 'Cancelled'].map(status => (
+          {['all', 'Pending', 'Packed', 'Shipped', 'Delivered', 'Cancelled'].map(status => (
             <button key={status} onClick={() => setFilter(status)} className={`px-4 py-2 text-sm font-medium transition ${filter === status ? 'bg-gold text-white' : 'bg-white text-navy/70 border border-navy/10 hover:border-gold hover:text-gold'}`}>
               {status === 'all' ? 'All' : status}
             </button>
@@ -198,7 +199,7 @@ export default function AdminOrders() {
                         <div className="mt-6 pt-4 border-t border-navy/10">
                           <h4 className="font-semibold mb-3 text-navy text-xs uppercase tracking-widest">Update Order Status</h4>
                           <div className="flex flex-wrap gap-2">
-                            {['Pending', 'Shipped', 'Delivered', 'Cancelled'].map(status => (
+                            {['Pending', 'Packed', 'Shipped', 'Delivered', 'Cancelled'].map(status => (
                               <button
                                 key={status}
                                 onClick={() => updateStatus(order._id, status)}

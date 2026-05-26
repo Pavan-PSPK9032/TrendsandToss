@@ -84,7 +84,7 @@ export const verifyPayment = async (req, res) => {
 export const updateOrderStatus = async (req, res) => {
   try {
     const { status, trackingNumber, trackingUrl, courier } = req.body;
-    const validStatuses = ['Pending', 'Shipped', 'Delivered', 'Cancelled'];
+    const validStatuses = ['Pending', 'Packed', 'Shipped', 'Delivered', 'Cancelled'];
     if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
 
     const updateFields = { orderStatus: status };
@@ -112,7 +112,7 @@ export const updateOrderStatus = async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
     // Send WhatsApp tracking update (async)
-    if (['Shipped', 'Delivered', 'Cancelled'].includes(status)) {
+    if (['Packed', 'Shipped', 'Delivered', 'Cancelled'].includes(status)) {
       sendTrackingUpdateWhatsApp(order).then(result => {
         if (result.success) {
           console.log('Tracking WhatsApp sent:', result.messageId);

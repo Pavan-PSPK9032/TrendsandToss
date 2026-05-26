@@ -37,6 +37,9 @@ export default function AdminDashboard() {
   });
   const [pendingOrders, setPendingOrders] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
+  const [pendingSearch, setPendingSearch] = useState('');
+  const [pendingFilter, setPendingFilter] = useState('Pending');
+  const [packingOrderId, setPackingOrderId] = useState(null);
 
   const navigate = useNavigate();
   const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
@@ -63,12 +66,66 @@ export default function AdminDashboard() {
   const fetchPendingOrders = async () => {
     try {
       const { data } = await api.get('/orders');
-      const pending = data.filter(o => o.orderStatus === 'Pending');
-      setPendingOrders(pending);
-      setPendingCount(pending.length);
+      const filtered = pendingFilter === 'all'
+        ? data.filter(o => ['Pending', 'Packed'].includes(o.orderStatus))
+        : data.filter(o => o.orderStatus === pendingFilter);
+      setPendingOrders(filtered);
+      setPendingCount(data.filter(o => o.orderStatus === 'Pending').length);
     } catch {
       // silently fail
     }
+  };
+
+  const markAsPacked = async (orderId) => {
+    setPackingOrderId(orderId);
+    try {
+      await api.put(`/orders/${orderId}/status`, { status: 'Packed', trackingNote: 'Order packed and ready for shipping' });
+      toast.success('Order marked as packed');
+      fetchPendingOrders();
+    } catch {
+      toast.error('Failed to update status');
+    } finally {
+      setPackingOrderId(null);
+    }
+  };
+
+  const printPackingSlip = (order) => {
+    const win = window.open('', '_blank');
+    const itemsRows = order.items.map(item =>
+      `<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:10px">
+        ${item.image ? `<img src="${item.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px" />` : ''}
+        <span>${item.name}</span></td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:center;font-weight:bold">x${item.quantity}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right">Rs.${(item.price * item.quantity).toFixed(2)}</td></tr>`
+    ).join('');
+    win.document.write(`
+      <html><head><title>Packing Slip #${order._id?.slice(-8)}</title>
+      <style>body{font-family:Arial,sans-serif;padding:30px;max-width:700px;margin:0 auto}
+      h1{font-size:20px;color:#001F5B;border-bottom:2px solid #C9A84C;padding-bottom:8px}
+      table{width:100%;border-collapse:collapse;margin-top:15px}
+      th{text-align:left;padding:8px 10px;background:#f5f5f5;font-size:12px;text-transform:uppercase}
+      .address{background:#fafafa;padding:12px;margin-top:10px;font-size:13px;line-height:1.6}
+      .total{text-align:right;font-size:18px;font-weight:bold;margin-top:15px;padding-top:10px;border-top:2px solid #C9A84C}
+      .footer{text-align:center;margin-top:30px;font-size:11px;color:#999}
+      </style></head><body>
+      <h1>Packing Slip</h1>
+      <p style="display:flex;justify-content:space-between;font-size:13px;color:#666">
+        <span>Order: <strong>#${order._id?.slice(-8)}</strong></span>
+        <span>Date: <strong>${new Date(order.createdAt).toLocaleDateString()}</strong></span>
+      </p>
+      <div class="address">
+        <strong>${order.shippingAddress?.fullName}</strong><br/>
+        ${order.shippingAddress?.phone}<br/>
+        ${order.shippingAddress?.address}<br/>
+        ${order.shippingAddress?.city}, ${order.shippingAddress?.state} - ${order.shippingAddress?.pincode}
+      </div>
+      <table><thead><tr><th style="width:60%">Item</th><th style="width:15%;text-align:center">Qty</th><th style="width:25%;text-align:right">Amount</th></tr></thead>
+      <tbody>${itemsRows}</tbody></table>
+      <div class="total">Total: Rs.${order.totalPrice?.toFixed(2)}</div>
+      <div class="footer">Trends & Toss - Packing Slip</div>
+      <script>window.print()</script>
+      </body></html>`);
+    win.document.close();
   };
 
   useEffect(() => {
@@ -77,7 +134,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (activeTab === 'pending') fetchPendingOrders();
-  }, [activeTab]);
+  }, [activeTab, pendingFilter]);
 
   const checkAdmin = () => {
     // Check if user exists and is admin
@@ -297,65 +354,120 @@ export default function AdminDashboard() {
         <AdminOrders />
       ) : activeTab === 'pending' ? (
         <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-playfair text-2xl font-semibold text-navy">Pending Orders ({pendingCount})</h2>
-            <button onClick={fetchPendingOrders} className="text-sm text-gold hover:text-gold-dark font-medium flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-              Refresh
-            </button>
-          </div>
-          {pendingOrders.length === 0 ? (
-            <div className="text-center py-16 border border-navy/10 bg-navy/[0.02]">
-              <svg className="w-16 h-16 mx-auto text-green-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <h3 className="text-lg font-medium text-navy/60 mb-1">All caught up!</h3>
-              <p className="text-sm text-navy/40">No pending orders</p>
+          <div className="sticky top-0 z-10 bg-white pb-4 -mx-4 px-4 border-b border-navy/10 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <h2 className="font-playfair text-2xl font-semibold text-navy">Pending Orders</h2>
+                <span className="bg-red-500 text-white text-xs font-bold px-2 py-1">{pendingCount} pending</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                  <input type="text" placeholder="Search orders..." value={pendingSearch} onChange={(e) => setPendingSearch(e.target.value)} className="pl-9 pr-3 py-2 text-sm border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none w-48" />
+                </div>
+                <select value={pendingFilter} onChange={(e) => setPendingFilter(e.target.value)} className="p-2 text-sm border border-navy/20 focus:ring-2 focus:ring-gold focus:outline-none">
+                  <option value="Pending">Pending</option>
+                  <option value="Packed">Packed</option>
+                  <option value="all">All</option>
+                </select>
+                <button onClick={fetchPendingOrders} className="p-2 border border-navy/20 hover:bg-navy/5 transition">
+                  <svg className="w-4 h-4 text-navy/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {pendingOrders.map(order => (
-                <div key={order._id} className="bg-white border border-navy/10 hover:border-gold/30 transition">
-                  <div className="p-4 border-b border-navy/5 bg-navy/[0.02]">
-                    <div className="flex justify-between items-start">
+          </div>
+
+          {(() => {
+            const searched = pendingOrders.filter(o =>
+              !pendingSearch || o._id?.toLowerCase().includes(pendingSearch.toLowerCase()) ||
+              o.shippingAddress?.fullName?.toLowerCase().includes(pendingSearch.toLowerCase()) ||
+              o.shippingAddress?.phone?.includes(pendingSearch)
+            );
+            if (searched.length === 0) {
+              return (
+                <div className="text-center py-16 border border-navy/10 bg-navy/[0.02]">
+                  <svg className="w-16 h-16 mx-auto text-green-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <h3 className="text-lg font-medium text-navy/60 mb-1">All caught up!</h3>
+                  <p className="text-sm text-navy/40">{pendingSearch ? 'No orders match your search' : 'No pending orders'}</p>
+                </div>
+              );
+            }
+            return (
+              <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+                {searched.map(order => (
+                  <div key={order._id} className="bg-white border border-navy/10 hover:shadow-lg hover:border-gold/30 transition-all duration-200">
+                    {/* Card Header */}
+                    <div className="p-4 border-b border-navy/5 bg-navy/[0.02] flex justify-between items-start">
                       <div>
                         <p className="font-mono text-xs text-navy/40">#{order._id?.slice(-8)}</p>
-                        <p className="font-medium text-navy text-sm mt-0.5">{order.shippingAddress?.fullName}</p>
+                        <p className="font-medium text-navy mt-0.5">{order.shippingAddress?.fullName}</p>
                       </div>
-                      <span className="text-[10px] bg-gold/10 text-gold px-2 py-0.5 font-medium">{new Date(order.createdAt).toLocaleDateString()}</span>
+                      <span className="text-[10px] bg-gold/10 text-gold px-2 py-0.5 font-medium whitespace-nowrap">{new Date(order.createdAt).toLocaleDateString()}</span>
                     </div>
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <div>
-                      <p className="text-[10px] text-navy/40 uppercase tracking-wider mb-1">Items to Pack</p>
-                      <div className="space-y-1">
+
+                    {/* Items to Pack */}
+                    <div className="p-4">
+                      <p className="text-[10px] text-navy/40 uppercase tracking-wider mb-2 font-semibold">Items to Pack</p>
+                      <div className="space-y-2">
                         {order.items?.map((item, idx) => (
-                          <div key={idx} className="flex items-center gap-2 text-sm">
+                          <div key={idx} className="flex items-center gap-3 p-2 bg-gray-50 hover:bg-gold/[0.04] transition-colors border border-transparent hover:border-gold/20">
                             {item.image ? (
-                              <img src={item.image} alt={item.name} className="w-8 h-8 object-cover border border-navy/10 shrink-0" onError={(e) => { e.target.style.display = 'none' }} />
+                              <img src={item.image} alt={item.name} className="w-12 h-12 object-cover border border-navy/10 shrink-0" onError={(e) => { e.target.style.display = 'none' }} />
                             ) : (
-                              <div className="w-8 h-8 bg-navy/5 flex items-center justify-center shrink-0">
-                                <svg className="w-4 h-4 text-navy/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                              <div className="w-12 h-12 bg-navy/5 flex items-center justify-center shrink-0 border border-navy/10">
+                                <svg className="w-6 h-6 text-navy/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                               </div>
                             )}
-                            <span className="text-navy/80 truncate flex-1">{item.name}</span>
-                            <span className="text-navy font-semibold shrink-0">x{item.quantity}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-navy/80 font-medium truncate">{item.name}</p>
+                              <p className="text-[10px] text-navy/30">Jewellery</p>
+                            </div>
+                            <span className="text-navy font-bold text-sm shrink-0 bg-white px-2 py-0.5 border border-navy/10">x{item.quantity}</span>
                           </div>
                         ))}
                       </div>
                     </div>
-                    <div className="pt-2 border-t border-navy/5">
-                      <p className="text-[10px] text-navy/40 uppercase tracking-wider mb-1">Customer</p>
-                      <p className="text-sm text-navy/80">{order.shippingAddress?.phone}</p>
-                      <p className="text-xs text-navy/50 mt-0.5">{order.shippingAddress?.address}, {order.shippingAddress?.city}, {order.shippingAddress?.state} - {order.shippingAddress?.pincode}</p>
+
+                    {/* Customer Info */}
+                    <div className="px-4 pb-2">
+                      <div className="p-3 bg-navy/[0.02] border border-navy/5">
+                        <div className="flex items-center gap-2 mb-1">
+                          <svg className="w-3.5 h-3.5 text-navy/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                          <span className="text-xs text-navy/70 font-medium">{order.shippingAddress?.phone}</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <svg className="w-3.5 h-3.5 text-navy/30 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                          <p className="text-xs text-navy/50 leading-relaxed">{order.shippingAddress?.address}, {order.shippingAddress?.city}, {order.shippingAddress?.state} - {order.shippingAddress?.pincode}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="pt-2 border-t border-navy/5 flex justify-between items-center">
-                      <span className="text-xs text-navy/40">Total</span>
-                      <span className="font-semibold text-navy">Rs.{order.totalPrice?.toFixed(2)}</span>
+
+                    {/* Footer */}
+                    <div className="px-4 pb-4 space-y-2">
+                      <div className="flex justify-between items-center pt-2 border-t border-navy/5">
+                        <span className="text-xs text-navy/40 uppercase tracking-wider">Total</span>
+                        <span className="font-bold text-navy text-base">Rs.{order.totalPrice?.toFixed(2)}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => printPackingSlip(order)} className="flex-1 border border-navy/20 text-navy text-xs font-medium py-2 hover:bg-navy/5 transition flex items-center justify-center gap-1.5">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                          Print Slip
+                        </button>
+                        <button onClick={() => markAsPacked(order._id)} disabled={packingOrderId === order._id || order.orderStatus === 'Packed'} className="flex-1 bg-gold text-white text-xs font-semibold py-2 hover:bg-gold-dark transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5">
+                          {packingOrderId === order._id ? (
+                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent animate-spin"></div>
+                          ) : (
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                          )}
+                          {order.orderStatus === 'Packed' ? 'Packed' : 'Mark Packed'}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            );
+          })()}
         </div>
       ) : (
         <div className="text-center py-20">
