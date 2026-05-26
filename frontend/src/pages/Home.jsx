@@ -30,13 +30,13 @@ function CategoryCard({ cat }) {
       to={`/products?category=${encodeURIComponent(cat.name)}`}
       className="group relative block overflow-hidden bg-white border border-navy/10 hover:border-gold hover:shadow-xl transition-all duration-500"
     >
-      <div className="aspect-[5/6] overflow-hidden">
+      <div className="aspect-[3/4] overflow-hidden">
         {!imgError && imgUrl ? (
           <img
             src={imgUrl}
             alt={cat.name}
             onError={() => setImgError(true)}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            className="w-full h-full object-fill group-hover:scale-110 transition-transform duration-700"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-navy/5 p-8">
@@ -90,13 +90,13 @@ export default function Home() {
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 -mt-10 relative z-10 mb-16">
         {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-navy/5 animate-pulse aspect-[5/6]" />
+              <div key={i} className="bg-navy/5 animate-pulse aspect-[3/4]" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
             {categories.map(cat => (
               <CategoryCard key={cat._id} cat={cat} />
             ))}
