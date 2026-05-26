@@ -14,7 +14,8 @@ const orderSchema = new mongoose.Schema({
     productId: { type: String },
     quantity: { type: Number },
     price: { type: Number },
-    name: { type: String }
+    name: { type: String },
+    image: { type: String }
   }],
   
   // Pricing breakdown

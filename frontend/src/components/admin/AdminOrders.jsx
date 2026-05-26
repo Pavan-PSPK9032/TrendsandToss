@@ -145,9 +145,19 @@ export default function AdminOrders() {
                             <div className="bg-white p-4 border border-navy/10 max-h-48 overflow-y-auto">
                               <div className="space-y-2">
                                 {order.items?.map((item, idx) => (
-                                  <div key={idx} className="flex justify-between text-sm border-b border-navy/5 pb-2 last:border-0 last:pb-0">
-                                    <span className="text-navy/70">{item.name} x {item.quantity}</span>
-                                    <span className="font-medium text-navy">{formatINR(item.price * item.quantity)}</span>
+                                  <div key={idx} className="flex items-center gap-3 text-sm border-b border-navy/5 pb-2 last:border-0 last:pb-0">
+                                    {item.image ? (
+                                      <img src={item.image} alt={item.name} className="w-10 h-10 object-cover border border-navy/10 shrink-0" onError={(e) => { e.target.style.display = 'none' }} />
+                                    ) : (
+                                      <div className="w-10 h-10 bg-navy/5 flex items-center justify-center shrink-0">
+                                        <svg className="w-5 h-5 text-navy/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                                      </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-navy/80 truncate">{item.name}</p>
+                                      <p className="text-[10px] text-navy/40">x{item.quantity}</p>
+                                    </div>
+                                    <span className="font-medium text-navy shrink-0">{formatINR(item.price * item.quantity)}</span>
                                   </div>
                                 ))}
                               </div>

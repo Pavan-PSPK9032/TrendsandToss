@@ -151,7 +151,8 @@ export const createOrder = async (req, res) => {
       productId: item.productId._id,
       quantity: item.quantity,
       price: item.productId.price,
-      name: item.productId.name
+      name: item.productId.name,
+      image: Array.isArray(item.productId.images) && item.productId.images.length > 0 ? item.productId.images[0] : null
     }));
 
     // Determine payment & order status

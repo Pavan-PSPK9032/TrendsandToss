@@ -328,9 +328,16 @@ export default function AdminDashboard() {
                       <p className="text-[10px] text-navy/40 uppercase tracking-wider mb-1">Items to Pack</p>
                       <div className="space-y-1">
                         {order.items?.map((item, idx) => (
-                          <div key={idx} className="flex justify-between items-center text-sm">
-                            <span className="text-navy/80 truncate">{item.name}</span>
-                            <span className="text-navy font-semibold ml-2 shrink-0">x{item.quantity}</span>
+                          <div key={idx} className="flex items-center gap-2 text-sm">
+                            {item.image ? (
+                              <img src={item.image} alt={item.name} className="w-8 h-8 object-cover border border-navy/10 shrink-0" onError={(e) => { e.target.style.display = 'none' }} />
+                            ) : (
+                              <div className="w-8 h-8 bg-navy/5 flex items-center justify-center shrink-0">
+                                <svg className="w-4 h-4 text-navy/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                              </div>
+                            )}
+                            <span className="text-navy/80 truncate flex-1">{item.name}</span>
+                            <span className="text-navy font-semibold shrink-0">x{item.quantity}</span>
                           </div>
                         ))}
                       </div>
