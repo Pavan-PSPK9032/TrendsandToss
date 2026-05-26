@@ -111,24 +111,37 @@ export default function Products() {
   const hasActiveFilters = searchQuery || selectedCategories.length > 0 ||
     priceRange.min > 0 || priceRange.max < 100000 || sortBy !== 'newest';
 
+  const getCategoryCount = (catName) => {
+    return products.filter(p => p.category === catName).length;
+  };
+
   const filterSidebar = (
-    <div className="space-y-8">
+    <div className="space-y-8 pr-2">
       <div>
         <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-navy mb-4">Categories</h3>
-        <div className="space-y-2">
-          {categories.map(cat => (
-            <button
-              key={cat._id}
-              onClick={() => toggleCategory(cat.name)}
-              className={`w-full text-left px-3 py-2 text-sm transition-all duration-200 ${
-                selectedCategories.includes(cat.name)
-                  ? 'bg-navy text-white font-medium'
-                  : 'text-navy/60 hover:bg-navy/5 hover:text-navy'
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
+        <div className="space-y-1">
+          {categories.map(cat => {
+            const isActive = selectedCategories.includes(cat.name);
+            const count = getCategoryCount(cat.name);
+            return (
+              <button
+                key={cat._id}
+                onClick={() => toggleCategory(cat.name)}
+                className={`w-full flex items-center justify-between text-left px-3 py-2.5 text-sm transition-all duration-200 group ${
+                  isActive
+                    ? 'bg-navy/5 text-navy font-medium border-l-2 border-gold'
+                    : 'text-navy/60 hover:text-navy hover:bg-navy/[0.03] border-l-2 border-transparent hover:border-gold/30'
+                }`}
+              >
+                <span className="truncate">{cat.name}</span>
+                <span className={`text-[11px] font-medium ml-2 shrink-0 ${
+                  isActive ? 'text-gold' : 'text-navy/20 group-hover:text-navy/30'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
           {categories.length === 0 && (
             <p className="text-sm text-navy/30">No categories</p>
           )}
@@ -260,9 +273,38 @@ export default function Products() {
           </div>
         </div>
 
+        {/* Mobile category chips */}
+        <div className="md:hidden -mx-4 px-4 pb-4 overflow-x-auto scrollbar-none">
+          <div className="flex gap-2 min-w-max">
+            <button
+              onClick={() => setSelectedCategories([])}
+              className={`whitespace-nowrap px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 border ${
+                selectedCategories.length === 0
+                  ? 'bg-navy text-white border-navy'
+                  : 'bg-white text-navy/60 border-navy/20 hover:border-navy/40'
+              }`}
+            >
+              All
+            </button>
+            {categories.map(cat => (
+              <button
+                key={cat._id}
+                onClick={() => toggleCategory(cat.name)}
+                className={`whitespace-nowrap px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 border ${
+                  selectedCategories.includes(cat.name)
+                    ? 'bg-navy text-white border-navy'
+                    : 'bg-white text-navy/60 border-navy/20 hover:border-navy/40'
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="flex gap-8 lg:gap-12">
           <aside className="hidden md:block w-56 lg:w-64 flex-shrink-0">
-            <div className="sticky top-28">
+            <div className="sticky top-[100px] max-h-[calc(100vh-120px)] overflow-y-auto scrollbar-thin">
               {filterSidebar}
             </div>
           </aside>

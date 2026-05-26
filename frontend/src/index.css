@@ -57,6 +57,34 @@ h1, h2, h3, .font-playfair {
   background: var(--gold);
 }
 
+/* Thin custom scrollbar for sidebar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(201, 168, 76, 0.3);
+  border-radius: 0;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(201, 168, 76, 0.6);
+}
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 168, 76, 0.3) transparent;
+}
+
+/* Hide scrollbar for mobile category chips */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Dark mode overrides for common elements */
 .dark .bg-white { background-color: #111118 !important; }
 .dark .border-navy\/10 { border-color: rgba(201, 168, 76, 0.1) !important; }
