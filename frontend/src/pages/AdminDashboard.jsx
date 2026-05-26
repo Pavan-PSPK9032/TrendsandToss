@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import AdminOrders from '../components/admin/AdminOrders';
 import CategoryManagement from '../components/admin/CategoryManagement';
 import { useAuth } from '../context/AuthContext';
+import { playPendingOrderAlert } from '../utils/notificationSound';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
@@ -56,6 +57,22 @@ export default function AdminDashboard() {
     // Clean up timer on unmount
     return () => clearTimeout(sessionTimer);
   }, [activeTab]);
+
+  useEffect(() => {
+    const checkPendingOrders = async () => {
+      try {
+        const { data } = await api.get('/orders');
+        const pending = data.filter(o => o.orderStatus === 'Pending');
+        if (pending.length > 0) {
+          playPendingOrderAlert();
+          toast(`${pending.length} pending order${pending.length > 1 ? 's' : ''} need attention`, { icon: '🔔', duration: 5000 });
+        }
+      } catch {
+        // silently fail
+      }
+    };
+    checkPendingOrders();
+  }, []);
 
   const checkAdmin = () => {
     // Check if user exists and is admin
