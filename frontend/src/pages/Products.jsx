@@ -119,29 +119,69 @@ export default function Products() {
     <div className="space-y-8 pr-2">
       <div>
         <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-navy mb-4">Categories</h3>
-        <div className="space-y-1">
-          {categories.map(cat => {
-            const isActive = selectedCategories.includes(cat.name);
-            const count = getCategoryCount(cat.name);
+        <div className="space-y-4">
+          {['women', 'men'].map(gender => {
+            const filtered = categories.filter(c => c.gender === gender || (!c.gender && gender === 'women'))
+            if (filtered.length === 0) return null
             return (
-              <button
-                key={cat._id}
-                onClick={() => toggleCategory(cat.name)}
-                className={`w-full flex items-center justify-between text-left px-3 py-2.5 text-sm transition-all duration-200 group ${
-                  isActive
-                    ? 'bg-navy/5 text-navy font-medium border-l-2 border-gold'
-                    : 'text-navy/60 hover:text-navy hover:bg-navy/[0.03] border-l-2 border-transparent hover:border-gold/30'
-                }`}
-              >
-                <span className="truncate">{cat.name}</span>
-                <span className={`text-[11px] font-medium ml-2 shrink-0 ${
-                  isActive ? 'text-gold' : 'text-navy/20 group-hover:text-navy/30'
-                }`}>
-                  {count}
-                </span>
-              </button>
-            );
+              <div key={gender}>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-navy/30 font-semibold mb-1.5 px-3">{gender}&#39;s</p>
+                <div className="space-y-0.5">
+                  {filtered.map(cat => {
+                    const isActive = selectedCategories.includes(cat.name);
+                    const count = getCategoryCount(cat.name);
+                    return (
+                      <button
+                        key={cat._id}
+                        onClick={() => toggleCategory(cat.name)}
+                        className={`w-full flex items-center justify-between text-left px-3 py-2 text-sm transition-all duration-200 group ${
+                          isActive
+                            ? 'bg-navy/5 text-navy font-medium border-l-2 border-gold'
+                            : 'text-navy/60 hover:text-navy hover:bg-navy/[0.03] border-l-2 border-transparent hover:border-gold/30'
+                        }`}
+                      >
+                        <span className="truncate">{cat.name}</span>
+                        <span className={`text-[11px] font-medium ml-2 shrink-0 ${
+                          isActive ? 'text-gold' : 'text-navy/20 group-hover:text-navy/30'
+                        }`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )
           })}
+          {categories.filter(c => c.gender === 'unisex').length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-navy/30 font-semibold mb-1.5 px-3">Unisex</p>
+              <div className="space-y-0.5">
+                {categories.filter(c => c.gender === 'unisex').map(cat => {
+                  const isActive = selectedCategories.includes(cat.name);
+                  const count = getCategoryCount(cat.name);
+                  return (
+                    <button
+                      key={cat._id}
+                      onClick={() => toggleCategory(cat.name)}
+                      className={`w-full flex items-center justify-between text-left px-3 py-2 text-sm transition-all duration-200 group ${
+                        isActive
+                          ? 'bg-navy/5 text-navy font-medium border-l-2 border-gold'
+                          : 'text-navy/60 hover:text-navy hover:bg-navy/[0.03] border-l-2 border-transparent hover:border-gold/30'
+                      }`}
+                    >
+                      <span className="truncate">{cat.name}</span>
+                      <span className={`text-[11px] font-medium ml-2 shrink-0 ${
+                        isActive ? 'text-gold' : 'text-navy/20 group-hover:text-navy/30'
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {categories.length === 0 && (
             <p className="text-sm text-navy/30">No categories</p>
           )}
@@ -275,7 +315,7 @@ export default function Products() {
 
         {/* Mobile category chips */}
         <div className="md:hidden -mx-4 px-4 pb-4 overflow-x-auto scrollbar-none">
-          <div className="flex gap-2 min-w-max">
+          <div className="flex gap-2 min-w-max items-center">
             <button
               onClick={() => setSelectedCategories([])}
               className={`whitespace-nowrap px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 border ${
@@ -286,19 +326,30 @@ export default function Products() {
             >
               All
             </button>
-            {categories.map(cat => (
-              <button
-                key={cat._id}
-                onClick={() => toggleCategory(cat.name)}
-                className={`whitespace-nowrap px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 border ${
-                  selectedCategories.includes(cat.name)
-                    ? 'bg-navy text-white border-navy'
-                    : 'bg-white text-navy/60 border-navy/20 hover:border-navy/40'
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
+            <span className="w-px h-5 bg-navy/10 mx-1 shrink-0" />
+            {['women', 'men', 'unisex'].map(gender => {
+              const filtered = categories.filter(c => c.gender === gender || (!c.gender && gender === 'women'))
+              if (filtered.length === 0) return null
+              return (
+                <div key={gender} className="flex gap-2 items-center">
+                  <span className="text-[10px] uppercase tracking-wider text-navy/30 font-semibold shrink-0">{gender}&#39;s</span>
+                  {filtered.map(cat => (
+                    <button
+                      key={cat._id}
+                      onClick={() => toggleCategory(cat.name)}
+                      className={`whitespace-nowrap px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all duration-200 border ${
+                        selectedCategories.includes(cat.name)
+                          ? 'bg-navy text-white border-navy'
+                          : 'bg-white text-navy/60 border-navy/20 hover:border-navy/40'
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                  <span className="w-px h-5 bg-navy/10 mx-1 shrink-0" />
+                </div>
+              )
+            })}
           </div>
         </div>
 

@@ -11,6 +11,7 @@ export default function CategoryManagement() {
     name: '',
     description: '',
     icon: '',
+    gender: 'women',
     displayOrder: ''
   });
   const [imageFile, setImageFile] = useState(null);
@@ -40,6 +41,7 @@ export default function CategoryManagement() {
       fd.append('name', formData.name);
       fd.append('description', formData.description);
       fd.append('icon', formData.icon);
+      fd.append('gender', formData.gender);
       fd.append('displayOrder', formData.displayOrder || '0');
       if (imageFile) fd.append('image', imageFile);
 
@@ -69,6 +71,7 @@ export default function CategoryManagement() {
       name: category.name,
       description: category.description || '',
       icon: category.icon || '',
+      gender: category.gender || 'women',
       displayOrder: category.displayOrder || ''
     });
     setImagePreview(category.image || null);
@@ -88,7 +91,7 @@ export default function CategoryManagement() {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', description: '', icon: '', displayOrder: '' });
+    setFormData({ name: '', description: '', icon: '', gender: 'women', displayOrder: '' });
     setImageFile(null);
     setImagePreview(null);
     setEditingCategory(null);
@@ -136,6 +139,25 @@ export default function CategoryManagement() {
                 rows="3"
                 placeholder="Brief description of this category"
               />
+            </div>
+
+            <div>
+              <label className="block text-navy/60 mb-2 text-xs font-semibold uppercase tracking-wider">Gender</label>
+              <div className="flex gap-4">
+                {['women', 'men', 'unisex'].map(g => (
+                  <label key={g} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="gender"
+                      value={g}
+                      checked={formData.gender === g}
+                      onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                      className="accent-gold"
+                    />
+                    <span className="text-navy text-sm capitalize">{g}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div>
@@ -194,6 +216,7 @@ export default function CategoryManagement() {
           <thead className="bg-navy/5">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Gender</th>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Slug</th>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Order</th>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-widest text-navy/60">Status</th>
@@ -204,6 +227,7 @@ export default function CategoryManagement() {
             {categories.map((category) => (
               <tr key={category._id} className="hover:bg-navy/[0.02]">
                 <td className="px-6 py-4 font-medium text-navy">{category.name}</td>
+                <td className="px-6 py-4 text-sm text-navy/50 capitalize">{category.gender || 'women'}</td>
                 <td className="px-6 py-4 text-sm text-navy/50">{category.slug}</td>
                 <td className="px-6 py-4 text-navy/60">{category.displayOrder}</td>
                 <td className="px-6 py-4">

@@ -102,11 +102,38 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-            {categories.map(cat => (
-              <CategoryCard key={cat._id} cat={cat} />
-            ))}
-          </div>
+          <>
+            {['women', 'men'].map(gender => {
+              const filtered = categories.filter(c => c.gender === gender || (!c.gender && gender === 'women'))
+              if (filtered.length === 0) return null
+              return (
+                <div key={gender} className="mb-14 md:mb-18 last:mb-0">
+                  <div className="flex items-center gap-4 mb-6 md:mb-8">
+                    <h3 className="font-playfair text-xl md:text-2xl text-navy font-semibold capitalize">{gender}&#39;s Collection</h3>
+                    <div className="flex-1 h-px bg-gold/30" />
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                    {filtered.map(cat => (
+                      <CategoryCard key={cat._id} cat={cat} />
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+            {categories.filter(c => c.gender === 'unisex').length > 0 && (
+              <div className="mb-14 md:mb-18 last:mb-0">
+                <div className="flex items-center gap-4 mb-6 md:mb-8">
+                  <h3 className="font-playfair text-xl md:text-2xl text-navy font-semibold">Unisex</h3>
+                  <div className="flex-1 h-px bg-gold/30" />
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                  {categories.filter(c => c.gender === 'unisex').map(cat => (
+                    <CategoryCard key={cat._id} cat={cat} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>
