@@ -141,6 +141,18 @@ export default function ProductsManagement() {
     }
   };
 
+  const updateStock = async (productId, newStock) => {
+    const clamped = Math.max(0, newStock);
+    setProducts(prev => prev.map(p => p._id === productId ? { ...p, stock: clamped } : p));
+    try {
+      const { data } = await api.patch(`/products/${productId}/stock`, { stock: clamped });
+      setProducts(prev => prev.map(p => p._id === productId ? data : p));
+    } catch (err) {
+      toast.error('Failed to update stock');
+      fetchProducts();
+    }
+  };
+
   const resetForm = () => {
     setFormData({ name: '', description: '', price: '', originalPrice: '', category: '', stock: '' });
     setImages([]);
@@ -280,12 +292,28 @@ export default function ProductsManagement() {
                       'bg-red-50 text-red-600 border-red-200'
                     }`}>{product.stock > 10 ? 'In Stock' : product.stock > 3 ? `${product.stock} in stock` : product.stock > 0 ? 'Low Stock' : 'Out of stock'}</span>
                   </div>
-                  <div className="flex gap-2 mt-2">
-                    <button onClick={() => handleEdit(product)} className="text-gold hover:text-gold-dark transition p-1" title="Edit">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <div className="flex items-center border border-navy/15 bg-white">
+                      <button
+                        onClick={() => updateStock(product._id, product.stock - 1)}
+                        disabled={product.stock <= 0}
+                        className="w-6 h-6 flex items-center justify-center text-navy/50 hover:text-white hover:bg-navy transition disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" /></svg>
+                      </button>
+                      <span className="w-7 text-center text-xs font-semibold text-navy tabular-nums leading-none">{product.stock}</span>
+                      <button
+                        onClick={() => updateStock(product._id, product.stock + 1)}
+                        className="w-6 h-6 flex items-center justify-center text-navy/50 hover:text-white hover:bg-navy transition"
+                      >
+                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+                      </button>
+                    </div>
+                    <button onClick={() => handleEdit(product)} className="p-1.5 text-gold hover:text-gold-dark transition" title="Edit">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                     </button>
-                    <button onClick={() => setConfirmDelete(product._id)} className="text-red-500 hover:text-red-700 transition p-1" title="Delete">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    <button onClick={() => setConfirmDelete(product._id)} className="p-1.5 text-red-500 hover:text-red-700 transition" title="Delete">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                   </div>
                 </div>
@@ -354,7 +382,23 @@ export default function ProductsManagement() {
                     </span>
                   </td>
                   <td className="p-4 text-right">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <div className="flex items-center border border-navy/15 bg-white mr-1">
+                        <button
+                          onClick={() => updateStock(product._id, product.stock - 1)}
+                          disabled={product.stock <= 0}
+                          className="w-7 h-7 flex items-center justify-center text-navy/50 hover:text-white hover:bg-navy transition disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" /></svg>
+                        </button>
+                        <span className="w-9 text-center text-xs font-semibold text-navy tabular-nums leading-none">{product.stock}</span>
+                        <button
+                          onClick={() => updateStock(product._id, product.stock + 1)}
+                          className="w-7 h-7 flex items-center justify-center text-navy/50 hover:text-white hover:bg-navy transition"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+                        </button>
+                      </div>
                       <button onClick={() => handleEdit(product)} className="p-2 text-navy/40 hover:text-gold hover:bg-gold/5 transition rounded-none" title="Edit product">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                       </button>

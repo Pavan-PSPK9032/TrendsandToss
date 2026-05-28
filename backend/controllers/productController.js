@@ -134,6 +134,25 @@ export const deleteAllProducts = async (req, res) => {
   }
 };
 
+// PATCH product stock (partial update)
+export const updateProductStock = async (req, res) => {
+  try {
+    const { stock } = req.body;
+    if (stock === undefined || stock < 0) {
+      return res.status(400).json({ error: 'Valid stock value is required' });
+    }
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      { stock: Number(stock) },
+      { new: true, runValidators: true }
+    );
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to update stock' });
+  }
+};
+
 // DELETE product
 export const deleteProduct = async (req, res) => {
   try {
