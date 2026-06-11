@@ -2,15 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== FONT VARIABLES ===== */
 :root {
   --font-body: 'Inter', sans-serif;
   --font-heading: 'Inter', sans-serif;
-}
-
-/* ===== THEME 1: Ivory & Gold (default) ===== */
-:root,
-[data-theme="ivory-gold"] {
   --theme-primary: #D4AF37;
   --theme-bg: #FFF8F0;
   --theme-text: #111111;
@@ -31,78 +25,7 @@
   --badge-text: #111111;
   --input-bg: #FFFFFF;
   --skeleton: rgba(212, 175, 55, 0.1);
-}
-
-/* ===== THEME 2: Beige & Rose Gold ===== */
-[data-theme="beige-rose"] {
-  --theme-primary: #B76E79;
-  --theme-bg: #F5F0E6;
-  --theme-text: #3E2723;
-  --theme-accent: #B76E79;
-  --theme-primary-rgb: 183, 110, 121;
-  --navy: #3E2723;
-  --gold: #B76E79;
-  --bg: #F5F0E6;
-  --text: #3E2723;
-  --bg-secondary: #FAF6F0;
-  --border: rgba(62, 39, 35, 0.1);
-  --card-bg: #FFFFFF;
-  --nav-bg: #3E2723;
-  --nav-text: #F5F0E6;
-  --footer-bg: #3E2723;
-  --footer-text: #F5F0E6;
-  --badge-bg: #B76E79;
-  --badge-text: #FFFFFF;
-  --input-bg: #FFFFFF;
-  --skeleton: rgba(183, 110, 121, 0.1);
-}
-
-/* ===== THEME 3: White & Navy ===== */
-[data-theme="white-navy"] {
-  --theme-primary: #1A237E;
-  --theme-bg: #FFFFFF;
-  --theme-text: #1A237E;
-  --theme-accent: #FFD700;
-  --theme-primary-rgb: 26, 35, 126;
-  --navy: #1A237E;
-  --gold: #FFD700;
-  --bg: #FFFFFF;
-  --text: #1A237E;
-  --bg-secondary: #F8F9FF;
-  --border: rgba(26, 35, 126, 0.1);
-  --card-bg: #FFFFFF;
-  --nav-bg: #1A237E;
-  --nav-text: #FFFFFF;
-  --footer-bg: #1A237E;
-  --footer-text: #FFFFFF;
-  --badge-bg: #FFD700;
-  --badge-text: #1A237E;
-  --input-bg: #FFFFFF;
-  --skeleton: rgba(26, 35, 126, 0.1);
-}
-
-/* ===== THEME 4: Lavender & Purple ===== */
-[data-theme="lavender-purple"] {
-  --theme-primary: #6A1B9A;
-  --theme-bg: #F3E8FF;
-  --theme-text: #6A1B9A;
-  --theme-accent: #FFFFFF;
-  --theme-primary-rgb: 106, 27, 154;
-  --navy: #6A1B9A;
-  --gold: #FFFFFF;
-  --bg: #F3E8FF;
-  --text: #6A1B9A;
-  --bg-secondary: #F8F0FF;
-  --border: rgba(106, 27, 154, 0.1);
-  --card-bg: #FFFFFF;
-  --nav-bg: #6A1B9A;
-  --nav-text: #FFFFFF;
-  --footer-bg: #6A1B9A;
-  --footer-text: #FFFFFF;
-  --badge-bg: #FFFFFF;
-  --badge-text: #6A1B9A;
-  --input-bg: #FFFFFF;
-  --skeleton: rgba(106, 27, 154, 0.1);
+  color-scheme: light;
 }
 
 /* ===== BASE ELEMENTS ===== */

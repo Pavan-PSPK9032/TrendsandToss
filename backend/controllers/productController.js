@@ -52,9 +52,9 @@ export const getProductById = async (req, res) => {
 // CREATE product (Cloudinary storage)
 export const createProduct = async (req, res) => {
   try {
-    const { name, description, price, category, stock } = req.body;
+    const { name, description, price, originalPrice, category, stock } = req.body;
     
-    console.log('Creating product with:', { name, description, price, category, stock });
+    console.log('Creating product with:', { name, description, price, originalPrice, category, stock });
     console.log('Uploaded files:', req.files);
     
     // Handle image uploads - Cloudinary storage
@@ -69,6 +69,7 @@ export const createProduct = async (req, res) => {
       name,
       description,
       price: Number(price),
+      originalPrice: originalPrice ? Number(originalPrice) : undefined,
       category,
       stock: Number(stock),
       images
@@ -86,7 +87,7 @@ export const createProduct = async (req, res) => {
 // UPDATE product
 export const updateProduct = async (req, res) => {
   try {
-    const { name, description, price, category, stock, images: existingImages } = req.body;
+    const { name, description, price, originalPrice, category, stock, images: existingImages } = req.body;
     
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
@@ -107,11 +108,12 @@ export const updateProduct = async (req, res) => {
       req.params.id,
       { 
         name, 
-        description, 
-        price: Number(price), 
-        category, 
-        stock: Number(stock), 
-        images 
+        description,
+        price: Number(price),
+        originalPrice: originalPrice ? Number(originalPrice) : undefined,
+        category,
+        stock: Number(stock),
+        images
       },
       { new: true, runValidators: true }
     );

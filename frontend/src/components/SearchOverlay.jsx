@@ -157,7 +157,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
                         <span className="font-bold" style={{ color: 'var(--theme-primary)' }}>₹{product.price}</span>
                         {discount > 0 && (
                           <>
-                            <span className="text-xs line-through" style={{ color: 'var(--theme-text)', opacity: 0.4 }}>₹{product.originalPrice}</span>
+                            <span className="text-xs line-through" style={{ color: '#6b7280' }}>₹{product.originalPrice}</span>
                             <span className="discount-badge text-[9px]">{discount}% OFF</span>
                           </>
                         )}

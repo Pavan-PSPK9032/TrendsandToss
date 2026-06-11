@@ -170,7 +170,7 @@ export default function ProductCard({ product, view = 'grid' }) {
             ₹{product.price}
           </span>
           {product.originalPrice > product.price && (
-            <span className="text-xs line-through" style={{ color: 'var(--theme-text)', opacity: 0.4 }}>
+            <span className="text-xs line-through" style={{ color: '#6b7280' }}>
               ₹{product.originalPrice}
             </span>
           )}

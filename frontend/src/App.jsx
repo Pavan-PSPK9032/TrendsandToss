@@ -4,8 +4,7 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import SplashScreen from './components/SplashScreen'
 import SearchOverlay from './components/SearchOverlay'
-import FontSelector from './components/FontSelector'
-import ThemeSelector from './components/ThemeSelector'
+
 import { CartProvider, useCart } from './context/CartContext'
 import { useAuth } from './context/AuthContext'
 
@@ -109,8 +108,6 @@ function GlassNav() {
                 <span className="hidden lg:inline">Search</span>
               </button>
 
-              <ThemeSelector />
-              <FontSelector />
 
               {user ? (
                 <button onClick={handleLogout}

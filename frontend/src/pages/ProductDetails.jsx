@@ -131,7 +131,7 @@ export default function ProductDetails() {
             <div className="flex items-baseline gap-3 mb-2">
               <p className="text-4xl font-bold" style={{ color: 'var(--theme-primary)' }}>₹{product.price}</p>
               {product.originalPrice && product.originalPrice > product.price && (
-                <p className="text-xl line-through" style={{ color: 'var(--theme-text)', opacity: 0.3 }}>₹{product.originalPrice}</p>
+                <p className="text-xl line-through" style={{ color: '#6b7280' }}>₹{product.originalPrice}</p>
               )}
               {discount > 0 && (
                 <span className="discount-badge text-sm px-3 py-1">{discount}% OFF</span>
