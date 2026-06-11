@@ -16,7 +16,7 @@ const FALLBACK_ICONS = {
   'Necklaces': 'M12 2C8 2 4 5 4 9c0 3 2 5.5 4 7l4 6 4-6c2-1.5 4-4 4-7 0-4-4-7-8-7z',
   'Earrings': 'M12 1a3 3 0 00-3 3v2H7a2 2 0 000 4h2v2a3 3 0 006 0v-2h2a2 2 0 000-4h-2V4a3 3 0 00-3-3z',
   'Bracelets': 'M12 2C8.1 2 5 5.1 5 9c0 2.4 1.2 4.5 3 5.7V21l4-2 4 2v-6.3c1.8-1.3 3-3.4 3-5.7 0-3.9-3.1-7-7-7z',
-  'Rings': 'M12 2C9.2 2 7 4.2 7 7c0 1.5.7 2.8 1.7 3.7L7 18c-.3 1 .3 2 1.3 2h7.4c1 0 1.6-1 1.3-2l-1.7-7.3c1-.9 1.7-2.2 1.7-3.7 0-2.8-2.2-5-5-5z',
+  'Rings': 'M12 2C9.2 2 7 4.2 7 7c0 1.5.2 2.8 1.7 3.7L7 18c-.3 1 .3 2 1.3 2h7.4c1 0 1.6-1 1.3-2l-1.7-7.3c1-.9 1.7-2.2 1.7-3.7 0-2.8-2.2-5-5-5z',
   'Bangles': 'M12 2C7 2 4 5 4 9s2 6 4 8l4 5 4-5c2-2 4-4 4-8s-3-7-8-7z',
   'Sets': 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'
 }
@@ -28,7 +28,7 @@ function CategoryCard({ cat }) {
   return (
     <Link
       to={`/products?category=${encodeURIComponent(cat.name)}`}
-      className="group relative block overflow-hidden bg-white border border-navy/10 hover:border-gold hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+      className="group relative block overflow-hidden category-card"
     >
       <div className="aspect-[3/4] overflow-hidden">
         {!imgError && imgUrl ? (
@@ -36,21 +36,26 @@ function CategoryCard({ cat }) {
             src={imgUrl}
             alt={cat.name}
             onError={() => setImgError(true)}
-            className="w-full h-full object-fill group-hover:scale-110 transition-transform duration-700"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-navy/5 p-8">
-            <svg className="w-12 h-12 text-gold mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-full h-full flex flex-col items-center justify-center p-8"
+            style={{ background: 'var(--bg-secondary)' }}
+          >
+            <svg className="w-12 h-12 mb-4" style={{ color: 'var(--theme-primary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={FALLBACK_ICONS[cat.name] || 'M12 2l-1 9h-6l5 6-2 8 7-5 7 5-2-8 5-6h-6z'} />
             </svg>
           </div>
         )}
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
       <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
-        <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-white bg-gold px-3 py-1.5 group-hover:bg-navy transition-colors duration-300">
+        <span className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-white px-3 py-1.5 transition-colors duration-300"
+          style={{ background: 'var(--theme-primary)' }}
+        >
           {cat.name}
         </span>
       </div>
@@ -90,15 +95,21 @@ export default function Home() {
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 mb-20 md:mb-28">
         <div className="flex items-center justify-between mb-8 md:mb-10">
-          <h2 className="font-playfair text-2xl md:text-3xl text-navy font-semibold tracking-tight">Shop by Category</h2>
-          <Link to="/products" className="text-xs font-semibold uppercase tracking-[0.2em] text-gold hover:text-gold-dark transition-colors">
+          <h2 className="font-heading text-2xl md:text-3xl font-semibold tracking-tight"
+            style={{ color: 'var(--theme-text)' }}
+          >
+            Shop by Category
+          </h2>
+          <Link to="/products" className="text-xs font-semibold uppercase tracking-[0.2em] transition-colors"
+            style={{ color: 'var(--theme-primary)' }}
+          >
             View All
           </Link>
         </div>
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-navy/5 animate-pulse aspect-[3/4]" />
+              <div key={i} className="skeleton aspect-[3/4]" />
             ))}
           </div>
         ) : (
@@ -109,8 +120,12 @@ export default function Home() {
               return (
                 <div key={gender} className="mb-14 md:mb-18 last:mb-0">
                   <div className="flex items-center gap-4 mb-6 md:mb-8">
-                    <h3 className="font-playfair text-xl md:text-2xl text-navy font-semibold capitalize">{gender}&#39;s Collection</h3>
-                    <div className="flex-1 h-px bg-gold/30" />
+                    <h3 className="font-heading text-xl md:text-2xl font-semibold capitalize"
+                      style={{ color: 'var(--theme-text)' }}
+                    >
+                      {gender}&#39;s Collection
+                    </h3>
+                    <div className="flex-1 h-px" style={{ background: 'var(--theme-primary)', opacity: 0.3 }} />
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
                     {filtered.map(cat => (
@@ -123,8 +138,12 @@ export default function Home() {
             {categories.filter(c => c.gender === 'unisex').length > 0 && (
               <div className="mb-14 md:mb-18 last:mb-0">
                 <div className="flex items-center gap-4 mb-6 md:mb-8">
-                  <h3 className="font-playfair text-xl md:text-2xl text-navy font-semibold">Unisex</h3>
-                  <div className="flex-1 h-px bg-gold/30" />
+                  <h3 className="font-heading text-xl md:text-2xl font-semibold"
+                    style={{ color: 'var(--theme-text)' }}
+                  >
+                    Unisex
+                  </h3>
+                  <div className="flex-1 h-px" style={{ background: 'var(--theme-primary)', opacity: 0.3 }} />
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
                   {categories.filter(c => c.gender === 'unisex').map(cat => (

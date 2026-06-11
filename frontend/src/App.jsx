@@ -3,6 +3,9 @@ import { Toaster } from 'react-hot-toast'
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import SplashScreen from './components/SplashScreen'
+import SearchOverlay from './components/SearchOverlay'
+import FontSelector from './components/FontSelector'
+import ThemeSelector from './components/ThemeSelector'
 import { CartProvider, useCart } from './context/CartContext'
 import { useAuth } from './context/AuthContext'
 
@@ -21,32 +24,15 @@ const AdminProducts = lazy(() => import('./pages/AdminProducts'))
 const Coupons = lazy(() => import('./pages/Coupons'))
 const Footer = lazy(() => import('./components/Footer'))
 
-const SHOP_CONFIG = {
-  name: "Trends&Toss",
-  logoUrl: "/logo1.png",
-  logoAlt: "Shop Logo"
-}
-
-// Navigation Component
 function GlassNav() {
   const { cart } = useCart()
   const { user, logout } = useAuth()
   const [scrolled, setScrolled] = useState(false)
   const [cartAnimating, setCartAnimating] = useState(false)
   const [prevCartCount, setPrevCartCount] = useState(0)
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('tt_dark') === 'true'
-    return false
-  })
-  
+  const [searchOpen, setSearchOpen] = useState(false)
+
   const cartCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
-  
-  useEffect(() => {
-    const root = document.documentElement
-    if (darkMode) root.classList.add('dark')
-    else root.classList.remove('dark')
-    localStorage.setItem('tt_dark', darkMode)
-  }, [darkMode])
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -54,7 +40,7 @@ function GlassNav() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
-  
+
   useEffect(() => {
     if (cartCount > prevCartCount && prevCartCount > 0) {
       setCartAnimating(true)
@@ -63,133 +49,202 @@ function GlassNav() {
     setPrevCartCount(cartCount)
   }, [cartCount])
 
+  const handleLogout = async () => {
+    await logout()
+    window.location.href = '/'
+  }
+
   return (
     <>
-      {/* Desktop Nav */}
-      <nav className={`hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled 
-          ? 'bg-navy text-white shadow-lg border-b border-gold/20' 
-          : 'bg-navy text-white'
+      <nav className={`hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-500 glass-nav ${
+        scrolled ? 'shadow-lg' : ''
       }`}>
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
-            <Link to="/" className="font-playfair text-2xl font-semibold tracking-widest text-white hover:text-gold transition-colors">
-              Trends&amp;Toss
+            {/* Logo */}
+            <Link to="/" className="font-heading text-xl font-semibold tracking-widest"
+              style={{ color: 'var(--nav-text)' }}
+            >
+              Trends<span style={{ color: 'var(--theme-primary)' }}>&amp;</span>Toss
             </Link>
-            
-            <div className="flex items-center gap-6 text-sm font-medium tracking-wide">
-              <Link to="/" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Home</Link>
-              <Link to="/products" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Shop</Link>
-              
-              {user && (
-                <Link to="/my-orders" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Orders</Link>
-              )}
 
-              <Link to="/cart" className="relative text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">
-                <span className="flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                  Cart
-                  {cartCount > 0 && (
-                    <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-navy bg-gold ${
-                      cartAnimating ? 'animate-bounce' : ''
-                    }`}>
-                      {cartCount}
-                    </span>
-                  )}
-                </span>
-              </Link>
-              
+            {/* Center Nav Links */}
+            <div className="flex items-center gap-1 text-sm font-medium tracking-wide">
+              <Link to="/" className="px-3 py-2 transition-colors uppercase text-xs tracking-widest"
+                style={{ color: 'rgba(255,255,255,0.75)' }}
+                onMouseEnter={e => e.target.style.color = 'var(--theme-primary)'}
+                onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.75)'}
+              >Home</Link>
+              <Link to="/products" className="px-3 py-2 transition-colors uppercase text-xs tracking-widest"
+                style={{ color: 'rgba(255,255,255,0.75)' }}
+                onMouseEnter={e => e.target.style.color = 'var(--theme-primary)'}
+                onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.75)'}
+              >Shop</Link>
+              {user && (
+                <Link to="/my-orders" className="px-3 py-2 transition-colors uppercase text-xs tracking-widest"
+                  style={{ color: 'rgba(255,255,255,0.75)' }}
+                  onMouseEnter={e => e.target.style.color = 'var(--theme-primary)'}
+                  onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.75)'}
+                >Orders</Link>
+              )}
+              {user?.role === 'admin' && (
+                <Link to="/admin" className="px-3 py-2 transition-colors uppercase text-xs tracking-widest"
+                  style={{ color: 'var(--theme-primary)' }}
+                  onMouseEnter={e => e.target.style.opacity = '0.8'}
+                  onMouseLeave={e => e.target.style.opacity = '1'}
+                >Admin</Link>
+              )}
+            </div>
+
+            {/* Right Side: Search, Theme, Font, Auth, Cart */}
+            <div className="flex items-center gap-1">
+              <button onClick={() => setSearchOpen(true)}
+                className="flex items-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-widest transition-colors"
+                style={{ color: 'rgba(255,255,255,0.7)' }}
+                title="Search"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span className="hidden lg:inline">Search</span>
+              </button>
+
+              <ThemeSelector />
+              <FontSelector />
+
               {user ? (
-                <>
-                  {user.role === 'admin' && (
-                    <Link to="/admin" className="text-gold hover:text-gold-light transition-colors uppercase text-xs tracking-widest">Admin</Link>
-                  )}
-                  <button 
-                    onClick={async () => { await logout(); window.location.href = '/' }} 
-                    className="text-white/60 hover:text-white transition-colors uppercase text-xs tracking-widest"
-                  >
-                    Logout
-                  </button>
-                </>
+                <button onClick={handleLogout}
+                  className="px-3 py-2 text-xs font-semibold uppercase tracking-widest transition-colors"
+                  style={{ color: 'rgba(255,255,255,0.6)' }}
+                  onMouseEnter={e => e.target.style.color = '#f87171'}
+                  onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.6)'}
+                >Logout</button>
               ) : (
                 <>
-                  <Link to="/login" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Login</Link>
-                  <Link to="/register" className="bg-gold text-navy px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-gold-dark transition-colors">Register</Link>
+                  <Link to="/login"
+                    className="px-3 py-2 text-xs font-semibold uppercase tracking-widest transition-colors"
+                    style={{ color: 'rgba(255,255,255,0.75)' }}
+                    onMouseEnter={e => e.target.style.color = 'var(--theme-primary)'}
+                    onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.75)'}
+                  >Login</Link>
+                  <Link to="/register"
+                    className="px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors"
+                    style={{ background: 'var(--theme-primary)', color: '#fff' }}
+                  >Register</Link>
                 </>
               )}
-              <button onClick={() => setDarkMode(p => !p)} className="text-white/60 hover:text-gold transition-colors" aria-label="Toggle dark mode">
-                {darkMode ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+
+              <Link to="/cart" className="relative px-3 py-2 transition-colors"
+                style={{ color: 'rgba(255,255,255,0.75)' }}
+                onMouseEnter={e => e.target.style.color = 'var(--theme-primary)'}
+                onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.75)'}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                {cartCount > 0 && (
+                  <span className={`absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[9px] font-bold ${
+                    cartAnimating ? 'animate-bounce' : ''
+                  }`}
+                    style={{ background: 'var(--theme-primary)', color: '#fff' }}
+                  >
+                    {cartCount}
+                  </span>
                 )}
-              </button>
+              </Link>
             </div>
           </div>
         </div>
       </nav>
 
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 glass-nav px-4 py-3">
+        <div className="flex items-center justify-between">
+          <Link to="/" className="font-heading text-lg font-semibold tracking-widest"
+            style={{ color: 'var(--nav-text)' }}
+          >
+            Trends<span style={{ color: 'var(--theme-primary)' }}>&amp;</span>Toss
+          </Link>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setSearchOpen(true)} style={{ color: 'rgba(255,255,255,0.7)' }}>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+            <Link to="/cart" className="relative" style={{ color: 'rgba(255,255,255,0.7)' }}>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-bold"
+                  style={{ background: 'var(--theme-primary)', color: '#fff' }}
+                >
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-navy border-t border-gold/20">
-        <div className="flex items-center justify-around py-3 px-2">
-          <Link to="/" className="flex flex-col items-center gap-1 text-white/70 hover:text-gold transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-nav border-t"
+        style={{ borderColor: 'rgba(255,255,255,0.1)' }}
+      >
+        <div className="flex items-center justify-around py-2 px-2">
+          <Link to="/" className="flex flex-col items-center gap-0.5 transition-colors"
+            style={{ color: 'rgba(255,255,255,0.7)' }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
             <span className="text-[9px] font-medium uppercase tracking-wider">Home</span>
           </Link>
-          <Link to="/products" className="flex flex-col items-center gap-1 text-white/70 hover:text-gold transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <Link to="/products" className="flex flex-col items-center gap-0.5 transition-colors"
+            style={{ color: 'rgba(255,255,255,0.7)' }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
             <span className="text-[9px] font-medium uppercase tracking-wider">Shop</span>
           </Link>
+          <button onClick={() => setSearchOpen(true)} className="flex flex-col items-center gap-0.5 transition-colors"
+            style={{ color: 'var(--theme-primary)' }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span className="text-[9px] font-medium uppercase tracking-wider">Search</span>
+          </button>
           {user && (
-            <Link to="/my-orders" className="flex flex-col items-center gap-1 text-white/70 hover:text-gold transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <Link to="/my-orders" className="flex flex-col items-center gap-0.5 transition-colors"
+              style={{ color: 'rgba(255,255,255,0.7)' }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
               <span className="text-[9px] font-medium uppercase tracking-wider">Orders</span>
             </Link>
           )}
-          {user?.role === 'admin' && (
-            <Link to="/admin" className="flex flex-col items-center gap-1 text-gold hover:text-gold-light transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <span className="text-[9px] font-medium uppercase tracking-wider">Admin</span>
-            </Link>
-          )}
-          <Link to="/cart" className="relative flex flex-col items-center gap-1 text-white/70 hover:text-gold transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <Link to="/cart" className="relative flex flex-col items-center gap-0.5 transition-colors"
+            style={{ color: 'rgba(255,255,255,0.7)' }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
             {cartCount > 0 && (
-              <span className={`absolute -top-1 -right-2 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-bold text-navy bg-gold ${cartAnimating ? 'animate-bounce' : ''}`}>
+              <span className="absolute -top-1.5 right-0 flex items-center justify-center min-w-[14px] h-3.5 px-1 text-[8px] font-bold"
+                style={{ background: 'var(--theme-primary)', color: '#fff' }}
+              >
                 {cartCount}
               </span>
             )}
             <span className="text-[9px] font-medium uppercase tracking-wider">Cart</span>
           </Link>
-          {user ? (
-            <button onClick={async () => { await logout(); window.location.href = '/' }} className="flex flex-col items-center gap-1 text-white/70 hover:text-red-400 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              <span className="text-[9px] font-medium uppercase tracking-wider">Logout</span>
-            </button>
-          ) : (
-            <Link to="/login" className="flex flex-col items-center gap-1 text-white/70 hover:text-gold transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="text-[9px] font-medium uppercase tracking-wider">Login</span>
-            </Link>
-          )}
         </div>
       </nav>
+
+      <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
   )
 }
@@ -200,22 +255,31 @@ function App() {
   return (
     <Router>
       <CartProvider>
-        <Toaster position="top-right" />
+        <Toaster position="top-right"
+          toastOptions={{
+            style: {
+              borderRadius: 0,
+              fontFamily: 'var(--font-body)',
+            }
+          }}
+        />
         
-        {/* Splash Screen */}
         <AnimatePresence>
           {showSplash && (
             <SplashScreen onFinish={() => setShowSplash(false)} />
           )}
         </AnimatePresence>
         
-        {/* Main App */}
         {!showSplash && (
-          <div className="min-h-screen bg-white flex flex-col">
+          <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
             <GlassNav />
 
-            <main className="flex-grow pt-16 pb-20 md:pb-0">
-              <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><div className="w-8 h-8 border-2 border-gold border-t-transparent animate-spin"></div></div>}>
+            <main className="flex-grow pt-14 pb-16 md:pb-0">
+              <Suspense fallback={
+                <div className="flex items-center justify-center min-h-[60vh]">
+                  <div className="spinner"></div>
+                </div>
+              }>
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/products" element={<Products />} />

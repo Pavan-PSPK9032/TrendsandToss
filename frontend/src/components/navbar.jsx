@@ -24,45 +24,35 @@ export default function Navbar() {
   const toggleDark = () => setDarkMode(prev => !prev);
 
   return (
-    <nav className="bg-navy text-white px-6 py-4 flex justify-between items-center border-b border-gold/20">
+    <nav className="px-6 py-4 flex justify-between items-center" style={{ background: 'var(--nav-bg)', color: 'var(--nav-text)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
       <Link to="/" className="flex items-center gap-3 group">
         <img src="/logo.png" alt="Trends & Toss" className="h-8 w-auto object-contain group-hover:opacity-80 transition-opacity" />
-        <span className="font-playfair text-2xl font-semibold tracking-widest text-white group-hover:text-gold transition-colors">
+        <span className="font-heading text-2xl font-semibold tracking-widest transition-colors" style={{ color: 'var(--nav-text)' }}>
           Trends&amp;Toss
         </span>
       </Link>
       <div className="flex items-center gap-6 text-sm font-medium tracking-wide">
-        <Link to="/" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Home</Link>
-        <Link to="/shop" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Shop</Link>
+        <Link to="/" className="transition-colors uppercase text-xs tracking-widest" style={{ color: 'rgba(255,255,255,0.8)' }}>Home</Link>
+        <Link to="/products" className="transition-colors uppercase text-xs tracking-widest" style={{ color: 'rgba(255,255,255,0.8)' }}>Shop</Link>
         {user ? (
           <>
-            <Link to="/cart" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Cart</Link>
+            <Link to="/cart" className="transition-colors uppercase text-xs tracking-widest" style={{ color: 'rgba(255,255,255,0.8)' }}>Cart</Link>
             {user.role === 'admin' && (
-              <Link to="/admin" className="text-gold hover:text-gold-light transition-colors uppercase text-xs tracking-widest">Admin</Link>
+              <Link to="/admin" className="transition-colors uppercase text-xs tracking-widest" style={{ color: 'var(--theme-primary)' }}>Admin</Link>
             )}
-            <button
-              onClick={logout}
-              className="text-white/60 hover:text-white transition-colors uppercase text-xs tracking-widest"
-            >
-              Logout
-            </button>
+            <button onClick={logout} className="transition-colors uppercase text-xs tracking-widest" style={{ color: 'rgba(255,255,255,0.6)' }}>Logout</button>
           </>
         ) : (
           <>
-            <Link to="/login" className="text-white/80 hover:text-gold transition-colors uppercase text-xs tracking-widest">Login</Link>
-            <Link
-              to="/register"
-              className="bg-gold text-navy px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-gold-dark transition-colors"
+            <Link to="/login" className="transition-colors uppercase text-xs tracking-widest" style={{ color: 'rgba(255,255,255,0.8)' }}>Login</Link>
+            <Link to="/register" className="px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors"
+              style={{ background: 'var(--theme-primary)', color: '#fff' }}
             >
               Register
             </Link>
           </>
         )}
-        <button
-          onClick={toggleDark}
-          className="text-white/60 hover:text-gold transition-colors"
-          aria-label="Toggle dark mode"
-        >
+        <button onClick={toggleDark} className="transition-colors" style={{ color: 'rgba(255,255,255,0.6)' }} aria-label="Toggle dark mode">
           {darkMode ? (
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />

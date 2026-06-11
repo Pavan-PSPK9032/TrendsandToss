@@ -11,7 +11,7 @@ export default function Checkout() {
   const [cart, setCart] = useState({ items: [] })
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('upi')
+  const [paymentMethod, setPaymentMethod] = useState('cod')
 
   const location = useLocation()
   const { shippingInfo: cartShippingInfo, pincode: cartPincode } = location.state || {}
@@ -198,119 +198,111 @@ export default function Checkout() {
     return true
   }
 
-  if (loading) return <div className="text-center mt-20 text-navy/40 tracking-wide">Loading checkout...</div>
-
-  if (loadError) {
-    return (
-      <div className="max-w-lg mx-auto p-4 sm:p-6 mt-10 text-center">
-        <div className="bg-red-50 border border-red-200 p-6">
-          <h2 className="font-semibold text-red-700 mb-2">Maps API Error</h2>
-          <p className="text-sm text-red-600">Failed to load address autocomplete. Please check your Google Maps API key.</p>
-        </div>
-      </div>
-    )
-  }
+  if (loading) return <div className="text-center mt-20" style={{ color: 'var(--theme-text)', opacity: 0.4 }}>Loading checkout...</div>
 
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6">
-      <h1 className="font-playfair text-3xl font-semibold text-navy mb-8 tracking-tight">Checkout</h1>
+      <h1 className="font-heading text-3xl font-semibold mb-8 tracking-tight" style={{ color: 'var(--theme-text)' }}>Checkout</h1>
       <div className="grid lg:grid-cols-5 gap-10">
         <div className="lg:col-span-3 space-y-6">
-          <div className="bg-white border border-navy/10 p-6">
-            <h2 className="font-semibold text-navy text-sm uppercase tracking-widest mb-4">Shipping Address</h2>
+          <div className="p-6 border" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+            <h2 className="font-semibold text-sm uppercase tracking-widest mb-4" style={{ color: 'var(--theme-text)' }}>Shipping Address</h2>
             <form className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
-                <input type="text" name="fullName" value={address.fullName} onChange={handleAddressChange} placeholder="Full Name *" className="w-full p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none text-navy text-sm" required />
-                <input type="tel" name="phone" value={address.phone} onChange={handleAddressChange} placeholder="Phone *" className="w-full p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none text-navy text-sm" required />
+                <input type="text" name="fullName" value={address.fullName} onChange={handleAddressChange}
+                  placeholder="Full Name *" required
+                  className="w-full p-3 text-sm focus:outline-none"
+                  style={{ border: '1px solid var(--border)', color: 'var(--theme-text)', background: 'var(--input-bg)' }} />
+                <input type="tel" name="phone" value={address.phone} onChange={handleAddressChange}
+                  placeholder="Phone *" required
+                  className="w-full p-3 text-sm focus:outline-none"
+                  style={{ border: '1px solid var(--border)', color: 'var(--theme-text)', background: 'var(--input-bg)' }} />
               </div>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-navy/30 pointer-events-none z-10">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" style={{ color: 'var(--theme-text)', opacity: 0.3 }}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </div>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Search your address *"
-                  className="w-full p-3 pl-10 border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none text-navy text-sm"
+                <input ref={inputRef} type="text" placeholder="Search your address *"
+                  className="w-full p-3 pl-10 text-sm focus:outline-none"
+                  style={{ border: '1px solid var(--border)', color: 'var(--theme-text)', background: 'var(--input-bg)' }}
                   onFocus={() => setShowSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                />
-                {!isLoaded && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <div className="w-4 h-4 border-2 border-gold border-t-transparent animate-spin"></div>
-                  </div>
-                )}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} />
               </div>
-              <textarea
-                name="address"
-                value={address.address}
-                onChange={handleAddressChange}
-                placeholder="Street Address *"
-                className="w-full p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none text-navy text-sm h-20"
-                required
-              />
+              <textarea name="address" value={address.address} onChange={handleAddressChange}
+                placeholder="Street Address *" required
+                className="w-full p-3 text-sm h-20 focus:outline-none"
+                style={{ border: '1px solid var(--border)', color: 'var(--theme-text)', background: 'var(--input-bg)' }} />
               <div className="grid sm:grid-cols-3 gap-4">
-                <input type="text" name="city" value={address.city} onChange={handleAddressChange} placeholder="City" className="w-full p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none text-navy text-sm" />
-                <input type="text" name="state" value={address.state} onChange={handleAddressChange} placeholder="State" className="w-full p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none text-navy text-sm" />
-                <input type="text" name="pincode" value={address.pincode} onChange={handleAddressChange} placeholder="Pincode *" className="w-full p-3 border border-navy/20 focus:ring-2 focus:ring-gold focus:border-gold focus:outline-none text-navy text-sm" required />
+                <input type="text" name="city" value={address.city} onChange={handleAddressChange}
+                  placeholder="City"
+                  className="w-full p-3 text-sm focus:outline-none"
+                  style={{ border: '1px solid var(--border)', color: 'var(--theme-text)', background: 'var(--input-bg)' }} />
+                <input type="text" name="state" value={address.state} onChange={handleAddressChange}
+                  placeholder="State"
+                  className="w-full p-3 text-sm focus:outline-none"
+                  style={{ border: '1px solid var(--border)', color: 'var(--theme-text)', background: 'var(--input-bg)' }} />
+                <input type="text" name="pincode" value={address.pincode} onChange={handleAddressChange}
+                  placeholder="Pincode *" required
+                  className="w-full p-3 text-sm focus:outline-none"
+                  style={{ border: '1px solid var(--border)', color: 'var(--theme-text)', background: 'var(--input-bg)' }} />
               </div>
             </form>
           </div>
 
           {deliveryInfo && (
-            <div className={`border ${deliveryInfo.isFree ? 'border-gold/30 bg-gold/[0.03]' : 'border-navy/10 bg-white'}`}>
-              <div className="p-5">
-                <h3 className="font-semibold text-navy text-xs uppercase tracking-widest mb-4">Delivery Information</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="w-6 h-6 flex items-center justify-center bg-green-50 text-green-600 text-xs font-bold">&#10003;</span>
-                    <span className="text-navy/70">Delivery Available to <span className="font-medium text-navy">{deliveryInfo.pincode}</span></span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="w-6 h-6 flex items-center justify-center bg-navy/[0.05] text-navy text-xs">&#128666;</span>
-                    <span className="text-navy/70">Delivery in <span className="font-medium text-navy">{deliveryInfo.estimatedDays}</span></span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="w-6 h-6 flex items-center justify-center bg-gold/10 text-gold text-xs font-bold">&#8377;</span>
-                    <span className="text-navy/70">
-                      {deliveryInfo.isFree ? (
-                        <span className="text-gold font-semibold">FREE Shipping</span>
-                      ) : (
-                        <>Shipping <span className="font-medium text-navy">Rs.{deliveryInfo.shippingCharge}</span></>
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="w-6 h-6 flex items-center justify-center bg-green-50 text-green-600 text-xs font-bold">&#8377;</span>
-                    <span className="text-navy/70">Cash on Delivery <span className="font-medium text-green-600">Available</span></span>
+            <div className="border p-5" style={{
+              background: deliveryInfo.isFree ? 'var(--bg-secondary)' : 'var(--card-bg)',
+              borderColor: deliveryInfo.isFree ? 'var(--theme-primary)' : 'var(--border)'
+            }}>
+              <h3 className="font-semibold text-xs uppercase tracking-widest mb-4" style={{ color: 'var(--theme-text)' }}>Delivery Information</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="w-6 h-6 flex items-center justify-center bg-green-50 text-green-600 text-xs font-bold">&#10003;</span>
+                  <span style={{ color: 'var(--theme-text)', opacity: 0.7 }}>Delivery Available to <span className="font-medium" style={{ color: 'var(--theme-text)' }}>{deliveryInfo.pincode}</span></span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="w-6 h-6 flex items-center justify-center text-xs" style={{ background: 'var(--bg-secondary)', color: 'var(--theme-text)' }}>&#128666;</span>
+                  <span style={{ color: 'var(--theme-text)', opacity: 0.7 }}>Delivery in <span className="font-medium" style={{ color: 'var(--theme-text)' }}>{deliveryInfo.estimatedDays}</span></span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="w-6 h-6 flex items-center justify-center text-xs font-bold" style={{ background: 'var(--bg-secondary)', color: 'var(--theme-primary)' }}>&#8377;</span>
+                  <span style={{ color: 'var(--theme-text)', opacity: 0.7 }}>
+                    {deliveryInfo.isFree ? (
+                      <span className="font-semibold" style={{ color: 'var(--theme-primary)' }}>FREE Shipping</span>
+                    ) : (
+                      <>Shipping <span className="font-medium" style={{ color: 'var(--theme-text)' }}>₹{deliveryInfo.shippingCharge}</span></>
+                    )}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="w-6 h-6 flex items-center justify-center bg-green-50 text-green-600 text-xs font-bold">&#8377;</span>
+                  <span style={{ color: 'var(--theme-text)', opacity: 0.7 }}>Cash on Delivery <span className="font-medium" style={{ color: '#16a34a' }}>Available</span></span>
+                </div>
+              </div>
+              {!deliveryInfo.isFree && deliveryInfo.breakdown && deliveryInfo.source === 'delhivery' && (
+                <div className="mt-3 pt-3 border-t text-xs space-y-1" style={{ borderColor: 'var(--border)', color: 'var(--theme-text)', opacity: 0.5 }}>
+                  <div className="flex justify-between"><span>Base charge</span><span>₹{deliveryInfo.breakdown.base}</span></div>
+                  {deliveryInfo.breakdown.fuelSurcharge > 0 && (
+                    <div className="flex justify-between"><span>Fuel surcharge</span><span>₹{deliveryInfo.breakdown.fuelSurcharge}</span></div>
+                  )}
+                  {deliveryInfo.breakdown.odaSurcharge > 0 && (
+                    <div className="flex justify-between"><span>ODA surcharge</span><span>₹{deliveryInfo.breakdown.odaSurcharge}</span></div>
+                  )}
+                  <div className="flex justify-between font-medium pt-1 border-t" style={{ borderColor: 'var(--border)', color: 'var(--theme-text)' }}>
+                    <span>Total</span><span>₹{deliveryInfo.breakdown.total}</span>
                   </div>
                 </div>
-
-                {!deliveryInfo.isFree && deliveryInfo.breakdown && deliveryInfo.source === 'delhivery' && (
-                  <div className="mt-3 pt-3 border-t border-navy/10 text-xs space-y-1 text-navy/50">
-                    <div className="flex justify-between"><span>Base charge</span><span>Rs.{deliveryInfo.breakdown.base}</span></div>
-                    {deliveryInfo.breakdown.fuelSurcharge > 0 && (
-                      <div className="flex justify-between"><span>Fuel surcharge</span><span>Rs.{deliveryInfo.breakdown.fuelSurcharge}</span></div>
-                    )}
-                    {deliveryInfo.breakdown.odaSurcharge > 0 && (
-                      <div className="flex justify-between"><span>ODA surcharge</span><span>Rs.{deliveryInfo.breakdown.odaSurcharge}</span></div>
-                    )}
-                    <div className="flex justify-between font-medium text-navy pt-1 border-t border-navy/10">
-                      <span>Total</span><span>Rs.{deliveryInfo.breakdown.total}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           )}
 
           {fetchingDelivery && (
-            <div className="border border-navy/10 bg-navy/[0.02] p-5">
-              <div className="flex items-center gap-3 text-sm text-navy/60">
-                <div className="w-5 h-5 border-2 border-gold border-t-transparent animate-spin"></div>
+            <div className="p-5 border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)' }}>
+              <div className="flex items-center gap-3 text-sm" style={{ color: 'var(--theme-text)', opacity: 0.6 }}>
+                <div className="spinner"></div>
                 Checking delivery availability...
               </div>
             </div>
@@ -318,50 +310,71 @@ export default function Checkout() {
         </div>
 
         <div className="lg:col-span-2">
-          <div className="bg-white border border-navy/10 p-6 sticky top-4">
-            <h2 className="font-semibold text-navy text-sm uppercase tracking-widest mb-4">Order Summary</h2>
+          <div className="p-6 border lg:sticky lg:top-4" style={{ background: 'var(--card-bg)', borderColor: 'var(--border)' }}>
+            <h2 className="font-semibold text-sm uppercase tracking-widest mb-4" style={{ color: 'var(--theme-text)' }}>Order Summary</h2>
 
             {cartShippingInfo && !deliveryInfo && !fetchingDelivery && (
-              <div className={`mb-4 p-3 text-sm ${cartShippingInfo.isFree ? 'bg-gold/10 text-navy border border-gold/30' : 'bg-gray-50 text-navy/70 border border-navy/10'}`}>
+              <div className="mb-4 p-3 text-sm border" style={{
+                background: cartShippingInfo.isFree ? 'var(--bg-secondary)' : 'var(--bg-secondary)',
+                borderColor: cartShippingInfo.isFree ? 'var(--theme-primary)' : 'var(--border)',
+                color: 'var(--theme-text)'
+              }}>
                 <p className="font-medium">{cartShippingInfo.message}</p>
                 <p className="text-xs mt-1">{cartPincode} &bull; {cartShippingInfo.estimatedDays}</p>
               </div>
             )}
 
-            <div className="space-y-3 mb-6 text-navy/60 text-sm">
+            <div className="space-y-3 mb-6 text-sm" style={{ color: 'var(--theme-text)', opacity: 0.6 }}>
               <div className="flex justify-between">
                 <span>Subtotal ({cart.items.length} items)</span>
-                <span className="font-medium text-navy">{subtotal.toFixed(2)}</span>
+                <span className="font-medium" style={{ color: 'var(--theme-text)' }}>₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span className={shippingInfo?.isFree ? 'text-gold font-semibold' : ''}>
-                  {shippingInfo ? (shippingInfo.isFree ? 'Free' : `Rs.${shippingInfo.shippingCharge}`) : 'Calculating...'}
+                <span className={shippingInfo?.isFree ? 'font-semibold' : ''}
+                  style={{ color: shippingInfo?.isFree ? 'var(--theme-primary)' : 'var(--theme-text)' }}>
+                  {shippingInfo ? (shippingInfo.isFree ? 'Free' : `₹${shippingInfo.shippingCharge}`) : 'Calculating...'}
                 </span>
               </div>
             </div>
 
-            <div className="border-t border-navy/10 pt-4 mb-6">
+            <div className="border-t pt-4 mb-6" style={{ borderColor: 'var(--border)' }}>
               <div className="flex justify-between items-center">
-                <span className="text-xs font-bold uppercase tracking-widest text-navy">Total</span>
-                <span className="font-playfair text-2xl font-semibold text-navy">Rs.{total.toFixed(2)}</span>
+                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--theme-text)' }}>Total</span>
+                <span className="font-heading text-2xl font-semibold" style={{ color: 'var(--theme-primary)' }}>₹{total.toFixed(2)}</span>
               </div>
             </div>
 
             <div className="space-y-3 mb-6">
-              <label className={`flex items-center gap-3 p-4 border cursor-pointer transition ${paymentMethod === 'upi' ? 'border-gold bg-gold/5' : 'border-navy/10 hover:border-gold/40'}`}>
-                <input type="radio" name="payment" value="upi" checked={paymentMethod === 'upi'} onChange={() => setPaymentMethod('upi')} className="text-gold focus:ring-gold" />
+              <label className={`flex items-center gap-3 p-4 border cursor-pointer transition`}
+                style={{
+                  borderColor: paymentMethod === 'upi' ? 'var(--theme-primary)' : 'var(--border)',
+                  background: paymentMethod === 'upi' ? 'var(--bg-secondary)' : 'transparent'
+                }}
+              >
+                <input type="radio" name="payment" value="upi"
+                  checked={paymentMethod === 'upi'}
+                  onChange={() => setPaymentMethod('upi')}
+                  className="focus:ring-0" />
                 <div>
-                  <div className="font-medium text-navy">Direct UPI Payment</div>
-                  <div className="text-xs text-navy/50">Scan QR or use UPI ID &bull; Manual verification</div>
+                  <div className="font-medium" style={{ color: 'var(--theme-text)' }}>Direct UPI Payment</div>
+                  <div className="text-xs" style={{ color: 'var(--theme-text)', opacity: 0.5 }}>Scan QR or use UPI ID &bull; Manual verification</div>
                 </div>
               </label>
 
-              <label className={`flex items-center gap-3 p-4 border cursor-pointer transition ${paymentMethod === 'cod' ? 'border-gold bg-gold/5' : 'border-navy/10 hover:border-gold/40'}`}>
-                <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="text-gold focus:ring-gold" />
+              <label className={`flex items-center gap-3 p-4 border cursor-pointer transition`}
+                style={{
+                  borderColor: paymentMethod === 'cod' ? 'var(--theme-primary)' : 'var(--border)',
+                  background: paymentMethod === 'cod' ? 'var(--bg-secondary)' : 'transparent'
+                }}
+              >
+                <input type="radio" name="payment" value="cod"
+                  checked={paymentMethod === 'cod'}
+                  onChange={() => setPaymentMethod('cod')}
+                  className="focus:ring-0" />
                 <div>
-                  <div className="font-medium text-navy">Cash on Delivery</div>
-                  <div className="text-xs text-navy/50">Pay when you receive</div>
+                  <div className="font-medium" style={{ color: 'var(--theme-text)' }}>Cash on Delivery</div>
+                  <div className="text-xs" style={{ color: 'var(--theme-text)', opacity: 0.5 }}>Pay when you receive</div>
                 </div>
               </label>
             </div>
@@ -374,14 +387,18 @@ export default function Checkout() {
 
             {paymentMethod === 'cod' && (
               <div className="space-y-3">
-                <button
-                  onClick={handleCODOrder}
+                <button onClick={handleCODOrder}
                   disabled={processing || (!deliveryInfo && !cartShippingInfo)}
-                  className="w-full bg-navy text-white py-3 font-semibold hover:bg-navy-light disabled:opacity-40 disabled:cursor-not-allowed transition text-sm uppercase tracking-widest"
+                  className="w-full py-3 font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition text-sm uppercase tracking-widest text-white"
+                  style={{ background: 'var(--theme-text)' }}
                 >
                   {processing ? 'Processing...' : 'Place Order (COD)'}
                 </button>
-                <p className="text-[10px] text-center text-navy/30 mt-4 uppercase tracking-widest">Secure SSL Encryption - 30-day returns</p>
+                <p className="text-[10px] text-center mt-4 uppercase tracking-widest"
+                  style={{ color: 'var(--theme-text)', opacity: 0.3 }}
+                >
+                  Secure SSL Encryption - 30-day returns
+                </p>
               </div>
             )}
           </div>
