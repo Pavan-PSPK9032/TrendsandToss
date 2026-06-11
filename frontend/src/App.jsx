@@ -220,16 +220,6 @@ function GlassNav() {
             </svg>
             <span className="text-[9px] font-medium uppercase tracking-wider">Search</span>
           </button>
-          {user && (
-            <Link to="/my-orders" className="flex flex-col items-center gap-0.5 transition-colors"
-              style={{ color: 'rgba(255,255,255,0.7)' }}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-              <span className="text-[9px] font-medium uppercase tracking-wider">Orders</span>
-            </Link>
-          )}
           {user?.role === 'admin' && (
             <Link to="/admin" className="flex flex-col items-center gap-0.5 transition-colors"
               style={{ color: 'var(--theme-primary)' }}
@@ -238,6 +228,16 @@ function GlassNav() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-[9px] font-medium uppercase tracking-wider">Admin</span>
+            </Link>
+          )}
+          {user && (
+            <Link to="/my-orders" className="flex flex-col items-center gap-0.5 transition-colors"
+              style={{ color: 'rgba(255,255,255,0.7)' }}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              <span className="text-[9px] font-medium uppercase tracking-wider">Orders</span>
             </Link>
           )}
           <Link to="/cart" className="relative flex flex-col items-center gap-0.5 transition-colors"
