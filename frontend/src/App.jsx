@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { AnimatePresence } from 'framer-motion'
@@ -263,11 +263,18 @@ function GlassNav() {
   )
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
+
 function App() {
   const [showSplash, setShowSplash] = useState(true)
 
   return (
     <Router>
+      <ScrollToTop />
       <CartProvider>
         <Toaster position="top-right"
           toastOptions={{
