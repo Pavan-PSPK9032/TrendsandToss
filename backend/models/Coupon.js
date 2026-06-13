@@ -21,7 +21,8 @@ const couponSchema = new mongoose.Schema({
   usedCount: { type: Number, default: 0 },
   isActive: { type: Boolean, default: true },
   validFrom: { type: Date, default: Date.now },
-  validUntil: { type: Date }
+  validUntil: { type: Date },
+  isFeatured: { type: Boolean, default: false }
 }, { timestamps: true });
 
 // Check if coupon is valid

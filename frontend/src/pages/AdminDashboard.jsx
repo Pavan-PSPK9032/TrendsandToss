@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import AdminOrders from '../components/admin/AdminOrders';
 import CategoryManagement from '../components/admin/CategoryManagement';
+import CouponManagement from '../components/admin/CouponManagement';
 import { useAuth } from '../context/AuthContext';
 import { playPendingOrderAlert } from '../utils/notificationSound';
 
@@ -347,6 +348,10 @@ export default function AdminDashboard() {
               <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
               All Orders
             </button>
+            <button onClick={() => setActiveTab('coupons')} className={`px-4 py-2 font-medium transition text-sm uppercase tracking-widest ${activeTab === 'coupons' ? 'bg-white shadow text-gold' : 'text-navy/60 hover:text-navy'}`}>
+              <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+              Coupons
+            </button>
             <button onClick={() => setActiveTab('admins')} className={`px-4 py-2 font-medium transition text-sm uppercase tracking-widest ${activeTab === 'admins' ? 'bg-white shadow text-gold' : 'text-navy/60 hover:text-navy'}`}>
               <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" /></svg>
               Admins
@@ -499,6 +504,9 @@ export default function AdminDashboard() {
         <div>
           <CategoryManagement />
         </div>
+      )}
+      {activeTab === 'coupons' && (
+        <CouponManagement />
       )}
     </div>
   );

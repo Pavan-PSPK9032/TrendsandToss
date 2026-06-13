@@ -71,11 +71,20 @@ function CategoryCard({ cat }) {
 
 export default function Home() {
   const [categories, setCategories] = useState([])
+  const [featuredCoupons, setFeaturedCoupons] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchCategories()
+    fetchFeaturedCoupons()
   }, [])
+
+  const fetchFeaturedCoupons = async () => {
+    try {
+      const { data } = await api.get('/coupons/featured')
+      setFeaturedCoupons(data)
+    } catch { /* ignore */ }
+  }
 
   const fetchCategories = async () => {
     try {
@@ -92,6 +101,28 @@ export default function Home() {
   return (
     <div>
       <BannerSlider />
+
+      {featuredCoupons.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 -mt-10 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {featuredCoupons.map(coupon => (
+              <Link key={coupon._id} to="/coupons"
+                className="flex items-center gap-3 p-3 border transition hover:shadow-md"
+                style={{ background: 'var(--bg)', borderColor: 'var(--theme-primary)' }}
+              >
+                <span className="text-lg flex-shrink-0 w-8 h-8 flex items-center justify-center" style={{ background: 'var(--theme-primary)', color: '#fff' }}>🎉</span>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm tracking-wide" style={{ color: 'var(--theme-text)' }}>{coupon.code}</p>
+                  <p className="text-xs truncate" style={{ color: 'var(--theme-text)', opacity: 0.6 }}>{coupon.description}</p>
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider ml-auto shrink-0 px-2 py-1" style={{ background: 'var(--theme-primary)', color: '#fff' }}>
+                  {coupon.discountType === 'percentage' ? `${coupon.discountValue}% OFF` : `₹${coupon.discountValue} OFF`}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 mb-20 md:mb-28">
         <div className="flex items-center justify-between mb-8 md:mb-10">

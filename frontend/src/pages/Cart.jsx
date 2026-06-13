@@ -14,6 +14,7 @@ export default function Cart() {
   const [couponCode, setCouponCode] = useState('')
   const [couponInfo, setCouponInfo] = useState(null)
   const [applyingCoupon, setApplyingCoupon] = useState(false)
+  const [featuredCoupons, setFeaturedCoupons] = useState([])
 
   useEffect(() => {
     if (location.state?.appliedCoupon) {
@@ -30,7 +31,15 @@ export default function Cart() {
 
   useEffect(() => {
     fetchCart()
+    fetchFeaturedCoupons()
   }, [])
+
+  const fetchFeaturedCoupons = async () => {
+    try {
+      const { data } = await api.get('/coupons/featured')
+      setFeaturedCoupons(data)
+    } catch { /* ignore */ }
+  }
 
   const fetchCart = async () => {
     try {
@@ -52,18 +61,20 @@ export default function Cart() {
   const discountAmount = couponInfo?.discountAmount || 0
   const total = subtotal - discountAmount
 
-  const applyCoupon = async () => {
-    if (!couponCode.trim()) {
+  const applyCoupon = async (code) => {
+    const couponToApply = code || couponCode
+    if (!couponToApply.trim()) {
       toast.error('Please enter a coupon code')
       return
     }
     setApplyingCoupon(true)
     try {
       const { data } = await api.post('/coupons/validate', {
-        code: couponCode,
+        code: couponToApply,
         orderValue: subtotal
       })
       setCouponInfo(data)
+      setCouponCode('')
       toast.success(`Coupon applied! You saved Rs.${data.discountAmount.toFixed(2)}`)
     } catch (err) {
       setCouponInfo(null)
@@ -160,6 +171,23 @@ export default function Cart() {
                 </div>
               )}
               
+              {featuredCoupons.length > 0 && !couponInfo && (
+                <div className="space-y-2 mb-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--theme-primary)' }}>Featured Offers</p>
+                  {featuredCoupons.map(c => (
+                    <button key={c._id} onClick={() => { setCouponCode(c.code); applyCoupon(c.code) }}
+                      className="w-full flex items-center gap-2 p-2 border text-left transition hover:shadow-sm"
+                      style={{ borderColor: 'var(--theme-primary)', background: 'var(--bg-secondary)' }}
+                    >
+                      <span className="text-sm">🎉</span>
+                      <span className="text-xs font-semibold tracking-wide" style={{ color: 'var(--theme-text)' }}>{c.code}</span>
+                      <span className="text-[10px] ml-auto font-bold" style={{ color: 'var(--theme-primary)' }}>
+                        {c.discountType === 'percentage' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-xs uppercase tracking-widest" style={{ color: 'var(--theme-text)' }}>Have a Coupon?</h3>

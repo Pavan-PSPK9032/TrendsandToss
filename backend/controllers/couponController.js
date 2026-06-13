@@ -60,6 +60,23 @@ export const createCoupon = async (req, res) => {
   }
 };
 
+// Get featured coupons (public)
+export const getFeaturedCoupons = async (req, res) => {
+  try {
+    const coupons = await Coupon.find({
+      isFeatured: true,
+      isActive: true,
+      $or: [
+        { validUntil: null },
+        { validUntil: { $gte: new Date() } }
+      ]
+    }).sort({ createdAt: -1 }).limit(6);
+    res.json(coupons);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch featured coupons' });
+  }
+};
+
 // Get all active coupons (public)
 export const getActiveCoupons = async (req, res) => {
   try {

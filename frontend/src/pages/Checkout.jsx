@@ -14,7 +14,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState('cod')
 
   const location = useLocation()
-  const { shippingInfo: cartShippingInfo, pincode: cartPincode } = location.state || {}
+  const { shippingInfo: cartShippingInfo, pincode: cartPincode, couponInfo } = location.state || {}
 
   const [address, setAddress] = useState({
     fullName: '', phone: '', address: '', city: '', state: '', pincode: '', country: 'India'
@@ -22,6 +22,7 @@ export default function Checkout() {
   const [deliveryInfo, setDeliveryInfo] = useState(null)
   const [fetchingDelivery, setFetchingDelivery] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [featuredCoupons, setFeaturedCoupons] = useState([])
   const autocompleteRef = useRef(null)
   const inputRef = useRef(null)
   const navigate = useNavigate()
@@ -40,6 +41,12 @@ export default function Checkout() {
     }
     fetchCart()
   }, [navigate])
+
+  useEffect(() => {
+    api.get('/coupons/featured').then(({ data }) => {
+      if (data.length) setFeaturedCoupons(data)
+    }).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!isLoaded || !window.google) return
@@ -129,7 +136,8 @@ export default function Checkout() {
 
   const shippingInfo = deliveryInfo || cartShippingInfo
   const shippingCharge = shippingInfo?.isFree ? 0 : (shippingInfo?.shippingCharge || 0)
-  const total = subtotal + shippingCharge
+  const discountAmount = couponInfo?.discountAmount || 0
+  const total = subtotal + shippingCharge - discountAmount
 
   const handleAddressChange = (e) => {
     setAddress({ ...address, [e.target.name]: e.target.value })
@@ -148,6 +156,8 @@ export default function Checkout() {
         shippingCharge,
         shippingZone: shippingInfo?.zone,
         subtotal,
+        discountAmount,
+        couponCode: couponInfo?.code,
         total
       })
       toast.success('Order placed successfully!')
@@ -175,6 +185,8 @@ export default function Checkout() {
         shippingCharge,
         shippingZone: shippingInfo?.zone,
         subtotal,
+        discountAmount,
+        couponCode: couponInfo?.code,
         total
       })
       toast.success('Order placed! We will verify your UPI payment')
@@ -324,19 +336,43 @@ export default function Checkout() {
               </div>
             )}
 
-            <div className="space-y-3 mb-6 text-sm" style={{ color: 'var(--theme-text)', opacity: 0.6 }}>
-              <div className="flex justify-between">
-                <span>Subtotal ({cart.items.length} items)</span>
-                <span className="font-medium" style={{ color: 'var(--theme-text)' }}>₹{subtotal.toFixed(2)}</span>
+            {featuredCoupons.length > 0 && !couponInfo && (
+              <div className="mb-4 space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--theme-primary)' }}>Available Offers</p>
+                {featuredCoupons.map(c => (
+                  <Link key={c._id} to="/coupons"
+                    className="flex items-center gap-2 p-2 border text-left transition hover:shadow-sm"
+                    style={{ borderColor: 'var(--theme-primary)', background: 'var(--bg-secondary)' }}
+                  >
+                    <span className="text-sm">🎉</span>
+                    <span className="text-xs font-semibold tracking-wide" style={{ color: 'var(--theme-text)' }}>{c.code}</span>
+                    <span className="text-[10px] ml-auto font-bold" style={{ color: 'var(--theme-primary)' }}>
+                      {c.discountType === 'percentage' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF`}
+                    </span>
+                  </Link>
+                ))}
               </div>
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span className={shippingInfo?.isFree ? 'font-semibold' : ''}
-                  style={{ color: shippingInfo?.isFree ? 'var(--theme-primary)' : 'var(--theme-text)' }}>
-                  {shippingInfo ? (shippingInfo.isFree ? 'Free' : `₹${shippingInfo.shippingCharge}`) : 'Calculating...'}
-                </span>
+            )}
+
+              <div className="space-y-3 mb-6 text-sm" style={{ color: 'var(--theme-text)', opacity: 0.6 }}>
+                <div className="flex justify-between">
+                  <span>Subtotal ({cart.items.length} items)</span>
+                  <span className="font-medium" style={{ color: 'var(--theme-text)' }}>₹{subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span className={shippingInfo?.isFree ? 'font-semibold' : ''}
+                    style={{ color: shippingInfo?.isFree ? 'var(--theme-primary)' : 'var(--theme-text)' }}>
+                    {shippingInfo ? (shippingInfo.isFree ? 'Free' : `₹${shippingInfo.shippingCharge}`) : 'Calculating...'}
+                  </span>
+                </div>
+                {couponInfo && (
+                  <div className="flex justify-between" style={{ color: 'var(--theme-primary)' }}>
+                    <span>Discount ({couponInfo.code})</span>
+                    <span>-₹{couponInfo.discountAmount.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
-            </div>
 
             <div className="border-t pt-4 mb-6" style={{ borderColor: 'var(--border)' }}>
               <div className="flex justify-between items-center">

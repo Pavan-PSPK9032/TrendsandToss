@@ -30,7 +30,7 @@
 
 /* ===== BASE ELEMENTS ===== */
 html {
-  scroll-behavior: smooth !important;
+  scroll-behavior: auto !important;
 }
 
 body {
