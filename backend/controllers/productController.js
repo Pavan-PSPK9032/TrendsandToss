@@ -7,10 +7,7 @@ export const getProducts = async (req, res) => {
     
     const query = {};
     if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
+      query.$text = { $search: search };
     }
     if (category && category !== 'all') {
       query.category = category;
@@ -20,7 +17,8 @@ export const getProducts = async (req, res) => {
     const products = await Product.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(Number(limit));
+      .limit(Number(limit))
+      .lean();
     
     const total = await Product.countDocuments(query);
     
@@ -40,7 +38,7 @@ export const getProducts = async (req, res) => {
 // GET single product by ID
 export const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).lean();
     if (!product) return res.status(404).json({ error: 'Product not found' });
     res.json(product);
   } catch (err) {

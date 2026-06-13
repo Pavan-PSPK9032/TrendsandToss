@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext, useMemo, useCallback } from 'react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { auth } from '../config/firebase';
@@ -40,10 +40,15 @@ export const CartProvider = ({ children }) => {
     try { await api.put('/cart/update', { productId, quantity: 0 }); updateCartUI(); toast.success('Removed'); } catch { toast.error('Failed'); }
   };
 
-  const total = cart.items.reduce((sum, item) => sum + (item.productId?.price * item.quantity || 0), 0);
+  const total = useMemo(() =>
+    cart.items.reduce((sum, item) => sum + (item.productId?.price * item.quantity || 0), 0),
+    [cart.items]
+  );
+
+  const value = useMemo(() => ({ cart, addToCart, removeFromCart, total, updateCartUI }), [cart, total]);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, total, updateCartUI }}>
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   );

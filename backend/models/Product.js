@@ -11,6 +11,10 @@ const productSchema = new mongoose.Schema({
   status: { type: String, enum: ['in_stock', 'out_of_stock'], default: 'in_stock' }
 }, { timestamps: true });
 
+productSchema.index({ category: 1, createdAt: -1 });
+productSchema.index({ price: 1 });
+productSchema.index({ name: 'text', description: 'text' });
+
 productSchema.pre('save', function(next) {
   this.status = this.stock > 0 ? 'in_stock' : 'out_of_stock';
   next();

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { getImageUrl } from '../utils/imageHelper';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,7 +11,7 @@ function isNewProduct(createdAt) {
   return diffDays <= 14;
 }
 
-export default function ProductCard({ product, view = 'grid' }) {
+const ProductCard = memo(function ProductCard({ product, view = 'grid' }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentImg, setCurrentImg] = useState(0);
@@ -186,4 +186,6 @@ export default function ProductCard({ product, view = 'grid' }) {
       </div>
     </Link>
   );
-}
+});
+
+export default ProductCard;
