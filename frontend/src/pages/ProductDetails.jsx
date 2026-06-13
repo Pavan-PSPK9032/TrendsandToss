@@ -5,10 +5,13 @@ import ImageCarousel from '../components/ImageCarousel'
 import ImageModal from '../components/ImageModal'
 import ReviewSection from '../components/ReviewSection'
 import toast from 'react-hot-toast'
+import { useLoginPrompt } from '../context/LoginPromptContext'
+import { auth } from '../config/firebase'
 
 export default function ProductDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { showLoginPrompt } = useLoginPrompt()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showImageModal, setShowImageModal] = useState(false)
@@ -32,20 +35,22 @@ export default function ProductDetails() {
   }
 
   const addToCart = async () => {
+    if (!auth.currentUser) { showLoginPrompt('Login to add items to your cart'); return }
     try {
       await api.post('/cart/add', { productId: id, quantity: 1 })
       toast.success('Added to cart!')
     } catch (err) {
-      toast.error('Please login to add items')
+      toast.error('Failed to add to cart')
     }
   }
 
   const buyNow = async () => {
+    if (!auth.currentUser) { showLoginPrompt('Login to continue with purchase'); return }
     try {
       await api.post('/cart/add', { productId: id, quantity: 1 })
       navigate('/cart')
     } catch (err) {
-      toast.error('Please login to continue')
+      toast.error('Failed to proceed')
     }
   }
 

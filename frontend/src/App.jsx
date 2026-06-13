@@ -7,6 +7,7 @@ import SearchOverlay from './components/SearchOverlay'
 
 import { CartProvider, useCart } from './context/CartContext'
 import { useAuth } from './context/AuthContext'
+import { LoginPromptProvider } from './context/LoginPromptContext'
 
 const Home = lazy(() => import('./pages/Home'))
 const Products = lazy(() => import('./pages/Products'))
@@ -275,6 +276,7 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      <LoginPromptProvider>
       <CartProvider>
         <Toaster position="top-right"
           toastOptions={{
@@ -323,6 +325,7 @@ function App() {
           </div>
         )}
       </CartProvider>
+      </LoginPromptProvider>
     </Router>
   )
 }

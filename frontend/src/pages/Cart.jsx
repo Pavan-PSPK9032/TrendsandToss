@@ -3,12 +3,15 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import api from '../api/axios'
 import ImageCarousel from '../components/ImageCarousel'
 import { useCart } from '../context/CartContext'
+import { useLoginPrompt } from '../context/LoginPromptContext'
 import toast from 'react-hot-toast'
+import { auth } from '../config/firebase'
 
 export default function Cart() {
   const navigate = useNavigate()
   const location = useLocation()
   const { removeFromCart, updateCartUI } = useCart()
+  const { showLoginPrompt } = useLoginPrompt()
   const [cart, setCart] = useState({ items: [] })
   const [loading, setLoading] = useState(true)
   const [couponCode, setCouponCode] = useState('')
@@ -285,8 +288,11 @@ export default function Cart() {
                     </div>
                   </div>
                 )}
-                <Link to={hasOutOfStock ? '#' : '/checkout'} state={{ couponInfo }}
-                  onClick={hasOutOfStock ? (e) => e.preventDefault() : undefined}
+                <Link to={hasOutOfStock || !auth.currentUser ? '#' : '/checkout'} state={{ couponInfo }}
+                  onClick={(e) => {
+                    if (hasOutOfStock) { e.preventDefault(); return }
+                    if (!auth.currentUser) { e.preventDefault(); showLoginPrompt('Login to proceed to checkout'); return }
+                  }}
                 >
                   <button disabled={hasOutOfStock}
                     className="w-full py-3 font-semibold transition text-xs sm:text-sm uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed text-white"
