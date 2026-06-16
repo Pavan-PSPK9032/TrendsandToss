@@ -138,11 +138,13 @@ export const deleteAllProducts = async (req, res) => {
 export const updateProductPrice = async (req, res) => {
   try {
     const { price, originalPrice } = req.body;
+    console.log('[updateProductPrice] body:', req.body);
+    console.log('[updateProductPrice] headers:', req.headers['content-type']);
     const update = {};
-    if (price !== undefined) update.price = Number(price);
-    if (originalPrice !== undefined) update.originalPrice = Number(originalPrice);
+    if (price !== undefined && price !== '' && price !== null) update.price = Number(price);
+    if (originalPrice !== undefined && originalPrice !== '' && originalPrice !== null) update.originalPrice = Number(originalPrice);
     if (Object.keys(update).length === 0) {
-      return res.status(400).json({ error: 'price or originalPrice is required' });
+      return res.status(400).json({ error: 'price or originalPrice is required', body: req.body });
     }
     const product = await Product.findByIdAndUpdate(
       req.params.id,
