@@ -152,7 +152,7 @@ function BulkActionBar({ selectedCount, onClear, onAction }) {
           <button onClick={handleApply}
             className="bg-navy text-white px-4 py-2 text-xs font-semibold uppercase tracking-wider hover:bg-navy-light transition">Apply</button>
         </div>
-      </div>
+      )}
     </div>
   );
 }
