@@ -134,6 +134,28 @@ export const deleteAllProducts = async (req, res) => {
   }
 };
 
+// PATCH product price (partial update)
+export const updateProductPrice = async (req, res) => {
+  try {
+    const { price, originalPrice } = req.body;
+    const update = {};
+    if (price !== undefined) update.price = Number(price);
+    if (originalPrice !== undefined) update.originalPrice = Number(originalPrice);
+    if (Object.keys(update).length === 0) {
+      return res.status(400).json({ error: 'price or originalPrice is required' });
+    }
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      update,
+      { new: true, runValidators: true }
+    );
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to update price' });
+  }
+};
+
 // PATCH product stock (partial update)
 export const updateProductStock = async (req, res) => {
   try {

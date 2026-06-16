@@ -5,6 +5,7 @@ import {
   createProduct, 
   updateProduct, 
   updateProductStock,
+  updateProductPrice,
   bulkUpdatePrice,
   deleteProduct,
   deleteAllProducts
@@ -22,6 +23,7 @@ router.get('/:id', getProductById);
 router.post('/', protect, isAdmin, upload.array('images', 3), createProduct);
 router.put('/:id', protect, isAdmin, upload.array('images', 3), updateProduct);
 router.patch('/:id/stock', protect, isAdmin, updateProductStock);
+router.patch('/:id/price', protect, isAdmin, updateProductPrice);
 router.post('/bulk-price', protect, isAdmin, bulkUpdatePrice);
 router.delete('/all', protect, isAdmin, deleteAllProducts);
 router.delete('/:id', protect, isAdmin, deleteProduct);
