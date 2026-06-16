@@ -50,10 +50,7 @@ function PriceEditModal({ open, product, onSave, onClose }) {
     setError('');
     setSaving(true);
     try {
-      const fd = new FormData();
-      fd.append('price', sp);
-      if (mp) fd.append('originalPrice', mp);
-      await api.patch(`/products/${product._id}/price`, fd);
+      await api.patch(`/products/${product._id}/price`, { price: sp, ...(mp ? { originalPrice: mp } : {}) });
       toast.success('Price updated');
       onSave({ price: sp, originalPrice: mp });
       onClose();
