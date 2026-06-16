@@ -153,6 +153,35 @@ export const updateProductStock = async (req, res) => {
   }
 };
 
+// POST bulk price update
+export const bulkUpdatePrice = async (req, res) => {
+  try {
+    const { ids, mode, value } = req.body;
+    if (!ids?.length || !mode || value === undefined) {
+      return res.status(400).json({ error: 'ids, mode, and value are required' });
+    }
+
+    let ops;
+    if (mode === 'increasePct') {
+      ops = [{ $mul: { price: 1 + value / 100 } }];
+    } else if (mode === 'decreasePct') {
+      ops = [{ $mul: { price: 1 - value / 100 } }];
+    } else if (mode === 'setPrice') {
+      ops = [{ $set: { price: Number(value) } }];
+    } else if (mode === 'setMrp') {
+      ops = [{ $set: { originalPrice: Number(value) } }];
+    } else {
+      return res.status(400).json({ error: 'Invalid mode' });
+    }
+
+    await Product.updateMany({ _id: { $in: ids } }, ops);
+    const updated = await Product.find({ _id: { $in: ids } }).lean();
+    res.json({ message: `Updated ${updated.length} products`, products: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Bulk update failed' });
+  }
+};
+
 // DELETE product
 export const deleteProduct = async (req, res) => {
   try {
