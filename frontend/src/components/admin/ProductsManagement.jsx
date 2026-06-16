@@ -34,6 +34,8 @@ export default function ProductsManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [editingPrice, setEditingPrice] = useState(null);
+  const [priceInput, setPriceInput] = useState('');
 
   useEffect(() => { fetchProducts(); fetchCategories(); }, []);
 
@@ -151,6 +153,26 @@ export default function ProductsManagement() {
       toast.error('Failed to update stock');
       fetchProducts();
     }
+  };
+
+  const updatePrice = async (productId, newPrice) => {
+    if (isNaN(newPrice) || newPrice < 0) { toast.error('Invalid price'); return }
+    setEditingPrice(null);
+    setProducts(prev => prev.map(p => p._id === productId ? { ...p, price: newPrice } : p));
+    try {
+      const fd = new FormData();
+      fd.append('price', newPrice);
+      await api.put(`/products/${productId}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      toast.success('Price updated');
+    } catch (err) {
+      toast.error('Failed to update price');
+      fetchProducts();
+    }
+  };
+
+  const startPriceEdit = (product) => {
+    setEditingPrice(product._id);
+    setPriceInput(product.price);
   };
 
   const resetForm = () => {
@@ -360,9 +382,33 @@ export default function ProductsManagement() {
                   </td>
                   <td className="p-4"><span className="text-xs font-medium text-navy/60 bg-navy/5 px-2.5 py-1 capitalize">{product.category}</span></td>
                   <td className="p-4">
-                    <div className="font-semibold text-navy">Rs.{product.price}</div>
-                    {product.originalPrice && product.originalPrice > product.price && (
-                      <div className="text-xs text-navy/30 line-through">Rs.{product.originalPrice}</div>
+                    {editingPrice === product._id ? (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-navy/40">Rs.</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={priceInput}
+                          onChange={e => setPriceInput(Number(e.target.value))}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') updatePrice(product._id, priceInput)
+                            if (e.key === 'Escape') setEditingPrice(null)
+                          }}
+                          onBlur={() => updatePrice(product._id, priceInput)}
+                          className="w-20 border border-gold p-1 text-sm font-semibold text-navy focus:outline-none"
+                          autoFocus
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 group">
+                        <span className="font-semibold text-navy">Rs.{product.price}</span>
+                        <button onClick={() => startPriceEdit(product)} className="opacity-0 group-hover:opacity-100 p-0.5 text-navy/30 hover:text-gold transition" title="Edit price">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        </button>
+                        {product.originalPrice && product.originalPrice > product.price && (
+                          <span className="text-xs text-navy/30 line-through ml-1">Rs.{product.originalPrice}</span>
+                        )}
+                      </div>
                     )}
                   </td>
                   <td className="p-4">
